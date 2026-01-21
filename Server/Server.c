@@ -1,37 +1,50 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/wait.h>
+#include "Server.h"
 #include "SignalHandler.h"
+#include "TCPServer.h"
 
+int Server_Initialize(Server *_Server)
+{
+    TCPServer* tcp_server = NULL;
+    TCPServer_Initialize(&tcp_server, 10180, 1000, NULL, NULL);
+    TCPServer_Listen(tcp_server);
 
-int main() {
+    return 0;
+}
 
-    printf("Server is starting...\n");
+int Server_Run()
+{
 
     SignalHandler_Initialize();
 
     int status;
     pid_t pid = fork();
 
-    if (pid < 0) {
+    if (pid < 0)
+    {
         exit(EXIT_FAILURE);
     }
-    else if(pid == 0){
+    else if (pid == 0)
+    {
         printf("Connection module started.\n");
-        while(1 && SignalHandler_Stop() == 0) {
+        while (1 && SignalHandler_Stop() == 0)
+        {
             sleep(5);
-            printf("Handling connections...\n");
+            printf("Handling connections\n");
         }
     }
-    else {
+    else
+    {
         wait(&status);
         printf("Connection module finished with status: %d\n", WEXITSTATUS(status));
     }
 
-    
-
-    printf("Server is shutting down\n");
     return 0;
+}
+
+
+void Server_Dispose(Server* _Server)
+{
+    (void*)_Server;
 }
