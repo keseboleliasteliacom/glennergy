@@ -6,14 +6,14 @@
 #include "Server.h"
 
 
-int main() {
+int main(int argc, char* argv[]) {
 
     printf("Server is starting...\n");
     
-    Server server;
-    Server_Initialize(&server);
+    Server* server = NULL;
+    Server_Initialize(&server, argv[1]);
 
-    Server_Run(&server);
+    Server_Run(server);
 
     Server_Dispose(&server);
 

@@ -3,17 +3,23 @@
 #include "Server.h"
 #include "SignalHandler.h"
 #include "TCPServer.h"
+#include "../Libs/Utils/utils.h"
 
-int Server_Initialize(Server *_Server)
+int Server_Initialize(Server **_Server, char* _Port)
 {
-    TCPServer* tcp_server = NULL;
-    TCPServer_Initialize(&tcp_server, 10180, 1000, NULL, NULL);
-    TCPServer_Listen(tcp_server);
+    Server *srv = (Server *)malloc(sizeof(Server));
 
+    if (srv == NULL)
+        return -1;
+    
+    srv->port = strtol(_Port, NULL, 10);
+
+    printf("Port_ %d\n", srv->port);
+    *_Server = srv;
     return 0;
 }
 
-int Server_Run()
+int Server_Run(Server* _Server)
 {
 
     SignalHandler_Initialize();
@@ -27,12 +33,22 @@ int Server_Run()
     }
     else if (pid == 0)
     {
-        printf("Connection module started.\n");
-        while (1 && SignalHandler_Stop() == 0)
+        smw_init();
+
+        ConnectionHandler* cHandler = NULL;
+
+        ConnectionHandler_Initialize(&cHandler, _Server->port);
+
+        uint64_t monTime = 0;
+        while(smw_getTaskCount() > 0 && SignalHandler_Stop() == 0)
         {
-            sleep(5);
-            printf("Handling connections\n");
+            monTime = SystemMonotonicMS();
+            smw_work(monTime);
         }
+
+        printf("Fork shutdown\n");
+        ConnectionHandler_Dispose(&cHandler);
+        smw_dispose();
     }
     else
     {
@@ -43,8 +59,13 @@ int Server_Run()
     return 0;
 }
 
-
-void Server_Dispose(Server* _Server)
+void Server_Dispose(Server **_Server)
 {
-    (void*)_Server;
+    if (_Server == NULL || *_Server == NULL)
+        return;
+
+    Server *srv = *_Server;
+
+    free(srv);
+    srv = NULL;
 }

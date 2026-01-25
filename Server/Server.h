@@ -10,16 +10,17 @@
 typedef struct
 {
     ConnectionHandler cHandler;
+    int port;
 
 } Server;
 
-int Server_Initialize(Server *_Server);
+int Server_Initialize(Server** _Server, char* _Port);
 
 
-int Server_Run();
+int Server_Run(Server* _Server);
 
 
-void Server_Dispose(Server* _Server);
+void Server_Dispose(Server** _Server);
 
 
 #endif
