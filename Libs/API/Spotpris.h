@@ -16,7 +16,7 @@ typedef struct {
 
 typedef struct
 {
-    char* area[4]; // Prisklasser/områden: "SE1", "SE2", "SE3", "SE4"
+    char area[4]; // Prisklasser/områden: "SE1", "SE2", "SE3", "SE4"
     size_t count; // Kommer troligtvis vara 96 kvartar
     SpotPriceEntry *entries;
 } DagligSpotpris;
