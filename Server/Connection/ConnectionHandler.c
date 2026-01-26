@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include "ConnectionHandler.h"
 #include "SignalHandler.h"
+#include "Connection.h"
 
 int ConnectionHandler_OnAccept(void *_Context, int _Socket);
 
@@ -30,6 +31,12 @@ int ConnectionHandler_OnAccept(void *_Context, int _Socket)
 
     if (cHandler == NULL)
         return -1;
+
+    Connection* connection = NULL;
+    if(Connection_Initialize(&connection, _Socket) != 0)
+    {
+        return -2;
+    }
 
     return 0;
 }

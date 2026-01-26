@@ -23,6 +23,7 @@ int TCPServer_Initialize(TCPServer **_TCPServer, int port, int backlog, TCPServe
     tcp_server->context = context;
     tcp_server->port = port;
     tcp_server->backlog = backlog;
+    tcp_server->server_socket = -1;
 
     *_TCPServer = tcp_server;
 
