@@ -11,7 +11,7 @@ int main(int argc, char* argv[]) {
     printf("Server is starting...\n");
     
     Server* server = NULL;
-    Server_Initialize(&server, argv[1]);
+    Server_Initialize(&server, argv, argc);
 
     Server_Run(server);
 

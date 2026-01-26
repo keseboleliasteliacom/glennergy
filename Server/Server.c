@@ -5,16 +5,16 @@
 #include "TCPServer.h"
 #include "../Libs/Utils/utils.h"
 
-int Server_Initialize(Server **_Server, char* _Port)
+int Server_Initialize(Server **_Server, char** _Argv, int _Argc)
 {
     Server *srv = (Server *)malloc(sizeof(Server));
 
     if (srv == NULL)
         return -1;
-    
-    srv->port = strtol(_Port, NULL, 10);
 
-    printf("Port_ %d\n", srv->port);
+    ServerConfig_Init(&srv->config, _Argv, _Argc);
+    printf("Port_ %d\n", srv->config.port);
+    printf("Log level %d\n", srv->config.log_level);
     *_Server = srv;
     return 0;
 }
@@ -37,7 +37,7 @@ int Server_Run(Server* _Server)
 
         ConnectionHandler* cHandler = NULL;
 
-        ConnectionHandler_Initialize(&cHandler, _Server->port);
+        ConnectionHandler_Initialize(&cHandler, _Server->config.port);
 
         uint64_t monTime = 0;
         while(smw_getTaskCount() > 0 && SignalHandler_Stop() == 0)

@@ -14,6 +14,6 @@ typedef struct {
     const char* config_path;
 } ServerConfig;
 
-void ServerConfig_InitDefaults(ServerConfig* config);
+void ServerConfig_Init(ServerConfig* config, char** _Argv, int _Argc);
 
 #endif
