@@ -1,6 +1,8 @@
 #ifndef SPOTPRIS_H
 #define SPOTPRIS_H
 
+#include <stddef.h>
+
 // TIme eller inte?
 
 typedef struct {
@@ -19,5 +21,11 @@ typedef struct
     SpotPriceEntry *entries;
 } DagligSpotpris;
 
+// Hämta data för en prisklass och dagens datum
+// Ska vi hämta alla områden på en gång istället, eller ett call för varje area?
+int Spotpris_Fetch(DagligSpotpris *spotpris, const char *area);
+
+// Spara DagligSpotpris till fil (pretty-print)
+int Spotpris_SaveToFile(const DagligSpotpris *spotpris);
 
 #endif
