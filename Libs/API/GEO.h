@@ -5,8 +5,13 @@ typedef struct
 {
     float latitude;
     float longitude;
-    char *name;
+    //char *name;
 } GEO;
 
+GEO* GEO_Init();
+
+GEO* GEO_Get_Coord_IP();
+
+void GEO_Dispose(GEO* name);
 
 #endif

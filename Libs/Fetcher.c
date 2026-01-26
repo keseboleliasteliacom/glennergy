@@ -2,18 +2,19 @@
 #include <curl/curl.h>
 #include <string.h>
 #include <stdlib.h>
-
+//Baptiste changed Initialize. Previous form in comments
 int Curl_Initialize(CurlResponse *_Response)
 {
-    CurlResponse *response = (CurlResponse *)malloc(sizeof(CurlResponse));
-
-    if (response == NULL)
+    
+    //CurlResponse *response = (CurlResponse *)malloc(sizeof(CurlResponse));
+    
+    if (_Response == NULL)  //if(response == NULL)
     {
         return -1;
     }
 
-    response->data = NULL;
-    response->size = 0;
+    _Response->data = NULL; //response->data
+    _Response->size = 0;    //response->data
 
     return 0;
 }
@@ -53,6 +54,9 @@ int Curl_HTTPGet(CurlResponse *_Response, char *url)
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, Curl_WriteCallback);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)_Response);
 
+    if(strncmp(url, "https://ipapi.co/json/", 23) == 0){
+        curl_easy_setopt(curl, CURLOPT_USERAGENT, "geo-ip-c/1.0");
+    }
     res = curl_easy_perform(curl);
     if (res != CURLE_OK)
     {
