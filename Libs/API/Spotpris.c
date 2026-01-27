@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <string.h>
+#include "../Utils/utils.h"
 
 // Hämta dagens datum i formatet YYYY/MM-DD (URLer måste ha YYYY/MM-DD format)
 static void GetTodayDate(char *buffer, size_t size) {
@@ -96,10 +97,18 @@ int Spotpris_SaveToFile(const DagligSpotpris *spotpris)
 {
     if (!spotpris || !spotpris->entries) return -1;
 
+    // Finns cache-foldern?
+    const char *cache_folder = "../cache_spotpris";
+    dir_result_t dir_res = create_folder(cache_folder);
+    if (dir_res == DIR_ERROR) {
+        fprintf(stderr, "Error creating cache folder: %s\n", cache_folder);
+        return -2;
+    }
+
     char filename[64];
     char date_str[16];
     GetTodayDateFile(date_str, sizeof(date_str));
-    snprintf(filename, sizeof(filename), "../cache_spotpris/spotpris_%s_%s.json", spotpris->area, date_str);
+    snprintf(filename, sizeof(filename), "%s/spotpris_%s_%s.json", cache_folder, spotpris->area, date_str);
 
     json_t *root = json_array();
     for (size_t i = 0; i < spotpris->count; i++) {
