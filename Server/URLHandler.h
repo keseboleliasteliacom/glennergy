@@ -1,4 +1,4 @@
-#ifndef HTTP_SERVER_HANDLER_H
+/*#ifndef HTTP_SERVER_HANDLER_H
 #define HTTP_SERVER_HANDLER_H
 
 #define _POSIX_C_SOURCE 200809L
@@ -27,4 +27,4 @@ char *URLHandler_GetParameterValue(URLHandler *_ServerHandler, const char *key);
 
 void URLHandler_Dispose(URLHandler **_ServerHandler);
 
-#endif // HTTP_SERVER_HANDLER_H
+#endif // HTTP_SERVER_HANDLER_H*/

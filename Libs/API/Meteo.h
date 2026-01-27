@@ -1,8 +1,8 @@
-#ifndef METEO_H
+/*#ifndef METEO_H
 #define METEO_H
 
-#include <stdbool.h>
-
+#include <stdbool.h>*/
+/*
 /**
  * Fetch weather forecast from Open-Meteo API
  * 
@@ -13,7 +13,7 @@
  * @return Number of hours fetched, or -1 on error
  */
 // Weather data from API (hourly)
-typedef struct {
+/*typedef struct {
     float temp;                  // Celsius
     float ghi;                   // Global Horizontal Irradiance (W/m²) - calculated from DNI + diffuse
     float dni;                   // Direct Normal Irradiance (W/m²)
@@ -25,4 +25,4 @@ typedef struct {
 
 int meteo_Fetch(double lat, double lon, WeatherData *weather_out, int max_hours);
 
-#endif // METEO_H
+#endif // METEO_H*/

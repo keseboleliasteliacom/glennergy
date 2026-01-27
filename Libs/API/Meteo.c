@@ -1,4 +1,4 @@
-#include "Meteo.h"
+/*#include "Meteo.h"
 #include "../Fetcher.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -75,4 +75,4 @@ int meteo_Fetch(double lat, double lon, WeatherData *weather_out, int max_hours)
     json_object_put(root);
     Curl_Dispose(response);
     return count;
-}
+}*/

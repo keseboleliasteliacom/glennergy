@@ -26,7 +26,7 @@ void TCPServer_Dispose(TCPServer** _TCPServer);
 
 
 #endif
-#ifndef TCP_SERVER_H
+/*#ifndef TCP_SERVER_H
 #define TCP_SERVER_H
 
 #define BUFFER_SIZE 4096
@@ -46,4 +46,4 @@ void server_Stop(ServerConfig *config);
 
 void handle_Connection(int connection_socket);
 
-#endif // TCP_SERVER_H
+#endif // TCP_SERVER_H*/
