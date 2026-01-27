@@ -3,6 +3,16 @@
 #include <curl/curl.h>
 #include <stdlib.h>
 
+
+// För att enkelt testa fetch för spotpris
+
+/* Kommentera bort koden
+cd till Libs
+Kompilera med: gcc -Wall -Wextra -std=c11 spotpris_fetchtest.c fetcher.c API/spotpris.c -o spotpris_app -lcurl -ljansson -D_POSIX_C_SOURCE=200112L 
+kör sedan ./spotpris_app
+*/
+
+/*
 int main(void)
 {
     curl_global_init(CURL_GLOBAL_DEFAULT);
@@ -27,3 +37,4 @@ int main(void)
     curl_global_cleanup();
     return 0;
 }
+*/
