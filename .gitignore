@@ -53,6 +53,7 @@ dkms.conf
 
 # Folders
 Logs/*
+cache_spotpris/*
 
 # debug information files
 *.dwo
