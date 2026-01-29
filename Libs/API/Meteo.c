@@ -13,11 +13,16 @@ int meteo_Fetch(double lat, double lon, WeatherData *weather_out, int max_hours)
 {
     if (!weather_out || max_hours <= 0 || max_hours > 72)
         return -1;
+
+    //char key[64];
+    //snprintf(key, sizeof(key), "%.2f_%.2f", lat, lon);
+
+    
     
     char url[512];
     snprintf(url, sizeof(url),
              "https://api.open-meteo.com/v1/forecast?"
-             "latitude=%.4f&longitude=%.4f"
+             "latitude=%.2f&longitude=%.2f"
              "&hourly=temperature_2m,shortwave_radiation,direct_normal_irradiance,diffuse_radiation,cloud_cover,is_day"
              "&forecast_days=1&timezone=Europe/Stockholm",
              lat, lon);

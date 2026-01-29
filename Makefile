@@ -1,6 +1,6 @@
 CC      := gcc
 CFLAGS  := -Wall -Wextra -std=c11 -D_POSIX_C_SOURCE=200112L 
-LDFLAGS := -lcurl -ljansson
+LDFLAGS := -lcurl -ljansson -lpthread
 BUILD   := build
 
 # Add include directories

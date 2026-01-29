@@ -12,7 +12,7 @@ Kompilera med: gcc -Wall -Wextra -std=c11 spotpris_fetchtest.c fetcher.c API/spo
 kör sedan ./spotpris_app
 */
 
-/*
+
 int main(void)
 {
     curl_global_init(CURL_GLOBAL_DEFAULT);
@@ -37,4 +37,3 @@ int main(void)
     curl_global_cleanup();
     return 0;
 }
-*/

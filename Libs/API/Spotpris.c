@@ -1,5 +1,5 @@
-#include "spotpris.h"
-#include "../fetcher.h"
+#include "Spotpris.h"
+#include "../Fetcher.h"
 #include <jansson.h>
 #include <stdio.h>
 #include <stdlib.h>
