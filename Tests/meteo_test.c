@@ -3,6 +3,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+//test meteo (run from Tests/ folder):
+//gcc -Wall -Wextra -std=c11 -D_POSIX_C_SOURCE=200112L -I../Libs -I../Libs/API -I../Libs/Utils meteo_test.c ../Libs/API/Meteo.c ../Libs/Fetcher.c -o meteo_test -lcurl -ljansson -lm
+
 
 int main()
 {
@@ -40,7 +43,7 @@ int main()
     char url[512];
     snprintf(url, sizeof(url),
              "https://api.open-meteo.com/v1/forecast?"
-             "latitude=%.4f&longitude=%.4f"
+             "latitude=%.2f&longitude=%.2f"
              "&hourly=temperature_2m,shortwave_radiation,direct_normal_irradiance,diffuse_radiation,cloud_cover,is_day"
              "&forecast_days=1&timezone=Europe/Stockholm",
              lat, lon);
