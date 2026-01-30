@@ -5,14 +5,13 @@
 #include "../../Libs/Utils/smw.h"
 
 typedef struct{
-    smw_task* task;
     int socket;
-    int connected;
 }Connection;
 
 
 int Connection_Initialize(Connection** _Connection, int _Socket);
 
+int Connection_Handle(Connection* _Connection);
 
 void Connection_Dispose(Connection** _Connection);
 

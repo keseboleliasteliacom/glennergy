@@ -1,6 +1,17 @@
 #include "Connection.h"
+#include "../TCPServer.h"
 #include <stdlib.h>
 #include <unistd.h>
+#include <sys/socket.h>
+
+#define RESPONSE_HEADER "HTTP/1.1 200 OK\r\n"                            \
+                        "Content-Length: 100\r\n"                        \
+                        "Content-Type: application/json\r\n"             \
+                        "Access-Control-Allow-Origin: *\r\n"             \
+                        "Access-Control-Allow-Methods: GET, OPTIONS\r\n" \
+                        "Access-Control-Allow-Headers: Content-Type\r\n" \
+                        "\r\n"                                           \
+                        "Hello from server!\r\n"
 
 void Connection_Work(void *_Context, uint64_t monTime);
 
@@ -14,30 +25,19 @@ int Connection_Initialize(Connection **_Connection, int _Socket)
         return -1;
 
     connection->socket = _Socket;
-    connection->task = smw_create_task(connection, Connection_Work);
-    connection->connected = 0;
 
     *_Connection = connection;
     return 0;
 }
 
-void Connection_Work(void *_Context, uint64_t monTime)
+int Connection_Handle(Connection *_Connection)
 {
-    Connection *connection = (Connection *)_Context;
-
-    if (connection == NULL)
-        return;
-
-    if (connection->connected == 0)
-    {
-        printf("Connection accepted on socket: %d\n", connection->socket);
-        connection->connected = 1;
-    }
-
-    if (connection->connected == 1)
-    {
-        Connection_Dispose(&connection);
-    }
+    char response[2048];
+    snprintf(response, sizeof(response), RESPONSE_HEADER);
+    printf("before send fd=%d\n", _Connection->socket);
+    send(_Connection->socket, response, strlen(response), MSG_NOSIGNAL);
+    printf("after send fd=%d\n", _Connection->socket);
+    return 0;
 }
 
 void Connection_Dispose(Connection **_Connection)
@@ -48,6 +48,7 @@ void Connection_Dispose(Connection **_Connection)
     Connection *connection = *_Connection;
 
     close(connection->socket);
+
     free(connection);
     connection = NULL;
 }

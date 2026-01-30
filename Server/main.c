@@ -17,7 +17,6 @@ int main(int argc, char* argv[]) {
 
     Server_Dispose(&server);
 
-    
 
     printf("Server is shutting down\n");
     return 0;

@@ -1,13 +1,12 @@
 #include <stdlib.h>
 #include "ConnectionHandler.h"
 #include "SignalHandler.h"
-#include "Connection.h"
 
 int ConnectionHandler_OnAccept(void *_Context, int _Socket);
 
 void ConnectionHandler_Work(void *_Context, uint64_t monTime);
 
-int ConnectionHandler_Initialize(ConnectionHandler **_ConnectionHandler, int _Port)
+int ConnectionHandler_Initialize(ConnectionHandler **_ConnectionHandler, int _Port, Callback _Callback)
 {
     ConnectionHandler *cHandler = (ConnectionHandler *)malloc(sizeof(ConnectionHandler));
 
@@ -18,7 +17,8 @@ int ConnectionHandler_Initialize(ConnectionHandler **_ConnectionHandler, int _Po
 
     TCPServer_Listen(cHandler->tcp_server);
 
-    cHandler->task = smw_create_task(cHandler, ConnectionHandler_Work);
+    cHandler->client_add = _Callback;
+
 
     *_ConnectionHandler = cHandler;
 
@@ -33,24 +33,19 @@ int ConnectionHandler_OnAccept(void *_Context, int _Socket)
         return -1;
 
     Connection* connection = NULL;
-    if(Connection_Initialize(&connection, _Socket) != 0)
+    if (Connection_Initialize(&connection, _Socket) != 0)
     {
+        
         return -2;
     }
 
+    if (cHandler->client_add(connection) < 0)
+    {
+        Connection_Dispose(&connection);
+        return -3;
+    }
+
     return 0;
-}
-
-// Use SMW or not? What is this useful for?
-
-void ConnectionHandler_Work(void *_Context, uint64_t monTime)
-{
-    ConnectionHandler *cHandler = (ConnectionHandler *)_Context;
-
-    if (cHandler == NULL)
-        return;
-    
-
 }
 
 void ConnectionHandler_Dispose(ConnectionHandler **_ConnectionHandler)
@@ -60,8 +55,8 @@ void ConnectionHandler_Dispose(ConnectionHandler **_ConnectionHandler)
 
     ConnectionHandler *cHandler = *_ConnectionHandler;
 
-    smw_destroy_task(cHandler->task);
 
+    TCPServer_Dispose(&cHandler->tcp_server);
     free(cHandler);
     cHandler = NULL;
 }
