@@ -35,12 +35,12 @@ int main() {
             snprintf(module, sizeof(module), "Worker%d", i);
             
             // Each worker sends 10 messages
-            for (int j = 0; j < 10; j++) {
+            for (int j = 0; j < 10000; j++) {
                 char msg[256];
                 snprintf(msg, sizeof(msg), "Message %d from worker %d (PID: %d)", 
                          j, i, getpid());
                 LOG_INFO(module, msg);
-                usleep(10000);  // 10ms delay
+                usleep(1);  // 10ms delay
             }
             
             printf("Worker %d done\n", i);

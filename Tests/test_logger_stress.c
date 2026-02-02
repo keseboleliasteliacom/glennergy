@@ -25,6 +25,7 @@ int main() {
         char msg[256];
         snprintf(msg, sizeof(msg), "Message number %d", i);
         LOG_INFO("StressTest", msg);
+        usleep(1); //10 microseconds between messages
     }
     
     gettimeofday(&end, NULL);
@@ -34,7 +35,7 @@ int main() {
     
     // Give logger time to catch up
     printf("Waiting for logger to process...\n");
-    sleep(3);
+    sleep(10);
     
     // Test 2: Long messages
     printf("Test 2: Sending very long message...\n");
