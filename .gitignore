@@ -53,6 +53,12 @@ dkms.conf
 
 # Folders
 Logs/*
+cache_spotpris/*
+cache_meteo/*
+test_cache/*
+
+# Cache files
+*.json
 
 # debug information files
 *.dwo
