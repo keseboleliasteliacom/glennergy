@@ -1,11 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include "Server.h"
 #include "SignalHandler.h"
-#include "TCPServer.h"
 #include "../Libs/Utils/utils.h"
+#include "../Libs/Threads.h"
 
-int Server_Initialize(Server **_Server, char** _Argv, int _Argc)
+int Server_Initialize(Server **_Server, char **_Argv, int _Argc)
 {
     Server *srv = (Server *)malloc(sizeof(Server));
 
@@ -19,7 +20,7 @@ int Server_Initialize(Server **_Server, char** _Argv, int _Argc)
     return 0;
 }
 
-int Server_Run(Server* _Server)
+int Server_Run(Server *_Server)
 {
 
     SignalHandler_Initialize();
@@ -33,22 +34,28 @@ int Server_Run(Server* _Server)
     }
     else if (pid == 0)
     {
+
+        Threads threads[POOL_SIZE];
+        Threads_Initialize(threads);
+
         smw_init();
 
-        ConnectionHandler* cHandler = NULL;
+        ConnectionHandler *cHandler = NULL;
 
-        ConnectionHandler_Initialize(&cHandler, _Server->config.port);
+        ConnectionHandler_Initialize(&cHandler, _Server->config.port, Threads_AddQueueItem);
 
         uint64_t monTime = 0;
-        while(smw_getTaskCount() > 0 && SignalHandler_Stop() == 0)
+        while (SignalHandler_Stop() == 0)
         {
             monTime = SystemMonotonicMS();
             smw_work(monTime);
+            usleep(100000);
         }
 
-        printf("Fork shutdown\n");
         ConnectionHandler_Dispose(&cHandler);
         smw_dispose();
+
+        Threads_Dispose(threads);
     }
     else
     {
