@@ -2,17 +2,18 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <sys/wait.h>
-#include <syslog.h>
 #include <string.h>
 #include <time.h>
-#include <sys/stat.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <pthread.h>
 #include <fcntl.h>
 
+// kvar att göra add threadid, blocking dev fix message before shutdown?
+
 typedef struct {
     time_t timestamp;
+    pid_t pid;
     char level[16];
     char module[32];
     char message[256];
@@ -21,15 +22,23 @@ typedef struct {
 static int write_fd = -1;
 static pid_t logger_pid = -1;
 static LogLevel log_level = LOG_LEVEL_INFO;
-static pthread_mutex_t log_mutex = PTHREAD_MUTEX_INITIALIZER;
+
 static FILE* log_file = NULL;
+static char log_path[256] = "Logs/log.txt";
+
+static pthread_mutex_t log_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 static void log_ProcessLoop(int read_fd);
 static void log_ToFile(const LogMessage* log_msg);
 static const char* log_GetLevelString(LogLevel level);
 
-int log_Init(void)
+int log_Init(const char* custom_path)
 {
+    if (custom_path != NULL) {
+        strncpy(log_path, custom_path, sizeof(log_path) - 1);
+        log_path[sizeof(log_path) - 1] = '\0';
+    }
+
     int pipe_fds[2];
 
     if (pipe(pipe_fds) < 0)
@@ -59,8 +68,8 @@ int log_Init(void)
     else
     {
         //parent process
-        close(pipe_fds[0]); //read
-        write_fd = pipe_fds[1];
+        close(pipe_fds[0]); 
+        write_fd = pipe_fds[1]; //only writes, server child processes will inherit
 
         int flags = fcntl(write_fd, F_GETFL, 0);
         if (flags != -1) {
@@ -87,6 +96,7 @@ void log_Message(LogLevel level, const char* module, const char* msg)
     
     LogMessage log_msg = {0};
     log_msg.timestamp = time(NULL);
+    log_msg.pid = getpid();
     strncpy(log_msg.level, log_GetLevelString(level), sizeof(log_msg.level) - 1);
     strncpy(log_msg.module, module, sizeof(log_msg.module) - 1);
     strncpy(log_msg.message, msg, sizeof(log_msg.message) - 1);
@@ -129,7 +139,7 @@ static void log_ProcessLoop(int read_fd)
     LogMessage log_msg;
     ssize_t bytes_read;
 
-    log_file = fopen("/home/nak2477/glennergy/Logs/log.txt", "a");
+    log_file = fopen(log_path, "a");
     if (!log_file)
     {
         perror("log_ProcessLoop fopen");
@@ -174,8 +184,7 @@ static void log_ToFile(const LogMessage* log_msg)
     struct tm* tm_info = localtime(&log_msg->timestamp);
     strftime(time_buf, sizeof(time_buf), "%Y-%m-%d %H:%M:%S", tm_info);
 
-
-    fprintf(log_file, "[%s] [%s] [%s]: %s\n", time_buf, log_msg->level, log_msg->module, log_msg->message);
+    fprintf(log_file, "[%s] [PID:%d] [%s] [%s]: %s\n", time_buf, log_msg->pid, log_msg->level, log_msg->module, log_msg->message);
 }
 
 static const char* log_GetLevelString(LogLevel level)

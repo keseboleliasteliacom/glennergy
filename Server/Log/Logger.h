@@ -9,12 +9,17 @@ typedef enum {
     LOG_LEVEL_ERROR
 } LogLevel;
 
-#define LOG_DEBUG(module, msg)   log_Message(LOG_LEVEL_DEBUG, module, msg)
-#define LOG_INFO(module, msg)    log_Message(LOG_LEVEL_INFO, module, msg)
-#define LOG_WARNING(module, msg) log_Message(LOG_LEVEL_WARN, module, msg)
-#define LOG_ERROR(module, msg)   log_Message(LOG_LEVEL_ERROR, module, msg)
+// Define MODULE_NAME in each .c file before including this header
+#ifndef MODULE_NAME
+#define MODULE_NAME "UNKNOWN"
+#endif
 
-int log_Init(void);
+#define LOG_DEBUG(msg)   log_Message(LOG_LEVEL_DEBUG, MODULE_NAME, msg)
+#define LOG_INFO(msg)    log_Message(LOG_LEVEL_INFO, MODULE_NAME, msg)
+#define LOG_WARNING(msg) log_Message(LOG_LEVEL_WARN, MODULE_NAME, msg)
+#define LOG_ERROR(msg)   log_Message(LOG_LEVEL_ERROR, MODULE_NAME, msg)
+
+int log_Init(const char* log_path);  // Pass NULL for default: Logs/log.txt
 void log_Message(LogLevel level, const char* module, const char* msg);
 void log_Cleanup(void);
 

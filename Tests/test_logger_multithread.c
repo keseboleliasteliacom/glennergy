@@ -3,6 +3,8 @@
 #include <pthread.h>
 #include <time.h>
 #include <sys/time.h>
+
+#define MODULE_NAME "TEST_MULTITHREAD"
 #include "../Server/Log/Logger.h"
 
 //gcc -o Tests/test_logger_multithread Tests/test_logger_multithread.c Server/Log/Logger.c -pthread -I.
@@ -16,14 +18,12 @@ typedef struct {
 
 void* worker_thread(void* arg) {
     ThreadArgs* args = (ThreadArgs*)arg;
-    char module[32];
-    snprintf(module, sizeof(module), "Thread%d", args->thread_id);
     
     for (int i = 0; i < args->message_count; i++) {
         char msg[256];
-        snprintf(msg, sizeof(msg), "Message %d from thread %d (pthread_id: %lu)", 
-                 i, args->thread_id, pthread_self());
-        LOG_INFO(module, msg);
+        snprintf(msg, sizeof(msg), "Thread%d: Message %d (pthread_id: %lu)", 
+                 args->thread_id, i, pthread_self());
+        LOG_INFO(msg);
         usleep(1);
     }
     
@@ -34,7 +34,7 @@ void* worker_thread(void* arg) {
 int main() {
     printf("=== Multi-Thread Logger Test ===\n");
     
-    if (log_Init() < 0) {
+    if (log_Init(NULL) < 0) {
         fprintf(stderr, "Failed to init logger\n");
         return 1;
     }
@@ -61,7 +61,7 @@ int main() {
     
     // Main thread logs too
     for (int i = 0; i < 10; i++) {
-        LOG_INFO("MainThread", "Message from main thread");
+        LOG_INFO("Message from main thread");
         usleep(5000);
     }
     

@@ -7,7 +7,7 @@
 
 
 int main(int argc, char* argv[]) {
-    log_Init();
+    log_Init(NULL);
 
     printf("Server is starting...\n");
     
