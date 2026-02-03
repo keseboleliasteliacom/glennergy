@@ -56,6 +56,8 @@ Logs/*
 cache_spotpris/*
 cache_meteo/*
 test_cache/*
+Tests/*
+!Tests/*.c
 
 # Cache files
 *.json

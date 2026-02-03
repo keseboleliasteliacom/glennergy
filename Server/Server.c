@@ -56,6 +56,9 @@ int Server_Run(Server *_Server)
         smw_dispose();
 
         Threads_Dispose(threads);
+        
+        log_CloseWrite();
+        exit(EXIT_SUCCESS);
     }
     else
     {
