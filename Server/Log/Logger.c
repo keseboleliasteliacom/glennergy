@@ -18,7 +18,7 @@ typedef struct {
     char message[256];
 } LogMessage;
 
-static int log_pipe_fd = -1;
+static int write_fd = -1;
 static pid_t logger_pid = -1;
 static LogLevel log_level = LOG_LEVEL_INFO;
 static pthread_mutex_t log_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -50,8 +50,8 @@ int log_Init(void)
     if (logger_pid == 0)
     {
         //child process
-        close(pipe_fds[1]);
-        log_ProcessLoop(pipe_fds[0]);
+        close(pipe_fds[1]); 
+        log_ProcessLoop(pipe_fds[0]); //loop only reads
 
         close(pipe_fds[0]);
         exit(0);
@@ -59,12 +59,12 @@ int log_Init(void)
     else
     {
         //parent process
-        close(pipe_fds[0]);
-        log_pipe_fd = pipe_fds[1];
+        close(pipe_fds[0]); //read
+        write_fd = pipe_fds[1];
 
-        int flags = fcntl(log_pipe_fd, F_GETFL, 0);
+        int flags = fcntl(write_fd, F_GETFL, 0);
         if (flags != -1) {
-            fcntl(log_pipe_fd, F_SETFL, flags | O_NONBLOCK);
+            fcntl(write_fd, F_SETFL, flags | O_NONBLOCK);
         }
 
         printf("Logger initialized (PID: %d)\n", logger_pid);    
@@ -74,7 +74,7 @@ int log_Init(void)
 
 void log_Message(LogLevel level, const char* module, const char* msg)
 {
-    if(log_pipe_fd < 0)
+    if(write_fd < 0)
     {
         fprintf(stderr, "Logger not initialized!\n");
         return;
@@ -87,36 +87,35 @@ void log_Message(LogLevel level, const char* module, const char* msg)
     
     LogMessage log_msg = {0};
     log_msg.timestamp = time(NULL);
-    
-    const char* level_str = log_GetLevelString(level);
-    strncpy(log_msg.level, level_str, sizeof(log_msg.level) - 1);
+    strncpy(log_msg.level, log_GetLevelString(level), sizeof(log_msg.level) - 1);
     strncpy(log_msg.module, module, sizeof(log_msg.module) - 1);
     strncpy(log_msg.message, msg, sizeof(log_msg.message) - 1);
     
-    ssize_t written = write(log_pipe_fd, &log_msg, sizeof(LogMessage));
-    if (written < 0)
+    ssize_t written = write(write_fd, &log_msg, sizeof(LogMessage));
+
+    if (written == sizeof(LogMessage))
     {
-        if (errno == EAGAIN || errno == EWOULDBLOCK)
-        {
-            static unsigned long dropped = 0;
-            dropped++;
-            
-            if (dropped % 1000 == 0)
-            {
-                fprintf(stderr, "WARNING: Log buffer full, %lu messages dropped\n", dropped);
-            }
-            
-            if (level >= LOG_LEVEL_ERROR)
-            {
-                fprintf(stderr, "[DROPPED ERROR] [%s] %s\n", module, msg);
-            }
-        }
-        else
-        {
-            perror("log_Message write");
-        }
+        pthread_mutex_unlock(&log_mutex);
+        return;
     }
-    else if (written != sizeof(LogMessage))
+    
+    // Handle write errors
+    if (written < 0 && (errno == EAGAIN || errno == EWOULDBLOCK))
+    {
+        static unsigned long dropped = 0;
+        dropped++;
+        
+        if (dropped % 1000 == 0)
+            fprintf(stderr, "WARNING: Log buffer full, %lu messages dropped\n", dropped);
+        
+        if (level >= LOG_LEVEL_ERROR)
+            fprintf(stderr, "[DROPPED ERROR] [%s] %s\n", module, msg);
+    }
+    else if (written < 0)
+    {
+        perror("log_Message write");
+    }
+    else
     {
         fprintf(stderr, "WARNING: Partial log write (%zd/%zu bytes)\n", 
                 written, sizeof(LogMessage));
@@ -125,7 +124,6 @@ void log_Message(LogLevel level, const char* module, const char* msg)
     pthread_mutex_unlock(&log_mutex);
 }
 
-// Skriver till syslog(endast Linux) och en lokal fil som backup(Logs/log.txt, enkelt för de som använder windows och WSL)
 static void log_ProcessLoop(int read_fd)
 {
     LogMessage log_msg;
@@ -157,17 +155,6 @@ static void log_ProcessLoop(int read_fd)
             continue;
         }
 
-
-        //int priority = LOG_INFO;
-        //if (strcmp(log_msg.level, "ERROR") == 0) priority = LOG_ERR;
-        //else if (strcmp(log_msg.level, "DEBUG") == 0) priority = LOG_DEBUG;
-        //else if (strcmp(log_msg.level, "WARNING") == 0) priority = LOG_WARNING;
-//
-        //openlog(log_msg.module, LOG_PID, LOG_USER);
-        //syslog(priority, "%s", log_msg.message);
-        //closelog();
-
-        /* Extra säkerhet: skriv även till fil */
         log_ToFile(&log_msg);    
     }
     if(log_file)
@@ -187,13 +174,6 @@ static void log_ToFile(const LogMessage* log_msg)
     struct tm* tm_info = localtime(&log_msg->timestamp);
     strftime(time_buf, sizeof(time_buf), "%Y-%m-%d %H:%M:%S", tm_info);
 
-    //printf("Logging to file: [%s] [%s]: %s\n", log_msg->level, log_msg->module, log_msg->message);
-    //FILE* f = fopen("/home/nak2477/glennergy/Logs/log.txt", "a");
-    //if (!f)
-    //{
-    //    perror("log_ToFile fopen");
-    //    return;
-    //}
 
     fprintf(log_file, "[%s] [%s] [%s]: %s\n", time_buf, log_msg->level, log_msg->module, log_msg->message);
 }
@@ -217,19 +197,19 @@ void log_SetLevel(LogLevel level)
 
 void log_CloseWrite(void)
 {
-    if (log_pipe_fd >= 0)
+    if (write_fd >= 0)
     {
-        close(log_pipe_fd);
-        log_pipe_fd = -1;
+        close(write_fd);
+        write_fd = -1;
     }
 }
 
 void log_Cleanup(void)
 {
-    if (log_pipe_fd >= 0)
+    if (write_fd >= 0)
     {
-        close(log_pipe_fd);
-        log_pipe_fd = -1;
+        close(write_fd);
+        write_fd = -1;
     }
     if (logger_pid > 0)
     {

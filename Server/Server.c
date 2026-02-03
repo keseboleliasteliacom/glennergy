@@ -49,13 +49,12 @@ int Server_Run(Server* _Server)
         printf("Fork shutdown\n");
         ConnectionHandler_Dispose(&cHandler);
         smw_dispose();
+        
         log_CloseWrite();
         exit(EXIT_SUCCESS);
     }
     else
     {
-        LOG_INFO("SERVER", "Server Parent closed write end, now waiting for child to finish");
-        log_CloseWrite();
         wait(&status);
         printf("Connection module finished with status: %d\n", WEXITSTATUS(status));
     }
