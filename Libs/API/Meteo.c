@@ -9,7 +9,7 @@
 #include <jansson.h>
 
 
-int meteo_Fetch(double lat, double lon, WeatherData *weather_out, int max_hours)
+int meteo_Fetch(double lat, double lon, MeteoData *weather_out, int max_hours)
 {
     if (!weather_out || max_hours <= 0 || max_hours > 72)
         return -1;

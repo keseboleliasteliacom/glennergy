@@ -21,9 +21,9 @@ typedef struct {
     float cloud_cover;           // Cloud cover percentage (0-100%)
     int is_day;
     bool valid;
-} WeatherData;
+} MeteoData;
 
-int meteo_Fetch(double lat, double lon, WeatherData *weather_out, int max_hours);
+int meteo_Fetch(double lat, double lon, MeteoData *weather_out, int max_hours);
 int meteo_SaveToFile(const char *data, double lat, double lon);
 
 #endif // METEO_H
