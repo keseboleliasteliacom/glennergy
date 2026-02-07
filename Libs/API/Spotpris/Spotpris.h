@@ -18,7 +18,8 @@ typedef struct
 {
     char area[4]; // Prisklasser/områden: "SE1", "SE2", "SE3", "SE4"
     size_t count; // Kommer troligtvis vara 96 kvartar
-    SpotPriceEntry *entries;
+    SpotPriceEntry entries[96];
+    int counter;
 } DagligSpotpris;
 
 // Hämta data för en prisklass och dagens datum

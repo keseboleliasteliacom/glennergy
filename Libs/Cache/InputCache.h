@@ -2,8 +2,8 @@
 #define INPUTCACHE_H
 // 
 
-#include "../API/Meteo.h"
-#include "../API/Spotpris.h"
+#include "../API/Meteo/Meteo.h"
+#include "../API/Spotpris/Spotpris.h"
 
 typedef struct {
     MeteoData meteoData;

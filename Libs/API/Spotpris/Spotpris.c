@@ -1,11 +1,11 @@
 #include "Spotpris.h"
-#include "../Fetcher.h"
+#include "../../Fetcher.h"
 #include <jansson.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 #include <string.h>
-#include "../Utils/utils.h"
+#include "../../Utils/utils.h"
 
 // Hämta dagens datum i formatet YYYY/MM-DD (URLer måste ha YYYY/MM-DD format)
 static void GetTodayDate(char *buffer, size_t size) {
@@ -60,11 +60,11 @@ int Spotpris_Fetch(DagligSpotpris *spotpris, const char *area)
     }
 
     size_t n = json_array_size(root);
-    spotpris->entries = malloc(sizeof(SpotPriceEntry) * n);
+    /*spotpris->entries = malloc(sizeof(SpotPriceEntry) * n);
     if (!spotpris->entries) {
         json_decref(root);
         return -4;
-    }
+    }*/
 
     // GLöm inte fixa nullterminering
     strncpy(spotpris->area, area, sizeof(spotpris->area)-1);
@@ -98,7 +98,7 @@ int Spotpris_SaveToFile(const DagligSpotpris *spotpris)
     if (!spotpris || !spotpris->entries) return -1;
 
     // Finns cache-foldern?
-    const char *cache_folder = "../cache_spotpris";
+    const char *cache_folder = "cache_spotpris";
     dir_result_t dir_res = create_folder(cache_folder);
     if (dir_res == DIR_ERROR) {
         fprintf(stderr, "Error creating cache folder: %s\n", cache_folder);
@@ -120,6 +120,7 @@ int Spotpris_SaveToFile(const DagligSpotpris *spotpris)
         json_object_set_new(obj, "EXR",        json_real(spotpris->entries[i].exchange_rate));
         json_array_append_new(root, obj);
     }
+    
     printf("Saving %zu entries to file: spotpris_%s_%s.json\n", spotpris->count, spotpris->area, date_str);
 
 
