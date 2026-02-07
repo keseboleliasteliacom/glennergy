@@ -44,20 +44,28 @@ int main()
         return -3;
     }*/
 
-    DagligSpotpris spotpris_test;
+    AllaSpotpriser spotpris_test;
 
-    while (1)
+
+    ssize_t bytesRead = Pipes_ReadBinary(spotpris_fd_read, &spotpris_test, sizeof(AllaSpotpriser));
+
+    if(bytesRead > 0)
     {
-        ssize_t bytesRead = Pipes_ReadBinary(spotpris_fd_read, &spotpris_test, sizeof(DagligSpotpris));
-
-        if(bytesRead > 0)
-        {
-            printf("Got new data %d\n", spotpris_test.counter);
-        }
-
-        //ssize_t bytesWritten = Pipes_WriteBinary(algorithm_fd_write, &spotpris_test, sizeof(DagligSpotpris));
-        
+        printf("Got new data %zd\n", bytesRead);
     }
+
+
+    AllaSpotpriser_Print(&spotpris_test);
+
+    /*
+    for (int i = 0; i < 4; i++)
+    {
+        AllaSpotpriser_Print(&spotpris_test);
+    }
+    */
+
+    //ssize_t bytesWritten = Pipes_WriteBinary(algorithm_fd_write, &spotpris_test, sizeof(DagligSpotpris));
+        
 
     /* Disabled while testing READ functionality
     // Mocka ta emot meteo
