@@ -12,4 +12,6 @@ typedef struct {
 } InputCache;
 
 
+int InputCache_SaveSpotpris(const AllaSpotpriser *spotpris);
+
 #endif

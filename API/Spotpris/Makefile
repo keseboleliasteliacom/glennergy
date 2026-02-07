@@ -11,7 +11,7 @@ TARGET = Spotpris
 
 # Default target
 all:
-	$(CC) $(CFLAGS) Spotpris.c spotpristest.c ../../Pipes.c ../../Fetcher.c -o $(TARGET) -lcurl -ljansson
+	$(CC) $(CFLAGS) Spotpris.c spotpristest.c ../../Libs/Pipes.c ../../Libs/Fetcher.c -o $(TARGET) -lcurl -ljansson
 
 # Rensa körbar fil
 clean:

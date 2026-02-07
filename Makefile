@@ -10,11 +10,9 @@ CFLAGS  += -ILibs \
 		   -IServer/Connection \
 		   -IServer/Log \
 		   -ILibs/Algorithm \
-		   -ILibs/API \
-           -ILibs/Cache 
 
 # ---- Find all source files recursively ----
-SRC := $(shell find Libs Server Server/Connection Server/Log Libs/Algorithm Libs/API Libs/Cache Libs/Utils -name "*.c")
+SRC := $(shell find Libs Server Server/Connection Server/Log Libs/Algorithm Libs/Utils -name "*.c")
 
 # Convert .c → build/.../.o
 OBJ := $(patsubst %.c, $(BUILD)/%.o, $(SRC))

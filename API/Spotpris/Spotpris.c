@@ -1,11 +1,11 @@
 #include "Spotpris.h"
-#include "../../Fetcher.h"
+#include "../../Libs/Fetcher.h"
 #include <jansson.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 #include <string.h>
-#include "../../Utils/utils.h"
+#include "../../Libs/Utils/utils.h"
 
 // Hämta dagens datum i formatet YYYY/MM-DD (URLer måste ha YYYY/MM-DD format)
 static void GetTodayDate(char *buffer, size_t size) {

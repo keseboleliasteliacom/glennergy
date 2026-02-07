@@ -11,7 +11,7 @@ TARGET = InputCache
 
 # Default target
 all:
-	$(CC) $(CFLAGS) $(CACHE_DIR)/InputCache.c $(CACHE_DIR)/main.c $(API_DIR)/Meteo/Meteo.c $(API_DIR)/Spotpris/Spotpris.c ../Fetcher.c ../Pipes.c -o $(TARGET) -lcurl -ljansson
+	$(CC) $(CFLAGS) $(CACHE_DIR)/InputCache.c $(CACHE_DIR)/main.c $(API_DIR)/Meteo/Meteo.c $(API_DIR)/Spotpris/Spotpris.c ../Libs/Fetcher.c ../Libs/Pipes.c -o $(TARGET) -lcurl -ljansson
 
 # Rensa körbar fil
 clean:

@@ -1,5 +1,5 @@
 #include "InputCache.h"
-#include "../Pipes.h"
+#include "../Libs/Pipes.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
@@ -57,6 +57,7 @@ int main()
 
     AllaSpotpriser_Print(&spotpris_test);
 
+    InputCache_SaveSpotpris(&spotpris_test);
     /*
     for (int i = 0; i < 4; i++)
     {
