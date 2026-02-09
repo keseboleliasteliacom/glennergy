@@ -124,7 +124,6 @@ int Spotpris_FetchAll(AllaSpotpriser *_AllaSpotpriser)
         }
         
         Curl_Dispose(&resp);
-        printf("5\n");
         json_decref(root);
     }
 
