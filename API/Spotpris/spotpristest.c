@@ -8,6 +8,9 @@
 #include <string.h>
 #include <stdbool.h>
 #include <errno.h>
+#include <sys/stat.h>
+//#include <sys/types.h>
+
 
 // Enkelkommando för att kompilera just denna filen Todo - Can be removed?
 // gcc -Wall -Wextra -std=c11 spotpristest.c spotpris.c ../Fetcher.c -lcurl -ljansson -D_POSIX_C_SOURCE=200112L -o spotpris_app

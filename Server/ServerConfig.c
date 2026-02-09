@@ -1,5 +1,6 @@
 #include "ServerConfig.h"
 #include <stddef.h>
+#include <stdlib.h>
 
 // Unused for now, main currently using argc and argv solution
 void ServerConfig_Init(ServerConfig* config, char** _Argv, int _Argc)

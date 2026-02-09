@@ -49,7 +49,7 @@ int Server_Run(Server *_Server)
         {
             monTime = SystemMonotonicMS();
             smw_work(monTime);
-            usleep(100000);
+            usleep(100000); // Todo från compiler warning - Byta till använda "nanosleep" från "time.h" istället för "usleep" från "unistd.h"?
         }
 
         ConnectionHandler_Dispose(&cHandler);
