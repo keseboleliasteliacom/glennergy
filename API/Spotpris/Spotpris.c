@@ -37,6 +37,7 @@ void DagligSpotpris_Print(const DagligSpotpris *d)
     printf("Raw JSON (first 20 chars): %.20s\n", d->raw_json_data);
 }
 
+// OBS: Just nu printar vi 4 kvartar för att debuggingen inte ska bli cluttrad. Kan ändras till 96 om man vill se hela resultatet
 // AllaSpotpriser
 void AllaSpotpriser_Print(const AllaSpotpriser *a)
 {
