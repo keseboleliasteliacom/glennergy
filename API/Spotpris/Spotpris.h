@@ -31,15 +31,6 @@ void SpotPriceEntry_Print(const SpotPriceEntry *e);
 void DagligSpotpris_Print(const DagligSpotpris *d);
 void AllaSpotpriser_Print(const AllaSpotpriser *a);
 
-
-
-// Hämta data för en prisklass och dagens datum
-// Ska vi hämta alla områden på en gång istället, eller ett call för varje area?
-int Spotpris_Fetch(DagligSpotpris *spotpris, const char *area);
-
 int Spotpris_FetchAll(AllaSpotpriser *_AllaSpotpriser);
-
-// Spara DagligSpotpris till fil (pretty-print)
-int Spotpris_SaveToFile(const DagligSpotpris *spotpris);
 
 #endif
