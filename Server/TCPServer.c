@@ -1,4 +1,6 @@
+#define MODULE_NAME "TCPServer"
 #include "TCPServer.h"
+#include "Log/Logger.h"
 #include <errno.h>
 #include <fcntl.h>
 #include <netdb.h>
@@ -47,7 +49,7 @@ int TCPServer_Listen(TCPServer *_TCPServer)
 
     if (getaddrinfo(NULL, port_str, &hints, &res) != 0)
     {
-        printf("Failed to convert hostname\n");
+        LOG_ERROR("Failed to convert hostname");
         return -1;
     }
 
@@ -63,7 +65,7 @@ int TCPServer_Listen(TCPServer *_TCPServer)
 
         if ((bind(sock, temp->ai_addr, temp->ai_addrlen)) < 0)
         {
-            printf("Failed to bind socket to port\n");
+            LOG_ERROR("Failed to bind socket to port");
             close(sock);
             sock = -1;
             continue;
@@ -88,7 +90,7 @@ int TCPServer_Listen(TCPServer *_TCPServer)
     fcntl(_TCPServer->server_socket, F_SETFL, flags | O_NONBLOCK);
 
     _TCPServer->task = smw_create_task(_TCPServer, TCPServer_Work);
-    printf("Listening\n");
+    LOG_INFO("TCP Server listening");
     return 0;
 }
 
@@ -109,7 +111,7 @@ int TCPServer_Accept(TCPServer *_TCPServer)
 
     if (result < 0)
     {
-        printf("Connection callback failed\n");
+        LOG_WARNING("Connection callback failed");
         close(sock);
         return -1;
     }

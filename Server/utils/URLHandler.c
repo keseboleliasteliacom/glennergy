@@ -1,5 +1,4 @@
-/*#include "URLHandler.h"
-#include "RouteHandler.h"
+#include "URLHandler.h"
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -8,7 +7,7 @@
 AnonymFunkion* URLHandler_run = ChooseAPI_return_funktion; ->
 weather__URLHandler -> URLHandler_run();
 */
-/*
+
 void URLHandler_Dispose(URLHandler **_URLHandler);
 
 int URLHandler_Initialize(URLHandler **_URLHandler)
@@ -168,4 +167,4 @@ void URLHandler_Dispose(URLHandler **_URLHandler)
 
     free(handler->parameters);
     free(handler);
-}*/
+}

@@ -1,4 +1,4 @@
-/*#ifndef HTTP_SERVER_HANDLER_H
+#ifndef HTTP_SERVER_HANDLER_H
 #define HTTP_SERVER_HANDLER_H
 
 #define _POSIX_C_SOURCE 200809L
@@ -19,12 +19,12 @@ typedef struct
     InputParameters *parameters;
 } URLHandler;
 
-int URLHandler_Initialize(URLHandler **_ServerHandler);
+int URLHandler_Initialize(URLHandler **_URLHandler);
 
 int URLHandler_Parse(URLHandler *_URLHandler, char *url);
 
-char *URLHandler_GetParameterValue(URLHandler *_ServerHandler, const char *key);
+char *URLHandler_GetParameterValue(URLHandler *_URLHandler, const char *key);
 
-void URLHandler_Dispose(URLHandler **_ServerHandler);
+void URLHandler_Dispose(URLHandler **_URLHandler);
 
-#endif // HTTP_SERVER_HANDLER_H*/
+#endif // HTTP_SERVER_HANDLER_H

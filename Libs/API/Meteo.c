@@ -8,45 +8,16 @@
 #include <math.h>
 #include <jansson.h>
 
-
-int meteo_Fetch(double lat, double lon, WeatherData *weather_out, int max_hours)
+int meteo_ParseJSON(WeatherData *weather_out, int max_hours, const char *json_str)
 {
-    if (!weather_out || max_hours <= 0 || max_hours > 72)
+    if (!weather_out || max_hours <= 0 || max_hours > 72 || !json_str)
         return -1;
 
-    //char key[64];
-    //snprintf(key, sizeof(key), "%.2f_%.2f", lat, lon);
-
-    
-    
-    char url[512];
-    snprintf(url, sizeof(url),
-             "https://api.open-meteo.com/v1/forecast?"
-             "latitude=%.2f&longitude=%.2f"
-             "&hourly=temperature_2m,shortwave_radiation,direct_normal_irradiance,diffuse_radiation,cloud_cover,is_day"
-             "&forecast_days=1&timezone=Europe/Stockholm",
-             lat, lon);
-    
-    CurlResponse *response = (CurlResponse *)malloc(sizeof(CurlResponse));
-    if (!response) return -1;
-    
-    response->data = NULL;
-    response->size = 0;
-    
-    // Use Fetcher to get the data
-    int fetch_result = Curl_HTTPGet(response, url);
-    if (fetch_result != 0 || response->data == NULL) {
-        fprintf(stderr, "[METEO] HTTP fetch failed with code %d\n", fetch_result);
-        Curl_Dispose(response);
-        return -1;
-    }
-        
     json_error_t error;
-    struct json_t *root = json_loads(response->data, 0, &error);
+    struct json_t *root = json_loads(json_str, 0, &error);
     if (!root)
     {
         fprintf(stderr, "[METEO] JSON parse failed: %s\n", error.text);
-        Curl_Dispose(response);
         return -1;
     }
     
@@ -55,7 +26,6 @@ int meteo_Fetch(double lat, double lon, WeatherData *weather_out, int max_hours)
     {
         fprintf(stderr, "[METEO] JSON missing 'hourly' object\n");
         json_decref(root);
-        Curl_Dispose(response);
         return -1;
     }
 
@@ -65,6 +35,7 @@ int meteo_Fetch(double lat, double lon, WeatherData *weather_out, int max_hours)
     json_t *diffuse = json_object_get(hourly, "diffuse_radiation");
     json_t *cloud_cover = json_object_get(hourly, "cloud_cover");
     json_t *is_day = json_object_get(hourly, "is_day");
+
 
     int hours = json_array_size(temps);
     if (hours > max_hours)
@@ -81,36 +52,44 @@ int meteo_Fetch(double lat, double lon, WeatherData *weather_out, int max_hours)
         weather_out[i].valid = weather_out[i].is_day;
     }
     
-    json_decref(root);
-    Curl_Dispose(response);
+    json_decref(root); // still need 
     return hours;
 }
 
-int meteo_SaveToFile(const char *data, double lat, double lon)          //uppdatera cache för att ha samma SaveToFile för all cache?
+int meteo_Fetch(double lat, double lon, WeatherData *weather_out, int max_hours)
 {
-    if (!data) return -1;
+    if (!weather_out || max_hours <= 0 || max_hours > 72)
+        return -1;
 
-    //// Round coordinates to 0.1 degree (~11km grid)
-    //double rounded_lat = round(lat * 10.0) / 10.0;          //klurigt?
-    //double rounded_lon = round(lon * 10.0) / 10.0;
 
-    char filename[128];
-
-    //MUTEXLOCK??
-    snprintf(filename, sizeof(filename), "cache_meteo/meteo_%.2f_%.2f_.json",
+    char url[512];
+    snprintf(url, sizeof(url),
+             "https://api.open-meteo.com/v1/forecast?"
+             "latitude=%.2f&longitude=%.2f"
+             "&hourly=temperature_2m,shortwave_radiation,direct_normal_irradiance,diffuse_radiation,cloud_cover,is_day"
+             "&forecast_days=1&timezone=Europe/Stockholm",
              lat, lon);
-
-    FILE *fp = fopen(filename, "w");
-    if (!fp) {
-        fprintf(stderr, "[METEO] Failed to open %s for writing\n", filename);
+    
+    CurlResponse *response = (CurlResponse *)malloc(sizeof(CurlResponse));
+    if (!response) return -1;
+    
+    response->data = NULL;
+    response->size = 0;
+    
+    int fetch_result = Curl_HTTPGet(response, url);
+    if (fetch_result != 0 || response->data == NULL) {
+        fprintf(stderr, "[METEO] HTTP fetch failed with code %d\n", fetch_result);
+        Curl_Dispose(response);
         return -1;
     }
 
-    fputs(data, fp);        //need better
-    fclose(fp);
-    //MUTEXUNLOCK??
+    int hours = meteo_ParseJSON(weather_out, max_hours, response->data);
+    if (hours < 0) {
+        fprintf(stderr, "[METEO] Failed to parse weather data\n");
+        Curl_Dispose(response);
+        return -1;
+    }
 
-    printf("[METEO] Saved full response to: meteo_%.2f_%.2f_.json\n",
-           lat, lon);
-    return 0;
+    Curl_Dispose(response);
+    return hours;
 }
