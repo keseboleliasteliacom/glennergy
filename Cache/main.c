@@ -58,32 +58,7 @@ int main()
     AllaSpotpriser_Print(&spotpris_test);
 
     InputCache_SaveSpotpris(&spotpris_test);
-    /*
-    for (int i = 0; i < 4; i++)
-    {
-        AllaSpotpriser_Print(&spotpris_test);
-    }
-    */
 
-    //ssize_t bytesWritten = Pipes_WriteBinary(algorithm_fd_write, &spotpris_test, sizeof(DagligSpotpris));
-        
-
-    /* Disabled while testing READ functionality
-    // Mocka ta emot meteo
-    MeteoData meteo;
-    meteo.temp = 5.5;
-    inputCache.meteoData = meteo;
-
-    // Mocka en tom spotpris data
-    DagligSpotpris spotpris;
-    inputCache.spotprisData = spotpris;
-
-    // Läsa in user data/fastighetsdata från json.fil
-    // Skip for now
-    */
-
-    // Write to named pipe
-    // Disabled while testing READ functionality
 
     //close(algorithm_fd_write);
 

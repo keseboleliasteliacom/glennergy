@@ -13,6 +13,7 @@
  * @return Number of hours fetched, or -1 on error
  */
 // Weather data from API (hourly)
+
 typedef struct {
     float temp;                  // Celsius
     float ghi;                   // Global Horizontal Irradiance (W/m²) - calculated from DNI + diffuse
@@ -23,7 +24,7 @@ typedef struct {
     bool valid;
 } MeteoData;
 
-int meteo_Fetch(double lat, double lon, MeteoData *weather_out, int max_hours);
+int meteo_Fetch(MeteoData *weather_out, int max_hours);
 int meteo_SaveToFile(const char *data, double lat, double lon);
 
 #endif // METEO_H

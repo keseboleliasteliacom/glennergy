@@ -39,48 +39,10 @@ int main(void)
         fprintf(stderr, "Failed to fetch: %d\n", rc);
         return -4;
     }
-    printf("Area name: %s\n", spotpriser.areas[3].areaname);
-    printf("Area count: %d\n", spotpriser.areas[3].count);
 
     AllaSpotpriser_Print(&spotpriser);
-
-    
-    
     
     printf("pipe open in main\n");
-
-    /* Gammal kod
-    const char *areas[4] = {"SE1", "SE2", "SE3", "SE4"};
-    DagligSpotpris data;
-
-    
-    while (1)
-    {
-        for (int i = 0; i < 4; i++)
-        {
-            int rc = Spotpris_Fetch(&data, areas[i]);
-            if (rc != 0)
-            {
-                fprintf(stderr, "Failed to fetch %s: %d\n", areas[i], rc);
-                continue;
-            }
-
-            rc = Spotpris_SaveToFile(&data);
-            if (rc != 0)
-            {
-                fprintf(stderr, "Failed to save %s\n", areas[i]);
-            }
-        }
-
-        data.counter++;
-
-        ssize_t bytesWritten = Pipes_WriteBinary(spotpris_fd_write, &data, sizeof(data));
-
-
-        sleep(50);
-    } 
-    */
-   
     
     
     mkfifo(FIFO_SPOTPRIS_WRITE, 0666);
