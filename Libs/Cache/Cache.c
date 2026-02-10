@@ -41,7 +41,6 @@ bool cache_Get(Cache *cache, const char *key, char **buffer, size_t *size) //Get
         
     bool result = false;
     char filename[128];
-    char first_line[256];
     time_t cached_time, TTL;
     char *json_line = NULL;
     size_t len = 0;
@@ -57,10 +56,7 @@ bool cache_Get(Cache *cache, const char *key, char **buffer, size_t *size) //Get
         return false;  // Quick exit - no cleanup needed
     }
     
-    if (!fgets(first_line, sizeof(first_line), fptr))
-        goto cleanup;
-        
-    if (sscanf(first_line, "%ld %ld", &cached_time, &TTL) != 2)
+    if (fscanf(fptr, "%ld %ld\n", &cached_time, &TTL) != 2)
     {
         fprintf(stderr, "[CACHE] Invalid format in %s\n", filename);
         goto cleanup;

@@ -159,6 +159,15 @@ static void log_ProcessLoop(int read_fd)
             break;
         }
 
+        if (bytes_read < 0)
+        {
+            if (errno == EINTR)
+                continue;  // Interrupted by signal, retry
+            
+            perror("Logger: read error");
+            break;  // Fatal error, exit loop
+        }
+
         if (bytes_read != sizeof(LogMessage))
         {
             fprintf(stderr, "Logger: incomplete read (%zd/%zu bytes)\n", bytes_read, sizeof(LogMessage));
@@ -201,6 +210,8 @@ const char* log_GetLevelString(LogLevel level)
 
 void log_SetLevel(LogLevel level)
 {
+    if (level < LOG_LEVEL_DEBUG || level > LOG_LEVEL_ERROR)
+        return;
     log_level = level;
 }
 

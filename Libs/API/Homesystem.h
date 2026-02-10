@@ -10,17 +10,17 @@ typedef struct {
     
     float lat;
     float lon;
-    //GEO location;                        // User's geographic location
+    //GEO location city;                        // User's geographic location
     char electricity_area[4];            // Swedish price area: "SE1", "SE2", "SE3", "SE4"
 } Homesystem;
 
 Homesystem* homesystem_Create();
 void homesystem_Destroy(Homesystem **hs);
 
-void homesystem_LoadAll(Homesystem *hs, const char* config_path); //todo: load from file, from db in future?
+void homesystem_Load(Homesystem *hs, const char* config_path); //todo: load from file, from db in future?
 
-void homesystem_Save(Homesystem *hs, const char* config_path); //todo: save to file, to db in future?
-void homesystem_update(Homesystem *hs, int index); //todo: index in array for finding system, more data parameters?
+int homesystem_Save(const char *request_body, const char* config_path);  // Takes JSON directly
+void homesystem_update(Homesystem *request_body, const char* config_path);
 
 
 
