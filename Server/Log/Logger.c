@@ -185,6 +185,10 @@ static void log_ToFile(const LogMessage* log_msg)
     strftime(time_buf, sizeof(time_buf), "%Y-%m-%d %H:%M:%S", tm_info);
 
     fprintf(log_file, "[%s] [PID:%d] [%s] [%s]: %s\n", time_buf, log_msg->pid, log_msg->level, log_msg->module, log_msg->message);
+
+    #ifdef DEBUG
+    printf("[%s] [%s] [%s]: %s\n", time_buf, log_msg->level, log_msg->module, log_msg->message);
+    #endif
 }
 
 const char* log_GetLevelString(LogLevel level)
