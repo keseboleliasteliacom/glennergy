@@ -72,9 +72,10 @@ bool cache_Get(Cache *cache, const char *key, char **buffer, size_t *size) //Get
     if (read_count == -1)
     {
         fprintf(stderr, "[CACHE] Failed to read data from %s\n", filename);
+        free(json_line);
         goto cleanup;
     }
-    if (read_count > MAX_CACHE_SIZE || read_count < 0)
+    if (read_count > MAX_CACHE_SIZE)
     {
         free(json_line);
         fprintf(stderr, "[CACHE] Data too large in %s\n", filename);

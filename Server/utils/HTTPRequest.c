@@ -28,8 +28,7 @@ static int parse_content_length(const char *buffer, size_t buffer_length)
     // Check each header line
     while (line < buffer + buffer_length && *line != '\r')
     {
-        // Check if this line starts with "Content-Length:"
-        if (strncmp(line, "Content-Length:", 15) == 0)
+        if (strncasecmp(line, "Content-Length:", 15) == 0)
         {
             line += 15;
             while (*line == ' ' || *line == '\t')
