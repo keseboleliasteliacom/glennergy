@@ -2,7 +2,9 @@
 #define UTILS_H
 
 // System makron som denna ska komma före headers
-#define _POSIX_C_SOURCE 200809L
+// Vi säter alltid posic manuellt med GC Flags vid kompilering
+//#define _POSIX_C_SOURCE 200809L 
+
 
 // Vanliga headers
 #include <stdint.h>

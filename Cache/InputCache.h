@@ -8,7 +8,7 @@
 typedef struct {
     MeteoData meteoData;
     DagligSpotpris spotprisData;
-    //Userdata userdata;
+    //Userdata userdata; // Todo - Detta ska fixas
 } InputCache;
 
 

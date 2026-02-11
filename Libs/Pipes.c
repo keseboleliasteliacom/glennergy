@@ -7,7 +7,7 @@
 
 ssize_t Pipes_ReadBinary(int _Fd, void *_Buf, size_t _Size)
 {
-    ssize_t total = 0;
+    size_t total = 0;
     ssize_t bytesRead;
     char *buffer = _Buf;
 
@@ -42,7 +42,7 @@ ssize_t Pipes_ReadBinary(int _Fd, void *_Buf, size_t _Size)
 ssize_t Pipes_WriteBinary(int _Fd, void *_Buf, size_t _Size)
 {
     ssize_t bytesWritten = 0;
-    ssize_t total = 0;
+    size_t total = 0;
     char *buffer = _Buf;
 
     while (total < _Size)

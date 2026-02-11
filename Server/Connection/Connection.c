@@ -3,6 +3,9 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/socket.h>
+#include <string.h>
+#include <stdio.h>
+
 
 #define RESPONSE_HEADER "HTTP/1.1 200 OK\r\n"                            \
                         "Content-Length: 100\r\n"                        \

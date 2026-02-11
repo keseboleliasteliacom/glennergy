@@ -16,9 +16,14 @@ int main()
 {
     InputCache inputCache;
     bool WorkDone = false;
-
+    
     mkfifo(FIFO_ALGORITHM_WRITE, 0666);
+    
+    MeteoData meteo_test;
+    AllaSpotpriser spotpris_test;
 
+
+    // --- METEO ---
     int meteo_fd_read = open(FIFO_METEO_READ, O_RDONLY);
 
     if (meteo_fd_read < 0)
@@ -27,14 +32,37 @@ int main()
         return -1;
     }
 
-    int spotpris_fd_read = open(FIFO_SPOTPRIS_READ, O_RDONLY);
+    ssize_t bytesReadMeteo = Pipes_ReadBinary(meteo_fd_read, &meteo_test, sizeof(MeteoData));
 
+    if (bytesReadMeteo > 0)
+    {
+        for (int i = 0; i < 4; i++)
+        {
+            printf("Got new data Meteo %zd\n", meteo_test.pInfo[i].id);
+        }
+        InputCache_SaveMeteo(&meteo_test);
+    }
+
+    // --- SPOTPRIS ---
+    
+    int spotpris_fd_read = open(FIFO_SPOTPRIS_READ, O_RDONLY);
+    
     if (spotpris_fd_read < 0)
     {
         printf("Failed to open file: %s\n", FIFO_SPOTPRIS_READ);
         return -2;
     }
 
+    
+    ssize_t bytesReadSpotpris = Pipes_ReadBinary(spotpris_fd_read, &spotpris_test, sizeof(AllaSpotpriser));
+
+    if (bytesReadSpotpris > 0)
+    {
+        printf("Got new data spotpris%zd\n", bytesReadSpotpris);
+    }
+
+
+    // --- ALGORITM ---
     /* int algorithm_fd_write = open(FIFO_ALGORITHM_WRITE, O_WRONLY);
 
      if (algorithm_fd_write < 0)
@@ -43,27 +71,8 @@ int main()
          return -3;
      }*/
 
-    AllaSpotpriser spotpris_test;
 
-    ssize_t bytesRead = Pipes_ReadBinary(spotpris_fd_read, &spotpris_test, sizeof(AllaSpotpriser));
 
-    if (bytesRead > 0)
-    {
-        printf("Got new data spotpris%zd\n", bytesRead);
-    }
-
-    MeteoData meteo_test;
-
-    bytesRead = Pipes_ReadBinary(meteo_fd_read, &meteo_test, sizeof(MeteoData));
-
-    if (bytesRead > 0)
-    {
-        for (int i = 0; i < 4; i++)
-        {
-            printf("Got new data Meteo %zd\n", meteo_test.pInfo[i].id);
-        }
-        InputCache_SaveMeteo(&meteo_test);
-    }
 
     // AllaSpotpriser_Print(&spotpris_test);
 
@@ -73,8 +82,6 @@ int main()
 
     close(meteo_fd_read);
     close(spotpris_fd_read);
-
-    // För att testa detta, köra "cat /tmp/fifo_algoritm_write" som en ny process
 
     return 0;
 }
