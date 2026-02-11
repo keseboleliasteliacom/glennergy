@@ -73,4 +73,32 @@ static inline dir_result_t create_folder(const char *path)
     return DIR_CREATED;
 }
 
+static inline int file_lastModified(const char *_FilePath, time_t* _LastModified)
+{
+    struct stat st;
+
+    if (stat(_FilePath, &st) != 0)
+    {
+        printf("Property file doesnt exist\n");
+        return -1;
+    }
+
+    // När vi skapar last_modified sätter vi den till -1, då vet vi att vi ska synka/hämta tiderna.
+    if (*_LastModified == -1)
+    {
+        *_LastModified = st.st_mtime;
+        return 0; 
+    }
+
+    if (st.st_mtime != *_LastModified)
+    {
+        *_LastModified = st.st_mtime;
+        return 1;
+    }
+
+    return 0;
+}
+
+
+
 #endif

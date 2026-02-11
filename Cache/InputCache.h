@@ -13,5 +13,6 @@ typedef struct {
 
 
 int InputCache_SaveSpotpris(const AllaSpotpriser *spotpris);
+int InputCache_SaveMeteo(const MeteoData *_Data);
 
 #endif

@@ -7,11 +7,11 @@ CACHE_DIR = .
 API_DIR = ../API
 
 # Körbar fil
-TARGET = Spotpris
+TARGET = Meteo
 
 # Default target
 all:
-	$(CC) $(CFLAGS) Spotpris.c spotpristest.c ../../Libs/Pipes.c ../../Libs/Fetcher.c -o $(TARGET) -lcurl -ljansson
+	$(CC) $(CFLAGS) main.c Meteo.c ../../Libs/Pipes.c ../../Libs/Fetcher.c -o $(TARGET) -lcurl -ljansson
 
 # Rensa körbar fil
 clean:
