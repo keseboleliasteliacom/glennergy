@@ -8,6 +8,7 @@
 #include <math.h>
 #include <jansson.h>
 
+int Meteo_Initialize()
 
 int meteo_Fetch(double lat, double lon, WeatherData *weather_out, int max_hours)
 {

@@ -1,0 +1,58 @@
+#ifndef METEO_H
+#define METEO_H
+
+#include <stdbool.h>
+#include <stddef.h>
+#include <unistd.h>
+/**
+ * Fetch weather forecast from Open-Meteo API
+ *
+ * @param lat Latitude
+ * @param lon Longitude
+ * @param weather_out Output array for hourly weather data
+ * @param max_hours Maximum hours to fetch (up to 72)
+ * @return Number of hours fetched, or -1 on error
+ */
+// Weather data from API (hourly)
+
+#define KVARTAR_TOTALT 127
+#define NAME_MAX 128
+#define RAW_DATA_MAX 16000
+#define PROPERTIES_MAX 10
+
+typedef struct
+{
+    float temp;              // Celsius
+    float ghi;               // Global Horizontal Irradiance (W/m²) - calculated from DNI + diffuse
+    float dni;               // Direct Normal Irradiance (W/m²)
+    float diffuse_radiation; // Diffuse Radiation (W/m²)
+    float cloud_cover;       // Cloud cover percentage (0-100%)
+    int is_day;
+    bool valid;
+} Samples;
+
+typedef struct
+{
+    char property_name[NAME_MAX];
+    double lat;
+    double lon;
+    int id;
+    char raw_json_data[RAW_DATA_MAX];
+    Samples sample[KVARTAR_TOTALT];
+} PropertyInfo;
+
+typedef struct
+{
+    PropertyInfo pInfo[PROPERTIES_MAX];
+    size_t pCount;
+} MeteoData;
+
+
+int Meteo_Initialize(MeteoData *_MeteoData);
+int meteo_Fetch(MeteoData *_MeteoData);
+int Meteo_LoadPropertyInfo(MeteoData *_MeteoData);
+int Meteo_Parse(MeteoData *_MeteoData, const char *_JsonRaw);
+void Meteo_Dispose(MeteoData* _MeteoData);
+
+
+#endif // METEO_H
