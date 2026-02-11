@@ -31,10 +31,10 @@ int meteo_ParseJSON(WeatherData *weather_out, int max_hours, const char *json_st
 
     json_t *temps = json_object_get(hourly, "temperature_2m");
     json_t *ghi = json_object_get(hourly, "shortwave_radiation");
-    json_t *dni = json_object_get(hourly, "direct_normal_irradiance");
-    json_t *diffuse = json_object_get(hourly, "diffuse_radiation");
-    json_t *cloud_cover = json_object_get(hourly, "cloud_cover");
-    json_t *is_day = json_object_get(hourly, "is_day");
+    //json_t *dni = json_object_get(hourly, "direct_normal_irradiance");
+    //json_t *diffuse = json_object_get(hourly, "diffuse_radiation");
+    //json_t *cloud_cover = json_object_get(hourly, "cloud_cover");
+    //json_t *is_day = json_object_get(hourly, "is_day");
 
 
     int hours = json_array_size(temps);
@@ -45,11 +45,11 @@ int meteo_ParseJSON(WeatherData *weather_out, int max_hours, const char *json_st
     {
         weather_out[i].temp = json_number_value(json_array_get(temps, i));
         weather_out[i].ghi = json_number_value(json_array_get(ghi, i));
-        weather_out[i].dni = json_number_value(json_array_get(dni, i));
-        weather_out[i].diffuse_radiation = json_number_value(json_array_get(diffuse, i));
-        weather_out[i].cloud_cover = json_number_value(json_array_get(cloud_cover, i));
-        weather_out[i].is_day = json_integer_value(json_array_get(is_day, i)) != 0;
-        weather_out[i].valid = weather_out[i].is_day;
+        //weather_out[i].dni = json_number_value(json_array_get(dni, i));
+        //weather_out[i].diffuse_radiation = json_number_value(json_array_get(diffuse, i));
+        //weather_out[i].cloud_cover = json_number_value(json_array_get(cloud_cover, i));
+        //weather_out[i].is_day = json_integer_value(json_array_get(is_day, i)) != 0;
+        //weather_out[i].valid = weather_out[i].is_day;
     }
     
     json_decref(root); // still need 

@@ -1,5 +1,10 @@
 #include <stdio.h>
-#include "API/spotpris.h"
+#include "../Libs/API/Spotpris.h"
+#include "../Libs/Fetcher.h"
+#include "../Libs/Cache/Cache.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <curl/curl.h>
 #include <stdlib.h>
 
@@ -7,8 +12,8 @@
 // För att enkelt testa fetch för spotpris
 
 /* Kommentera bort koden
-cd till Libs
-Kompilera med: gcc -Wall -Wextra -std=c11 spotpris_fetchtest.c fetcher.c API/spotpris.c -o spotpris_app -lcurl -ljansson -D_POSIX_C_SOURCE=200112L 
+cd till Tests
+Kompilera med: gcc -Wall -Wextra -std=c11 -D_POSIX_C_SOURCE=200112L spotpris_fetchtest.c ../Libs/Fetcher.c ../Libs/API/Spotpris.c -o spotpris_app -lcurl -ljansson
 kör sedan ./spotpris_app
 */
 

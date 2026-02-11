@@ -8,7 +8,9 @@
 //test meteo with cache (run from Tests/ folder):
 //gcc -Wall -Wextra -std=c11 -D_POSIX_C_SOURCE=200112L -I../Libs -I../Libs/API -I../Libs/Cache -I../Libs/Utils main_meteotest.c ../Libs/API/Meteo.c ../Libs/Fetcher.c ../Libs/Cache/Cache.c -o meteo_test -lcurl -ljansson -lm -lpthread
 
+#define METEO_LINK "https://api.open-meteo.com/v1/forecast?latitude=%2.f&longitude=%2f&minutely_15=temperature_2m,shortwave_radiation&forecast_days=3&forecast_minutely_15=128"
 
+//,direct_normal_irradiance,diffuse_radiation,cloud_cover,is_day
 int main()
 {
     WeatherData weather[24];
@@ -50,12 +52,7 @@ int main()
     
     // Fetch raw data
     char url[512];
-    snprintf(url, sizeof(url),
-             "https://api.open-meteo.com/v1/forecast?"
-             "latitude=%.2f&longitude=%.2f"
-             "&hourly=temperature_2m,shortwave_radiation,direct_normal_irradiance,diffuse_radiation,cloud_cover,is_day"
-             "&forecast_days=1&timezone=Europe/Stockholm",
-             lat, lon);
+    snprintf(url, sizeof(url), METEO_LINK, lat, lon);
     
     CurlResponse *response = (CurlResponse *)malloc(sizeof(CurlResponse));
     if (!response) {
@@ -97,9 +94,9 @@ int main()
     } else {
         printf("Cache miss (unexpected!)\n");
     }
-    
+    printf("%s", response->data);
     Curl_Dispose(response);
-    cache_Dispose(&meteo_cache);
+    //cache_Dispose(&meteo_cache);
     
     return 0;
 }

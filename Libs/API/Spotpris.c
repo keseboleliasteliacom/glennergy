@@ -44,7 +44,6 @@ int Spotpris_Fetch(DagligSpotpris *spotpris, const char *area)
         Curl_Dispose(&resp);
         return rc;
     }
-
     // Parse JSON
     json_error_t error;
     json_t *root = json_loads(resp.data, 0, &error);
@@ -75,17 +74,17 @@ int Spotpris_Fetch(DagligSpotpris *spotpris, const char *area)
         json_t *obj = json_array_get(root, i);
 
         const char *start = json_string_value(json_object_get(obj, "time_start"));
-        const char *end   = json_string_value(json_object_get(obj, "time_end"));
+        //const char *end   = json_string_value(json_object_get(obj, "time_end"));
         spotpris->entries[i].sek_per_kwh = json_real_value(json_object_get(obj, "SEK_per_kWh"));
-        spotpris->entries[i].eur_per_kwh = json_real_value(json_object_get(obj, "EUR_per_kWh"));
-        spotpris->entries[i].exchange_rate = json_real_value(json_object_get(obj, "EXR"));
+        //spotpris->entries[i].eur_per_kwh = json_real_value(json_object_get(obj, "EUR_per_kWh"));
+        //spotpris->entries[i].exchange_rate = json_real_value(json_object_get(obj, "EXR"));
 
         // Glöm inte nullterminatorn här också
         strncpy(spotpris->entries[i].time_start, start, sizeof(spotpris->entries[i].time_start));
         spotpris->entries[i].time_start[sizeof(spotpris->entries[i].time_start)-1] = '\0';
 
-        strncpy(spotpris->entries[i].time_end, end, sizeof(spotpris->entries[i].time_end));
-        spotpris->entries[i].time_end[sizeof(spotpris->entries[i].time_end)-1] = '\0';
+        //strncpy(spotpris->entries[i].time_end, end, sizeof(spotpris->entries[i].time_end));
+        //spotpris->entries[i].time_end[sizeof(spotpris->entries[i].time_end)-1] = '\0';
     }
 
     json_decref(root);
@@ -114,10 +113,10 @@ int Spotpris_SaveToFile(const DagligSpotpris *spotpris)
     for (size_t i = 0; i < spotpris->count; i++) {
         json_t *obj = json_object();
         json_object_set_new(obj, "time_start", json_string(spotpris->entries[i].time_start));
-        json_object_set_new(obj, "time_end",   json_string(spotpris->entries[i].time_end));
+        //json_object_set_new(obj, "time_end",   json_string(spotpris->entries[i].time_end));
         json_object_set_new(obj, "SEK_per_kWh", json_real(spotpris->entries[i].sek_per_kwh));
-        json_object_set_new(obj, "EUR_per_kWh", json_real(spotpris->entries[i].eur_per_kwh));
-        json_object_set_new(obj, "EXR",        json_real(spotpris->entries[i].exchange_rate));
+        //json_object_set_new(obj, "EUR_per_kWh", json_real(spotpris->entries[i].eur_per_kwh));
+        //json_object_set_new(obj, "EXR",        json_real(spotpris->entries[i].exchange_rate));
         json_array_append_new(root, obj);
     }
     printf("Saving %zu entries to file: spotpris_%s_%s.json\n", spotpris->count, spotpris->area, date_str);
