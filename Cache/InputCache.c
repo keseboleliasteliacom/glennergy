@@ -14,8 +14,8 @@
 #define FIFO_SPOTPRIS_READ "/tmp/fifo_spotpris"
 #define FIFO_ALGORITHM_WRITE "/tmp/fifo_algoritm_write"
 
-
-static void GetTodayDate(char *buffer, size_t size) {
+static void GetTodayDate(char *buffer, size_t size)
+{
     time_t t = time(NULL);
     struct tm tm = *localtime(&t);
     snprintf(buffer, size, "%04d/%02d-%02d",
@@ -23,7 +23,8 @@ static void GetTodayDate(char *buffer, size_t size) {
 }
 
 // För fil: YYYY-MM-DD (Filnamn får inte ha snestreck "/")
-static void GetTodayDateFile(char *buffer, size_t size) {
+static void GetTodayDateFile(char *buffer, size_t size)
+{
     time_t t = time(NULL);
     struct tm tm = *localtime(&t);
     snprintf(buffer, size, "%04d-%02d-%02d",
@@ -35,10 +36,8 @@ int InputCache_SaveSpotpris(const AllaSpotpriser *spotpris)
     if (!spotpris)
         return -1;
 
-
-    int result = 0;    
+    int result = 0;
     // Finns cache-foldern?
-
 
     const char *cache_folder = "../cache_spotpris";
     dir_result_t dir_res = create_folder(cache_folder);
@@ -71,7 +70,7 @@ int InputCache_SaveSpotpris(const AllaSpotpriser *spotpris)
 
         result = json_dump_file(root, filename, JSON_INDENT(4));
 
-        if(result < 0)
+        if (result < 0)
         {
             printf("Failed to dump save file for spotpris area: %s", spotpris->areas[i].areaname);
         }
@@ -79,8 +78,51 @@ int InputCache_SaveSpotpris(const AllaSpotpriser *spotpris)
         json_decref(root);
     }
 
-    //printf("Saving %zu entries to file: spotpris_%s_%s.json\n", spotpris->count, spotpris->areaname, date_str);
+    // printf("Saving %zu entries to file: spotpris_%s_%s.json\n", spotpris->count, spotpris->areaname, date_str);
 
+    return 0;
+}
+
+int InputCache_SaveMeteo(const MeteoData *_Data)
+{
+    if (!_Data)
+        return -1;
+
+    int result = 0;
+
+    const char *meteo_folder = "../cache_meteo";
+    dir_result_t dir_res = create_folder(meteo_folder);
+    if (dir_res == DIR_ERROR)
+    {
+        fprintf(stderr, "Error creating cache folder: %s\n", meteo_folder);
+        return -2;
+    }
+
+    char filename[64];
+    char date_str[16];
+    GetTodayDateFile(date_str, sizeof(date_str));
+
+    for (int i = 0; i < _Data->pCount; i++)
+    {
+        snprintf(filename, sizeof(filename), "%s/meteo_%d_%s.json", meteo_folder, _Data->pInfo[i].id, date_str);
+        json_error_t error;
+        json_t *root = json_loads(_Data->pInfo[i].raw_json_data, 0, &error);
+
+        if (root == NULL)
+        {
+            printf("Failed to load raw json [METEO]\n");
+            return -2;
+        }
+        result = json_dump_file(root, filename, JSON_INDENT(4));
+
+        if (result < 0)
+        {
+            printf("Failed to dump save file for meteo, property id: %d", _Data->pInfo[i].id);
+        }
+        json_decref(root);
+    }
+
+    // printf("Saving %zu entries to file: spotpris_%s_%s.json\n", spotpris->count, spotpris->areaname, date_str);
 
     return 0;
 }
