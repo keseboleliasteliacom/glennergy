@@ -1,11 +1,15 @@
 #include "Spotpris.h"
 #include "../Fetcher.h"
+#include "../Cache/Cache.h"
 #include <jansson.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 #include <string.h>
 #include "../Utils/utils.h"
+
+static Cache spotpris_cache;
+static bool cache_initialized = false;
 
 // Hämta dagens datum i formatet YYYY/MM-DD (URLer måste ha YYYY/MM-DD format)
 static void GetTodayDate(char *buffer, size_t size) {
@@ -180,6 +184,19 @@ int Spotpris_FetchArea(AllaSpotpriser *spotpris, SpotprisArea area)
             Curl_Dispose(&resp);
             if (day_offset == -1) return rc;  // Must have at least yesterday
             break;
+        }
+
+        // Save to cache with key: "area_date"
+        if (!cache_initialized) {
+            if (cache_Init(&spotpris_cache, "cache_spotpris") == 0) {
+                cache_initialized = true;
+            }
+        }
+        if (cache_initialized) {
+            char key[128];
+            snprintf(key, sizeof(key), "%s_%04d-%02d-%02d",
+                     area_str, tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday);
+            cache_Set(&spotpris_cache, key, resp.data, resp.size, 86400); // 24 hour TTL
         }
 
         json_error_t error;

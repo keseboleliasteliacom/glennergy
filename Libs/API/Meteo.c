@@ -1,5 +1,6 @@
 #include "Meteo.h"
 #include "../Fetcher.h"
+#include "../Cache/Cache.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -9,6 +10,9 @@
 #include <jansson.h>
 
 #define METEO_LINK "https://api.open-meteo.com/v1/forecast?latitude=%.2f&longitude=%.2f&minutely_15=temperature_2m,shortwave_radiation&past_days=1&forecast_days=2&timezone=Europe/Stockholm"
+
+static Cache meteo_cache;
+static bool cache_initialized = false;
 
 
 int meteo_ParseJSON(MeteoData *meteo_out, int max_hours, const char *json_str)
@@ -70,14 +74,15 @@ int meteo_Fetch(double lat, double lon, MeteoData *meteo_out, int max_hours)
     if (!meteo_out || max_hours <= 0 || max_hours > 288)
         return -1;
 
+    // Initialize cache once
+    if (!cache_initialized) {
+        if (cache_Init(&meteo_cache, "cache_meteo") == 0) {
+            cache_initialized = true;
+        }
+    }
 
     char url[512];
-    snprintf(url, sizeof(url), METEO_LINK,
-             //"https://api.open-meteo.com/v1/forecast?"
-             //"latitude=%.2f&longitude=%.2f"
-             //"&hourly=temperature_2m,shortwave_radiation,direct_normal_irradiance,diffuse_radiation,cloud_cover,is_day"
-             //"&forecast_days=1&timezone=Europe/Stockholm",
-             lat, lon);
+    snprintf(url, sizeof(url), METEO_LINK, lat, lon);
     
     CurlResponse *response = (CurlResponse *)malloc(sizeof(CurlResponse));
     if (!response) return -1;
@@ -90,6 +95,16 @@ int meteo_Fetch(double lat, double lon, MeteoData *meteo_out, int max_hours)
         fprintf(stderr, "[METEO] HTTP fetch failed with code %d\n", fetch_result);
         Curl_Dispose(response);
         return -1;
+    }
+
+    // Save to cache with key: "lat_lon_date"
+    if (cache_initialized) {
+        time_t t = time(NULL);
+        struct tm tm = *localtime(&t);
+        char key[128];
+        snprintf(key, sizeof(key), "%.2f_%.2f_%04d-%02d-%02d",
+                 lat, lon, tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday);
+        cache_Set(&meteo_cache, key, response->data, response->size, 3600); // 1 hour TTL
     }
 
     int hours = meteo_ParseJSON(meteo_out, max_hours, response->data);
