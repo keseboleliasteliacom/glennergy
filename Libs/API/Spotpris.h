@@ -3,7 +3,17 @@
 
 #include <stddef.h>
 
-// TIme eller inte?
+#define KVARTAR_PER_DAY 96
+#define SPOTPRIS_DAYS 3
+#define SPOTPRIS_ENTRIES (KVARTAR_PER_DAY * SPOTPRIS_DAYS)  // 288 intervals
+
+typedef enum {
+    AREA_SE1 = 0,
+    AREA_SE2 = 1,
+    AREA_SE3 = 2,
+    AREA_SE4 = 3,
+    AREA_COUNT = 4
+} SpotprisArea;
 
 typedef struct {
     char time_start[32];
@@ -13,19 +23,19 @@ typedef struct {
     double exchange_rate;
 } SpotPriceEntry;
 
+typedef struct {
+    SpotPriceEntry data[AREA_COUNT][SPOTPRIS_ENTRIES];
+    size_t num_intervals[AREA_COUNT];
+} AllaSpotpriser;
 
-typedef struct
-{
-    char area[4]; // Prisklasser/områden: "SE1", "SE2", "SE3", "SE4"
-    size_t count; // Kommer troligtvis vara 96 kvartar
-    SpotPriceEntry *entries;
-} DagligSpotpris;
+// Fetch 3 days of spotpris for a specific area (-1, 0, +1 days)
+int Spotpris_FetchArea(AllaSpotpriser *spotpris, SpotprisArea area);
 
-// Hämta data för en prisklass och dagens datum
-// Ska vi hämta alla områden på en gång istället, eller ett call för varje area?
-int Spotpris_Fetch(DagligSpotpris *spotpris, const char *area);
+// Fetch all 4 areas at once
+int Spotpris_FetchAll(AllaSpotpriser *spotpris);
 
-// Spara DagligSpotpris till fil (pretty-print)
-int Spotpris_SaveToFile(const DagligSpotpris *spotpris);
+// Helper functions
+const char* area_to_string(SpotprisArea area);
+SpotprisArea string_to_area(const char *str);
 
 #endif
