@@ -7,6 +7,9 @@
 #define SPOTPRIS_DAYS 3
 #define SPOTPRIS_ENTRIES (KVARTAR_PER_DAY * SPOTPRIS_DAYS)  // 288 intervals
 
+// #define SPOTPRIS_DAYS 31
+// #define SPOTPRIS_ENTRIES (96 * 31)  // 2976
+
 typedef enum {
     AREA_SE1 = 0,
     AREA_SE2 = 1,
