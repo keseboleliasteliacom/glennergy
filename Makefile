@@ -4,17 +4,17 @@ LDFLAGS := -lcurl -ljansson -lpthread
 BUILD   := build
 
 # Add include directories
-CFLAGS  += -ILibs \
-           -ILibs/Utils \
-           -IServer \
-		   -IServer/Connection \
-		   -IServer/Log \
-		   -ILibs/Algorithm \
-		   -ILibs/API \
-           -ILibs/Cache 
+CFLAGS  += -Ilibs \
+           -Ilibs/utils \
+           -Iserver \
+		   -Iserver/connection \
+		   -Iserver/log \
+		   -Ilibs/algorithm \
+		   -Ilibs/API \
+           -Ilibs/cache 
 
 # ---- Find all source files recursively ----
-SRC := $(shell find Libs Server Server/Connection Server/Log Libs/Algorithm Libs/API Libs/Cache Libs/Utils -name "*.c")
+SRC := $(shell find libs server server/connection server/log libs/algorithm libs/API libs/cache libs/utils -name "*.c")
 
 # Convert .c → build/.../.o
 OBJ := $(patsubst %.c, $(BUILD)/%.o, $(SRC))

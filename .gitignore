@@ -52,12 +52,12 @@ Mkfile.old
 dkms.conf
 
 # Folders
-Logs/*
+logs/*
 cache_spotpris/*
 cache_meteo/*
 test_cache/*
-Tests/*
-!Tests/*.c
+tests/*
+!tests/*.c
 
 # Cache files
 *.json

@@ -1,0 +1,57 @@
+[2026-02-09 13:13:08] [PID:27688] [INFO] [TCPServer]: TCP Server listening
+[2026-02-09 13:13:18] [PID:27688] [INFO] [ConnHandler]: New connection accepted
+[2026-02-09 13:13:18] [PID:27688] [INFO] [Connection]: Handling incoming connection
+[2026-02-10 08:42:07] [PID:440669] [ERROR] [TCPServer]: Failed to bind socket to port
+[2026-02-10 08:42:07] [PID:440669] [ERROR] [TCPServer]: Failed to bind socket to port
+[2026-02-10 08:43:19] [PID:441259] [ERROR] [TCPServer]: Failed to bind socket to port
+[2026-02-10 08:43:19] [PID:441259] [ERROR] [TCPServer]: Failed to bind socket to port
+[2026-02-10 08:44:15] [PID:441799] [INFO] [TCPServer]: TCP Server listening
+[2026-02-10 08:46:41] [PID:441799] [INFO] [ConnHandler]: New connection accepted
+[2026-02-10 08:46:41] [PID:441799] [INFO] [Connection]: Handling incoming connection
+[2026-02-10 08:46:55] [PID:441799] [INFO] [ConnHandler]: New connection accepted
+[2026-02-10 08:46:55] [PID:441799] [INFO] [Connection]: Handling incoming connection
+[2026-02-10 08:47:53] [PID:443445] [INFO] [TCPServer]: TCP Server listening
+[2026-02-10 08:48:04] [PID:443445] [INFO] [ConnHandler]: New connection accepted
+[2026-02-10 08:48:04] [PID:443445] [INFO] [Connection]: Handling incoming connection
+[2026-02-10 08:48:04] [PID:443445] [DEBUG] [Connection]: Sending response to socket
+[2026-02-10 08:48:04] [PID:443445] [DEBUG] [Connection]: Response sent
+[2026-02-10 19:32:54] [PID:5666] [INFO] [TCPServer]: TCP Server listening
+[2026-02-10 19:34:42] [PID:6194] [INFO] [TCPServer]: TCP Server listening
+[2026-02-10 19:42:35] [PID:8777] [INFO] [MAIN]: Application started
+[2026-02-10 19:42:35] [PID:8777] [INFO] [SERVER]: Server initialized
+[2026-02-10 19:42:35] [PID:8777] [INFO] [MAIN]: Log level configured
+[2026-02-10 19:42:35] [PID:8777] [INFO] [SERVER]: Starting server
+[2026-02-10 19:42:35] [PID:8779] [INFO] [SERVER]: Connection handler initialized
+[2026-02-10 19:42:38] [PID:8838] [INFO] [MAIN]: Application started
+[2026-02-10 19:42:38] [PID:8838] [INFO] [SERVER]: Server initialized
+[2026-02-10 19:42:38] [PID:8838] [INFO] [MAIN]: Log level configured
+[2026-02-10 19:42:38] [PID:8838] [INFO] [SERVER]: Starting server
+[2026-02-10 19:42:38] [PID:8840] [INFO] [SERVER]: Connection handler initialized
+[2026-02-10 19:42:51] [PID:8992] [INFO] [MAIN]: Application started
+[2026-02-10 19:42:51] [PID:8992] [INFO] [SERVER]: Server initialized
+[2026-02-10 19:42:51] [PID:8992] [INFO] [MAIN]: Log level configured
+[2026-02-10 19:42:51] [PID:8992] [INFO] [SERVER]: Starting server
+[2026-02-10 19:42:51] [PID:8994] [INFO] [SERVER]: Connection handler initialized
+[2026-02-10 19:43:04] [PID:9115] [INFO] [MAIN]: Application started
+[2026-02-10 19:43:04] [PID:9115] [INFO] [SERVER]: Server initialized
+[2026-02-10 19:43:04] [PID:9115] [INFO] [MAIN]: Log level configured
+[2026-02-10 19:43:04] [PID:9115] [INFO] [SERVER]: Starting server
+[2026-02-10 19:43:04] [PID:9117] [INFO] [SERVER]: Connection handler initialized
+[2026-02-10 19:45:16] [PID:9723] [INFO] [MAIN]: Application started
+[2026-02-10 19:45:16] [PID:9723] [INFO] [SERVER]: Server initialized
+[2026-02-10 19:45:16] [PID:9723] [INFO] [MAIN]: Log level configured
+[2026-02-10 19:45:16] [PID:9723] [INFO] [SERVER]: Starting server
+[2026-02-10 19:45:16] [PID:9725] [INFO] [SERVER]: Connection handler initialized
+[2026-02-10 19:46:17] [PID:10169] [INFO] [MAIN]: Application started
+[2026-02-10 19:46:17] [PID:10169] [INFO] [SERVER]: Server initialized
+[2026-02-10 19:46:17] [PID:10169] [INFO] [MAIN]: Log level configured
+[2026-02-10 19:46:17] [PID:10169] [INFO] [SERVER]: Starting server
+[2026-02-10 19:46:17] [PID:10171] [INFO] [SERVER]: Connection handler initialized
+[2026-02-10 19:46:24] [PID:10250] [INFO] [MAIN]: Application started
+[2026-02-10 19:46:24] [PID:10250] [INFO] [SERVER]: Server initialized
+[2026-02-10 19:46:24] [PID:10250] [INFO] [MAIN]: Log level configured
+[2026-02-10 19:46:24] [PID:10250] [INFO] [SERVER]: Starting server
+[2026-02-10 19:46:24] [PID:10252] [INFO] [SERVER]: Connection handler initialized
+[2026-02-14 10:49:36] [PID:21374] [INFO] [TCPServer]: TCP Server listening
+[2026-02-14 11:01:25] [PID:24656] [INFO] [TCPServer]: TCP Server listening
+[2026-02-14 11:01:43] [PID:24815] [INFO] [TCPServer]: TCP Server listening
