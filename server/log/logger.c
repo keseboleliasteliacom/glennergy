@@ -8,15 +8,18 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include <fcntl.h>
+#include <stdarg.h>
 
 // kvar att göra add threadid, blocking dev fix message before shutdown?
+
+#define LOG_MSG_MAX 256
 
 typedef struct {
     time_t timestamp;
     pid_t pid;
     char level[16];
     char module[32];
-    char message[256];
+    char message[LOG_MSG_MAX];
 } LogMessage;
 
 static int write_fd = -1;
@@ -123,7 +126,7 @@ void log_Message(LogLevel level, const char* module, const char* msg)
     }
     else if (written < 0)
     {
-        perror("log_Message write");
+        perror("log_Message() write");
     }
     else
     {
@@ -132,6 +135,19 @@ void log_Message(LogLevel level, const char* module, const char* msg)
     }
     
     pthread_mutex_unlock(&log_mutex);
+}
+
+void log_MessageFmt(LogLevel level, const char* module, const char* fmt, ...)
+{
+    char buffer[LOG_MSG_MAX];  // Larger buffer for formatting
+    
+    va_list args;
+    va_start(args, fmt);
+    vsnprintf(buffer, sizeof(buffer), fmt, args);
+    va_end(args);
+    
+    // Call existing log_Message with formatted string
+    log_Message(level, module, buffer);
 }
 
 static void log_ProcessLoop(int read_fd)
@@ -194,6 +210,13 @@ static void log_ToFile(const LogMessage* log_msg)
     strftime(time_buf, sizeof(time_buf), "%Y-%m-%d %H:%M:%S", tm_info);
 
     fprintf(log_file, "[%s] [PID:%d] [%s] [%s]: %s\n", time_buf, log_msg->pid, log_msg->level, log_msg->module, log_msg->message);
+
+    #ifdef DEBUG
+    // ALSO print to terminal in debug builds
+    fprintf(stderr, "[%s] [%s] [%s]: %s\n", 
+            time_buf, log_msg->level, log_msg->module, log_msg->message);
+    #endif
+
 }
 
 const char* log_GetLevelString(LogLevel level)

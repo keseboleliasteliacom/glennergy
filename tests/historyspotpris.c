@@ -112,7 +112,7 @@ int Spotpris_HistoryFetchArea(AllaSpotpriser *spotpris, time_t start_time, int n
     
     char output_filename[256];  // Increase buffer size
     snprintf(output_filename, sizeof(output_filename), 
-         "data/historicspotpris/spotpris_history_%04d%02d%02d_%04d%02d%02d_%s.json",
+         "data/historicspotpris/%04d%02d%02d_%04d%02d%02d_%s.json",
              start_tm->tm_year + 1900, start_tm->tm_mon + 1, start_tm->tm_mday,
              end_tm->tm_year + 1900, end_tm->tm_mon + 1, end_tm->tm_mday,
              area_str);

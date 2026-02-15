@@ -6,7 +6,7 @@
 
 
 
-int homesystem_LoadAll(Homesystem **systems, const char* config_path)
+int homesystem_LoadAll(Homesystem_t **systems, const char* config_path)
 {
     if (systems == NULL || config_path == NULL)
         return -1;
@@ -28,7 +28,7 @@ int homesystem_LoadAll(Homesystem **systems, const char* config_path)
     }
 
     size_t count = json_array_size(systems_array);
-    *systems = malloc(count * sizeof(Homesystem));
+    *systems = malloc(count * sizeof(Homesystem_t));
     if (*systems == NULL)
     {
         fprintf(stderr, "Memory allocation failed\n");

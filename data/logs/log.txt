@@ -55,3 +55,30 @@
 [2026-02-14 10:49:36] [PID:21374] [INFO] [TCPServer]: TCP Server listening
 [2026-02-14 11:01:25] [PID:24656] [INFO] [TCPServer]: TCP Server listening
 [2026-02-14 11:01:43] [PID:24815] [INFO] [TCPServer]: TCP Server listening
+[2026-02-15 11:17:44] [PID:240178] [INFO] [TEST_FILE]: info message: SE3
+[2026-02-15 11:17:44] [PID:240178] [WARNING] [TEST_FILE]: warning message: 59.33 lat
+[2026-02-15 11:17:44] [PID:240178] [ERROR] [TEST_FILE]: error message: 18.07 lon
+[2026-02-15 11:30:40] [PID:242841] [DEBUG] [TEST_FILE]: debug message: 
+[2026-02-15 11:30:40] [PID:242841] [INFO] [TEST_FILE]: info message: SE3
+[2026-02-15 11:30:40] [PID:242841] [WARNING] [TEST_FILE]: warning message: 59.33 lat
+[2026-02-15 11:30:40] [PID:242841] [ERROR] [TEST_FILE]: error message: 18.07 lon
+[2026-02-15 11:32:34] [PID:243256] [DEBUG] [TEST_FILE]: debug message: 
+[2026-02-15 11:32:34] [PID:243256] [INFO] [TEST_FILE]: info message: SE3
+[2026-02-15 11:32:34] [PID:243256] [WARNING] [TEST_FILE]: warning message: 59.33 lat
+[2026-02-15 11:32:34] [PID:243256] [ERROR] [TEST_FILE]: error message: 18.07 lon
+[2026-02-15 11:33:38] [PID:243551] [DEBUG] [TEST_FILE]: debug message: stockholm_1
+[2026-02-15 11:33:38] [PID:243551] [INFO] [TEST_FILE]: info message: SE3
+[2026-02-15 11:33:38] [PID:243551] [WARNING] [TEST_FILE]: warning message: 59.33 lat
+[2026-02-15 11:33:38] [PID:243551] [ERROR] [TEST_FILE]: error message: 18.07 lon
+[2026-02-15 11:33:50] [PID:243642] [DEBUG] [TEST_FILE]: debug message: stockholm_1
+[2026-02-15 11:33:50] [PID:243642] [INFO] [TEST_FILE]: info message: SE3
+[2026-02-15 11:33:50] [PID:243642] [WARNING] [TEST_FILE]: warning message: 59.33 lat
+[2026-02-15 11:33:50] [PID:243642] [ERROR] [TEST_FILE]: error message: 18.07 lon
+[2026-02-15 11:36:38] [PID:244254] [DEBUG] [TEST_FILE]: debug message: stockholm_1
+[2026-02-15 11:36:38] [PID:244254] [INFO] [TEST_FILE]: info message: SE3
+[2026-02-15 11:36:38] [PID:244254] [WARNING] [TEST_FILE]: warning message: 59.33 lat
+[2026-02-15 11:36:38] [PID:244254] [ERROR] [TEST_FILE]: error message: 18.07 lon
+[2026-02-15 11:41:11] [PID:245265] [DEBUG] [TEST_FILE]: debug message: stockholm_1
+[2026-02-15 11:41:11] [PID:245265] [INFO] [TEST_FILE]: info message: SE3
+[2026-02-15 11:41:11] [PID:245265] [WARNING] [TEST_FILE]: warning message: 59.33 lat
+[2026-02-15 11:41:11] [PID:245265] [ERROR] [TEST_FILE]: error message: 18.07 lon

@@ -14,13 +14,15 @@ typedef enum {
 #define MODULE_NAME "UNKNOWN"
 #endif
 
-#define LOG_DEBUG(msg)   log_Message(LOG_LEVEL_DEBUG, MODULE_NAME, msg)
-#define LOG_INFO(msg)    log_Message(LOG_LEVEL_INFO, MODULE_NAME, msg)
-#define LOG_WARNING(msg) log_Message(LOG_LEVEL_WARN, MODULE_NAME, msg)
-#define LOG_ERROR(msg)   log_Message(LOG_LEVEL_ERROR, MODULE_NAME, msg)
+#define LOG_DEBUG(fmt, ...)   log_MessageFmt(LOG_LEVEL_DEBUG, MODULE_NAME, fmt, ##__VA_ARGS__)
+#define LOG_INFO(fmt, ...)    log_MessageFmt(LOG_LEVEL_INFO, MODULE_NAME, fmt, ##__VA_ARGS__)
+#define LOG_WARNING(fmt, ...) log_MessageFmt(LOG_LEVEL_WARN, MODULE_NAME, fmt, ##__VA_ARGS__)
+#define LOG_ERROR(fmt, ...)   log_MessageFmt(LOG_LEVEL_ERROR, MODULE_NAME, fmt, ##__VA_ARGS__)
+
 
 int log_Init(const char* log_path);  // Pass NULL for default: Logs/log.txt
 void log_Message(LogLevel level, const char* module, const char* msg);
+void log_MessageFmt(LogLevel level, const char* module, const char* fmt, ...);
 void log_Cleanup(void);
 
 void log_SetLevel(LogLevel level);

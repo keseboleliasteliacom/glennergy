@@ -15,12 +15,12 @@ typedef struct {
     float lon;
     //GEO location city;                        // User's geographic location
     char electricity_area[AREA_MAX];            // Swedish price area: "SE1", "SE2", "SE3", "SE4"
-} Homesystem;
+} Homesystem_t;
 
-Homesystem* homesystem_Create(Homesystem *hs);
-void homesystem_Destroy(Homesystem **hs);
+Homesystem_t* homesystem_Create(Homesystem_t *hs);
+void homesystem_Destroy(Homesystem_t **hs);
 
-int homesystem_LoadAll(Homesystem **systems, const char* config_path);  // Load all systems from config
+int homesystem_LoadAll(Homesystem_t **systems, const char* config_path);  // Load all systems from config
 int homesystem_Append(const char *json_data, const char* config_path);  // Append new system
 void homesystem_update(const char *json_data, int home_id, const char* config_path);  // Update existing system
 
