@@ -15,13 +15,13 @@
 // meteo data from API (hourly)
 typedef struct {
     char time[32];
-    float temp;                  // Celsius
-    float ghi;                   // Global Horizontal Irradiance (W/m²) - calculated from DNI + diffuse
-    float dni;                   // Direct Normal Irradiance (W/m²)
-    float diffuse_radiation;     // Diffuse Radiation (W/m²)
-    float cloud_cover;           // Cloud cover percentage (0-100%)
-    int is_day;
-    bool valid;
+    double temp;                  // Celsius
+    double ghi;                   // Global Horizontal Irradiance (W/m²) - calculated from DNI + diffuse
+    //double dni;                   // Direct Normal Irradiance (W/m²)
+    //double diffuse_radiation;     // Diffuse Radiation (W/m²)
+    //double cloud_cover;           // Cloud cover percentage (0-100%)
+    //int is_day;
+    //bool valid;
 } MeteoData;
 
 int meteo_Fetch(double lat, double lon, MeteoData *meteo_out, int max_hours);

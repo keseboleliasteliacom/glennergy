@@ -17,7 +17,7 @@ static bool cache_initialized = false;
 
 int meteo_ParseJSON(MeteoData *meteo_out, int max_hours, const char *json_str)
 {
-    if (!meteo_out || max_hours <= 0 || max_hours > 288 || !json_str)
+    if (!meteo_out || max_hours <= 0 || !json_str)  // || max_hours > 288
         return -1;
 
     json_error_t error;

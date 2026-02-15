@@ -20,10 +20,10 @@ typedef enum {
 
 typedef struct {
     char time_start[32];
-    char time_end[32];
+    //char time_end[32];
     double sek_per_kwh;
-    double eur_per_kwh;
-    double exchange_rate;
+    //double eur_per_kwh;
+    //double exchange_rate;
 } SpotPriceEntry;
 
 typedef struct {
@@ -31,6 +31,7 @@ typedef struct {
     size_t num_intervals[AREA_COUNT];
 } AllaSpotpriser;
 
+int spotpris_ParseJSON(SpotPriceEntry *output, int max_entries, const char *json_str);
 // Fetch 3 days of spotpris for a specific area (-1, 0, +1 days)
 int Spotpris_FetchArea(AllaSpotpriser *spotpris, SpotprisArea area);
 

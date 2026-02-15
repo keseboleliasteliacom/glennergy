@@ -1,27 +1,48 @@
 #ifndef ALGOINFLUENCER_H
 #define ALGOINFLUENCER_H
 
-typedef struct {
-    char time [32];
-    float temp;
-    float ghi;
+#include <stddef.h>
 
-} MeteofileData_t;
+#include "../API/homesystem/homesystem.h"
+#include "../API/meteo.h"
+#include "../API/spotpris.h"
 
 typedef struct {
-    char time_start[32];
-    double sek_per_kwh;
-} SpotprisfileData_t;
+    double min;
+    double max;
+    double average;
+    double median;
+    double q25;
+    double q75;
+} Stats_t;
+
+typedef struct {
+    Stats_t temperature;
+    Stats_t ghi;
+}   MeteoStats_t;
+
+typedef struct {
+    Stats_t sek_per_kwh;
+} SpotprisStats_t;
 
 typedef struct {
     Homesystem_t *home;
-    MeteofileData_t *meteo;
-    SpotprisfileData_t *spotpris;
+
+    MeteoData *meteo;
+    size_t meteo_valcount;
+
+    SpotPriceEntry *spotpris;
+    size_t spotpris_valcount;
 } AlgoInfluencer_t;
+
+void algoinfluencer_Init(AlgoInfluencer_t *influencer);
+void algoinfluencer_Cleanup(AlgoInfluencer_t *influencer);
 
 char* read_FileInMemory(const char *filepath, size_t *file_size);
 
-int algoinfluencer_LoadStructs(AlgoInfluencer_t *influencer, const char *home_filepath, const char *meteo_filepath, const char *spotpris_filepath);
+//int algoinfluencer_LoadHomesystem(AlgoInfluencer_t *influencer, const char *home_filepath);
+int algoinfluencer_LoadMeteo(AlgoInfluencer_t *influencer);
+int algoinfluencer_LoadSpotpris(AlgoInfluencer_t *influencer, const char *spotpris_filepath);
 
 
 #endif

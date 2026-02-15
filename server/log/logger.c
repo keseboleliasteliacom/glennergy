@@ -10,7 +10,7 @@
 #include <fcntl.h>
 #include <stdarg.h>
 
-// kvar att göra add threadid, blocking dev fix message before shutdown?
+// add threadid, LOG_FILE_SIZE, name:YYYY_MM_DD new file everyday? blocking for dev, fix message before shutdown
 
 #define LOG_MSG_MAX 256
 
@@ -212,7 +212,6 @@ static void log_ToFile(const LogMessage* log_msg)
     fprintf(log_file, "[%s] [PID:%d] [%s] [%s]: %s\n", time_buf, log_msg->pid, log_msg->level, log_msg->module, log_msg->message);
 
     #ifdef DEBUG
-    // ALSO print to terminal in debug builds
     fprintf(stderr, "[%s] [%s] [%s]: %s\n", 
             time_buf, log_msg->level, log_msg->module, log_msg->message);
     #endif

@@ -151,6 +151,58 @@ SpotprisArea string_to_area(const char *str) {
     return AREA_SE1; // default
 }
 
+int spotpris_ParseJSON(SpotPriceEntry *output, int max_entries, const char *json_str)
+{
+    if (!output || max_entries <= 0 || !json_str) {
+        return -1;
+    }
+
+    json_error_t error;
+    json_t *root = json_loads(json_str, 0, &error);
+    
+    if (!root) {
+        fprintf(stderr, "[SPOTPRIS] JSON parse error: %s\n", error.text);
+        return -1;
+    }
+
+    if (!json_is_array(root)) {
+        fprintf(stderr, "[SPOTPRIS] JSON root is not an array\n");
+        json_decref(root);
+        return -1;
+    }
+
+    size_t n_elements = json_array_size(root);
+    if (n_elements > (size_t)max_entries) {
+        n_elements = max_entries;
+    }
+
+    for (size_t i = 0; i < n_elements; i++) {
+        json_t *obj = json_array_get(root, i);
+        
+        const char *start = json_string_value(json_object_get(obj, "time_start"));
+        //const char *end = json_string_value(json_object_get(obj, "time_end"));
+        double sek = json_real_value(json_object_get(obj, "sek_per_kwh"));
+        //double eur = json_real_value(json_object_get(obj, "EUR_per_kWh"));
+        //double exr = json_real_value(json_object_get(obj, "EXR"));
+        
+        if (start) {
+            strncpy(output[i].time_start, start, sizeof(output[i].time_start) - 1);
+            output[i].time_start[sizeof(output[i].time_start) - 1] = '\0';
+        }
+        //if (end) {
+        //    strncpy(output[i].time_end, end, sizeof(output[i].time_end) - 1);
+        //    output[i].time_end[sizeof(output[i].time_end) - 1] = '\0';
+        //}
+        
+        output[i].sek_per_kwh = sek;
+        //output[i].eur_per_kwh = eur;
+        //output[i].exchange_rate = exr;
+    }
+
+    json_decref(root);
+    return (int)n_elements;
+}
+
 int Spotpris_FetchArea(AllaSpotpriser *spotpris, SpotprisArea area)
 {
     if (!spotpris) return -1;
@@ -199,47 +251,23 @@ int Spotpris_FetchArea(AllaSpotpriser *spotpris, SpotprisArea area)
             cache_Set(&spotpris_cache, key, resp.data, resp.size, 86400); // 24 hour TTL
         }
 
-        json_error_t error;
-        json_t *root = json_loads(resp.data, 0, &error);
+        int parsed = spotpris_ParseJSON( &spotpris->data[area][spotpris->num_intervals[area]],
+                                            SPOTPRIS_ENTRIES - spotpris->num_intervals[area],
+                                            resp.data
+        );
+        
         Curl_Dispose(&resp);
         
-        if (!root) {
-            fprintf(stderr, "JSON parse error %s day %+d: %s\n", area_str, day_offset, error.text);
+        if (parsed < 0) {
+            fprintf(stderr, "Failed to parse JSON for %s day %+d\n", area_str, day_offset);
             if (day_offset == -1) return -2;
             break;
         }
 
-        if (!json_is_array(root)) {
-            json_decref(root);
-            if (day_offset == -1) return -3;
-            break;
-        }
-
-        size_t n_elements = json_array_size(root);
+        spotpris->num_intervals[area] += parsed;
         
-        
-        if (spotpris->num_intervals[area] + n_elements > SPOTPRIS_ENTRIES) {
-            n_elements = SPOTPRIS_ENTRIES - spotpris->num_intervals[area];
-        }
-
-        for (size_t i = 0; i < n_elements; i++)
-        {
-            json_t *obj = json_array_get(root, i);
-            size_t idx = spotpris->num_intervals[area] + i;
-
-            const char *start = json_string_value(json_object_get(obj, "time_start"));
-            spotpris->data[area][idx].sek_per_kwh = json_real_value(json_object_get(obj, "SEK_per_kWh"));
-
-            strncpy(spotpris->data[area][idx].time_start, start, 
-                    sizeof(spotpris->data[area][idx].time_start) - 1);
-            spotpris->data[area][idx].time_start[sizeof(spotpris->data[area][idx].time_start)-1] = '\0';
-        }
-
-        spotpris->num_intervals[area] += n_elements;
-        json_decref(root);
-        
-        printf("Loaded %zu intervals for %s day %+d (total: %zu)\n", 
-               n_elements, area_str, day_offset, spotpris->num_intervals[area]);
+        printf("Loaded %d intervals for %s day %+d (total: %zu)\n", 
+               parsed, area_str, day_offset, spotpris->num_intervals[area]);
     }
 
     return 0;

@@ -7,12 +7,12 @@
 
 typedef struct {
     char home_id[NAME_MAX];
-    float panel_capacitykw;      // Total installed solar capacity (kW)
-    float panel_tiltdegrees;            // Panel tilt angle (0-90 degrees)
-    float panel_azimuthdegrees;         // Panel orientation (0=North, 90=East, 180=South, 270=West)
+    double panel_capacitykw;      // Total installed solar capacity (kW)
+    double panel_tiltdegrees;            // Panel tilt angle (0-90 degrees)
+    double panel_azimuthdegrees;         // Panel orientation (0=North, 90=East, 180=South, 270=Wedouble
     
-    float lat;
-    float lon;
+    double lat;
+    double lon;
     //GEO location city;                        // User's geographic location
     char electricity_area[AREA_MAX];            // Swedish price area: "SE1", "SE2", "SE3", "SE4"
 } Homesystem_t;
