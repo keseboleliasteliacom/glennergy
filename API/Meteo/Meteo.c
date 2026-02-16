@@ -33,7 +33,7 @@ int Meteo_Initialize(MeteoData *_MeteoData)
 int Meteo_LoadPropertyInfo(MeteoData *_MeteoData)
 {
     json_error_t err;
-    json_t *property = json_load_file("fastighets_test.json", 0, &err);
+    json_t *property = json_load_file("/mnt/c/Users/lison/glennergy/glennergy/API/Meteo/fastighets_test.json", 0, &err);
 
     if (property == NULL)
     {
@@ -140,6 +140,9 @@ int meteo_Fetch(MeteoData *_MeteoData)
 
         char url[512];
         snprintf(url, sizeof(url), METEO_LINK, _MeteoData->pInfo[i].lat, _MeteoData->pInfo[i].lon);
+
+
+        printf("URL: %s\n", url);
 
         // Use Fetcher to get the data
         int fetch_result = Curl_HTTPGet(&response, url);

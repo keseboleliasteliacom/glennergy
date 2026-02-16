@@ -13,6 +13,7 @@ int main()
 {
     mkfifo(FIFO_METEO_WRITE, 0666);
 
+    setvbuf(stdout, NULL, _IONBF, 0);
     int meteo_fd_write = open(FIFO_METEO_WRITE, O_WRONLY);
 
     if (meteo_fd_write < 0)
@@ -28,23 +29,18 @@ int main()
     MeteoData data;
     Meteo_LoadPropertyInfo(&data);
 
-    while (1)
+    if (file_lastModified("/mnt/c/Users/lison/glennergy/glennergy/API/Meteo/fastighets_test.json", &last_modified) == 1)
     {
-
-        if(file_lastModified("fastighets_test.json", &last_modified) == 1)
-        {
-            Meteo_LoadPropertyInfo(&data);
-            printf("Info changed, reloaded file.\n");
-        }
-
-        meteo_Fetch(&data);
-
-
-        ssize_t bytesWritten = Pipes_WriteBinary(meteo_fd_write, &data, sizeof(data));
-
-        printf("bytes skickade: %zd\n", bytesWritten);
-        sleep(10);
+        Meteo_LoadPropertyInfo(&data);
+        printf("Info changed, reloaded file.\n");
     }
+
+    meteo_Fetch(&data);
+
+    ssize_t bytesWritten = Pipes_WriteBinary(meteo_fd_write, &data, sizeof(data));
+
+    printf("bytes skickade: %zd\n", bytesWritten);
+
     close(meteo_fd_write);
     unlink(FIFO_METEO_WRITE);
 
