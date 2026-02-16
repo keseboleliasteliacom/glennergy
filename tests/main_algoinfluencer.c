@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-//gcc -o test_algoinfluencer tests/main_algoinfluencer.c libs/algorithm/algoinfluencer.c libs/API/meteo.c libs/API/spotpris.c libs/utils/fetcher.c libs/cache/cache.c server/log/logger.c -Ilibs -Ilibs/algorithm -Ilibs/API -Ilibs/utils -Ilibs/cache -Iserver/log -ljansson -lcurl -lpthread
+//gcc -o test_algoinfluencer tests/main_algoinfluencer.c libs/algorithm/algoinfluencer.c libs/xoxoldAPI/meteo.c libs/xoxoldAPI/spotpris.c libs/utils/fetcher.c libs/cache/cache.c server/log/logger.c -Ilibs -Ilibs/algorithm -Ilibs/xoxoldAPI -Ilibs/utils -Ilibs/cache -Iserver/log -ljansson -lcurl -lpthread
 
 int main (){
     log_Init("test_algoinfluencer.log");

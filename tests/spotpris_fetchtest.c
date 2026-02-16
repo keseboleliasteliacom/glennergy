@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "API/spotpris.h"
+#include "API/Spotpris/Spotpris.h"
 #include <curl/curl.h>
 #include <stdlib.h>
 
@@ -8,7 +8,7 @@
 
 /* Kommentera bort koden
 cd till Libs
-Kompilera med: gcc -Wall -Wextra -std=c11 spotpris_fetchtest.c fetcher.c API/spotpris.c -o spotpris_app -lcurl -ljansson -D_POSIX_C_SOURCE=200112L 
+Kompilera med: gcc -Wall -Wextra -std=c11 spotpris_fetchtest.c fetcher.c API/Spotpris/Spotpris.c -o spotpris_app -lcurl -ljansson -D_POSIX_C_SOURCE=200112L 
 kör sedan ./spotpris_app
 */
 

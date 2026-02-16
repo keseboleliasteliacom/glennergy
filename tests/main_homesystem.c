@@ -1,11 +1,11 @@
 #define MODULE_NAME "TEST_FILE"
-#include "../xoldAPI/homesystem/homesystem.h"
+#include "../xoxoldAPI/homesystem/homesystem.h"
 #include "../server/log/logger.h"
 #include <stdlib.h>
 #include <stdio.h>
 
 
-//gcc -Wall -Wextra -std=c11 -D_POSIX_C_SOURCE=200112L -DDEBUG -IxoldAPI -IxoldAPI/homesystem -Iserver/log tests/main_homesystem.c xoldAPI/homesystem/homesystem.c server/log/logger.c -ljansson -lpthread -o tests/main_homesystem
+//gcc -Wall -Wextra -std=c11 -D_POSIX_C_SOURCE=200112L -DDEBUG -IxoxoldAPI -IxoxoldAPI/homesystem -Iserver/log tests/main_homesystem.c xoxoldAPI/homesystem/homesystem.c server/log/logger.c -ljansson -lpthread -o tests/main_homesystem
 
 //project root then ./tests/main_homesystem
 
@@ -24,10 +24,10 @@ int main () {
         for (int i = 0; i < n_systems; i++)
         {
             //printf("Area: %s\n", systems[i].electricity_area);
-            printf("Homesystem %d: ID=%s, Capacity=%.2f kW, Tilt=%.1f°, Azimuth=%.1f°, Lat=%.3f, Lon=%.3f, Area=%s\n",
+            printf("Homesystem %d: ID=%s, Capacity=%.2f kWh, Tilt=%.1f°, Azimuth=%.1f°, Lat=%.3f, Lon=%.3f, Area=%s\n",
                    i+1,
                    systems[i].home_id,
-                   systems[i].panel_capacitykw,
+                   systems[i].panel_capacitykwh,
                    systems[i].panel_tiltdegrees,
                    systems[i].panel_azimuthdegrees,
                    systems[i].lat,

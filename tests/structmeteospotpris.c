@@ -1,9 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "../xoldAPI/meteo.h"
+#include "../xoxoldAPI/meteo.h"
 #include "../libs/utils/fetcher.h"
-#include "../xoldAPI/spotpris.h"
+#include "../xoxoldAPI/spotpris.h"
 
 typedef struct {
     MeteoData *meteo_data;

@@ -7,11 +7,11 @@
 #include <string.h>
 #include "../libs/utils/utils.h"
 
-#include "../xoldAPI/spotpris.h"
+#include "../xoxoldAPI/spotpris.h"
 
 #define MAX_BACKLOG_DATE 20260101
 
-//gcc -Wall -Wextra -std=c11 -D_POSIX_C_SOURCE=200112L -D_GNU_SOURCE -IxoldAPI -IxoldAPI/spotpris -IxoldAPI/cache -IxoldAPI/utils tests/historyspotpris.c xoldAPI/utils/fetcher.c xoldAPI/spotpris/spotpris.c xoldAPI/cache/cache.c -lcurl -ljansson -o tests/historyspotpris
+//gcc -Wall -Wextra -std=c11 -D_POSIX_C_SOURCE=200112L -D_GNU_SOURCE -IxoxoldAPI -IxoxoldAPI/spotpris -IxoxoldAPI/cache -IxoxoldAPI/utils tests/historyspotpris.c xoxoldAPI/utils/fetcher.c xoxoldAPI/spotpris/spotpris.c xoxoldAPI/cache/cache.c -lcurl -ljansson -o tests/historyspotpris
 
 int Spotpris_HistoryFetchArea(AllaSpotpriser *spotpris, time_t start_time, int num_days, SpotprisArea area);
 

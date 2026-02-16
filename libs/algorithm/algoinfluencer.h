@@ -3,9 +3,9 @@
 
 #include <stddef.h>
 
-#include "../xoldAPI/homesystem/homesystem.h"
-#include "../xoldAPI/meteo.h"
-#include "../xoldAPI/spotpris.h"
+#include "../xoxoldAPI/homesystem/homesystem.h"
+#include "../xoxoldAPI/meteo.h"
+#include "../xoxoldAPI/spotpris.h"
 
 typedef struct {
     double min;

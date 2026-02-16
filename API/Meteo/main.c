@@ -1,11 +1,11 @@
 #include "Meteo.h"
-#include "../../Libs/Pipes.h"
+#include "../../libs/utils/Pipes.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <jansson.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include "../../Libs/Utils/utils.h"
+#include "../../libs/utils/utils.h"
 
 #define FIFO_METEO_WRITE "/tmp/fifo_meteo"
 

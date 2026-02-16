@@ -56,7 +56,7 @@ int homesystem_LoadAll(Homesystem_t **systems, const char* config_path)
         if (result == 0)
         {
             strncpy((*systems)[i].home_id, home_id, NAME_MAX - 1);
-            (*systems)[i].panel_capacitykw = (float)capacity;
+            (*systems)[i].panel_capacitykwh = (float)capacity;
             (*systems)[i].panel_tiltdegrees = (float)tilt;
             (*systems)[i].panel_azimuthdegrees = (float)azimuth;
             (*systems)[i].lat = (float)lat;
