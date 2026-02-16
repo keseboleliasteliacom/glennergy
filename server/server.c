@@ -25,7 +25,7 @@ int Server_Run(Server *_Server)
 
     SignalHandler_Initialize();
 
-    int status;
+    int status_pid, status_cache;
     pid_t pid = fork();
 
     if (pid < 0)
@@ -49,21 +49,36 @@ int Server_Run(Server *_Server)
         {
             monTime = SystemMonotonicMS();
             smw_work(monTime);
-            usleep(100000);
+            usleep(100000); // Todo från compiler warning - Byta till använda "nanosleep" från "time.h" istället för "usleep" från "unistd.h"?
         }
 
         ConnectionHandler_Dispose(&cHandler);
         smw_dispose();
 
         Threads_Dispose(threads);
-        
+
         log_CloseWrite();
         exit(EXIT_SUCCESS);
     }
     else
     {
-        wait(&status);
-        printf("Connection module finished with status: %d\n", WEXITSTATUS(status));
+        wait(&status_pid);
+    }
+
+    pid_t pid_cache = fork();
+
+    if (pid_cache < 0)
+    {
+        exit(EXIT_FAILURE);
+    }
+    else if (pid_cache == 0)
+    {
+        execlp("./Spotpris", "Spotpris", NULL);
+        exit(EXIT_SUCCESS);
+    }
+    else
+    {
+        wait(&status_cache);
     }
 
     return 0;

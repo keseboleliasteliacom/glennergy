@@ -1,12 +1,12 @@
-#include "../libs/API/meteo.h"
+#include "../xoldAPI/meteo.h"
 #include "../libs/utils/fetcher.h"
-#include "../libs/cache/cache.h"
+#include "../cache/cache.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 //test meteo with cache (run from Tests/ folder):
-//gcc -Wall -Wextra -std=c11 -D_POSIX_C_SOURCE=200112L -I../Libs -I../libs/API -I../libs/cache -I../libs/utils main_meteotest.c ../libs/API/meteo.c ../libs/utils/fetcher.c ../libs/cache/cache.c -o meteo_test -lcurl -ljansson -lm -lpthread
+//gcc -Wall -Wextra -std=c11 -D_POSIX_C_SOURCE=200112L -I../Libs -I../libs/API -I../cache -I../libs/utils main_meteotest.c ../libs/API/meteo.c ../libs/utils/fetcher.c ../cache/cache.c -o meteo_test -lcurl -ljansson -lm -lpthread
 
 #define METEO_LINK "https://api.open-meteo.com/v1/forecast?latitude=%2.f&longitude=%2f&minutely_15=temperature_2m,shortwave_radiation&forecast_days=3&forecast_minutely_15=128"
 

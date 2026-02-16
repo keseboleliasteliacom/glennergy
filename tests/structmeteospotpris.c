@@ -1,10 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "../xoldAPI/meteo.h"
 #include "../libs/utils/fetcher.h"
-#include "../libs/API/meteo.h"
-#include "../libs/utils/fetcher.h"
-#include "../libs/API/spotpris.h"
+#include "../xoldAPI/spotpris.h"
 
 typedef struct {
     MeteoData *meteo_data;
@@ -29,7 +28,10 @@ int main()
         free(collecteddata);
         return -1;
     }
-    
+    int meteo_count = meteo_Fetch(57.70, 12.00, collecteddata->meteo_data, 288);
+    printf("Fetched %d meteo intervals\n", meteo_count);
+
+
     // Allocate spotpris data (all zones in one struct!)
     collecteddata->spotpris_data = malloc(sizeof(AllaSpotpriser));
     if (!collecteddata->spotpris_data) {
@@ -39,27 +41,6 @@ int main()
         return -1;
     }
     
-    // Fetch meteo 288 intervals (3 days × 96)
-    int meteo_count = meteo_Fetch(57.70, 12.00, collecteddata->meteo_data, 288);
-    printf("Fetched %d meteo intervals\n", meteo_count);
-
-    // Fetch spot price for one zone (SE3)
-    // int spotpris_result = Spotpris_FetchArea(collecteddata->spotpris_data, AREA_SE3);
-    // if (spotpris_result == 0) {
-    //     printf("Fetched %zu spotpris intervals for SE3\n", 
-    //            collecteddata->spotpris_data->num_intervals[AREA_SE3]);
-    // } else {
-    //     fprintf(stderr, "Failed to fetch spotpris: %d\n", spotpris_result);
-    // }
-    // // Print first 10 intervals to verify alignment
-    // printf("\n=== First 10 spotpris intervals (SE3) ===\n");
-    // for (size_t i = 0; i < 10 && i < collecteddata->spotpris_data->num_intervals[AREA_SE3]; i++)
-    // {
-    //     printf("[%3zu] Spotpris time: %s, Price: %.2f SEK/kWh\n", 
-    //            i, 
-    //            collecteddata->spotpris_data->data[AREA_SE3][i].time_start, 
-    //            collecteddata->spotpris_data->data[AREA_SE3][i].sek_per_kwh);
-    // }
     int spotpris_result = Spotpris_FetchAll(collecteddata->spotpris_data);
 
     printf("\n=== First 10 meteo intervals ===\n");
@@ -72,6 +53,7 @@ int main()
     }
 
     printf("\n=== first 10 spotpris intervals (SE1-SE4) ===\n");
+
     for (size_t area = 0; area < AREA_COUNT; area++)
     {
         printf("Area: %s\n", area_to_string((SpotprisArea)area));
@@ -85,7 +67,6 @@ int main()
         printf("\n");
     }
 
-    // Cleanup - just 2 frees now!
     free(collecteddata->spotpris_data);
     free(collecteddata->meteo_data);
     free(collecteddata);

@@ -1,11 +1,11 @@
 #define MODULE_NAME "TEST_FILE"
-#include "../libs/API/homesystem/homesystem.h"
+#include "../xoldAPI/homesystem/homesystem.h"
 #include "../server/log/logger.h"
 #include <stdlib.h>
 #include <stdio.h>
 
 
-//gcc -Wall -Wextra -std=c11 -D_POSIX_C_SOURCE=200112L -DDEBUG -Ilibs -Ilibs/API -Ilibs/API/homesystem -Iserver/log tests/main_homesystem.c libs/API/homesystem/homesystem.c server/log/logger.c -ljansson -lpthread -o tests/main_homesystem
+//gcc -Wall -Wextra -std=c11 -D_POSIX_C_SOURCE=200112L -DDEBUG -IxoldAPI -IxoldAPI/homesystem -Iserver/log tests/main_homesystem.c xoldAPI/homesystem/homesystem.c server/log/logger.c -ljansson -lpthread -o tests/main_homesystem
 
 //project root then ./tests/main_homesystem
 
@@ -17,7 +17,7 @@ int main () {
 
     Homesystem_t *systems = NULL;
 
-    int n_systems = homesystem_LoadAll(&systems, "libs/API/homesystem/homesystem_config.json");
+    int n_systems = homesystem_LoadAll(&systems, "xoldAPI/homesystem/homesystem_config.json");
 
     if (n_systems > 0)
     {
