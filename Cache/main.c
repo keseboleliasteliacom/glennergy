@@ -20,7 +20,7 @@ int main()
     mkfifo(FIFO_ALGORITHM_WRITE, 0666);
     
     MeteoData meteo_test;
-    AllaSpotpriser spotpris_test;
+    //AllaSpotpriser spotpris_test;
 
 
     // --- METEO ---
@@ -38,13 +38,13 @@ int main()
     {
         for (int i = 0; i < 4; i++)
         {
-            printf("Got new data Meteo %zd\n", meteo_test.pInfo[i].id);
+            printf("Got new data Meteo %zd, bytes read: %zd\n", meteo_test.pInfo[i].id, bytesReadMeteo);
         }
         InputCache_SaveMeteo(&meteo_test);
     }
 
     // --- SPOTPRIS ---
-    
+    /*
     int spotpris_fd_read = open(FIFO_SPOTPRIS_READ, O_RDONLY);
     
     if (spotpris_fd_read < 0)
@@ -52,15 +52,15 @@ int main()
         printf("Failed to open file: %s\n", FIFO_SPOTPRIS_READ);
         return -2;
     }
-
     
     ssize_t bytesReadSpotpris = Pipes_ReadBinary(spotpris_fd_read, &spotpris_test, sizeof(AllaSpotpriser));
-
+    
     if (bytesReadSpotpris > 0)
     {
         printf("Got new data spotpris%zd\n", bytesReadSpotpris);
     }
 
+    */
 
     // --- ALGORITM ---
     /* int algorithm_fd_write = open(FIFO_ALGORITHM_WRITE, O_WRONLY);
@@ -76,12 +76,12 @@ int main()
 
     // AllaSpotpriser_Print(&spotpris_test);
 
-    InputCache_SaveSpotpris(&spotpris_test);
+    //InputCache_SaveSpotpris(&spotpris_test);
 
     // close(algorithm_fd_write);
 
     close(meteo_fd_read);
-    close(spotpris_fd_read);
+    //close(spotpris_fd_read);
 
     return 0;
 }

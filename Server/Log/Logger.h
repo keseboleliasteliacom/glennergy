@@ -9,10 +9,10 @@ typedef enum {
     LOG_LEVEL_ERROR
 } LogLevel;
 
-// Define MODULE_NAME in each .c file before including this header
-#ifndef MODULE_NAME
-#define MODULE_NAME "UNKNOWN"
-#endif
+// Vi kräver nu att varje modul definierar sin egen MODULE_NAME innan de inkluderar denna header
+//   static const char* MODULE_NAME;
+
+
 
 #define LOG_DEBUG(msg)   log_Message(LOG_LEVEL_DEBUG, MODULE_NAME, msg)
 #define LOG_INFO(msg)    log_Message(LOG_LEVEL_INFO, MODULE_NAME, msg)
