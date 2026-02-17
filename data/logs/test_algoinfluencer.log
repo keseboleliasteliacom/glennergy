@@ -1,0 +1,3 @@
+[2026-02-16 18:48:58] [PID:72933] [ERROR] [ALGOINFLUENCER]: fopen() failed for file: data/history_spotpris/20260101_20260131_SE2.json
+[2026-02-16 18:48:58] [PID:72933] [ERROR] [ALGOINFLUENCER]: Failed to read spotpris file: data/history_spotpris/20260101_20260131_SE2.json
+[2026-02-16 18:51:52] [PID:73512] [INFO] [ALGOINFLUENCER]: Loaded 2976 spotpris entries from data/history_spotpris/20260101_20260131_SE2.json
