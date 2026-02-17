@@ -8,15 +8,20 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include <fcntl.h>
+#include <stdarg.h>
+#include <sys/stat.h>
+#include <libgen.h>
 
-// kvar att göra add threadid, blocking dev fix message before shutdown?
+// add threadid, LOG_FILE_SIZE, name:YYYY_MM_DD new file everyday? blocking for dev, fix message before shutdown
+
+#define LOG_MSG_MAX 256
 
 typedef struct {
     time_t timestamp;
     pid_t pid;
     char level[16];
     char module[32];
-    char message[256];
+    char message[LOG_MSG_MAX];
 } LogMessage;
 
 static int write_fd = -1;
@@ -24,7 +29,7 @@ static pid_t logger_pid = -1;
 static LogLevel log_level = LOG_LEVEL_INFO;
 
 static FILE* log_file = NULL;
-static char log_path[256] = "Logs/log.txt";
+static char log_path[256] = ""; //will be set in log_Init
 
 static pthread_mutex_t log_mutex = PTHREAD_MUTEX_INITIALIZER;
 
@@ -34,9 +39,32 @@ const char* log_GetLevelString(LogLevel level);
 
 int log_Init(const char* custom_path)
 {
+    // Auto-detect XDG path if no custom path provided
     if (custom_path != NULL) {
         strncpy(log_path, custom_path, sizeof(log_path) - 1);
         log_path[sizeof(log_path) - 1] = '\0';
+    } else {
+        const char *xdg_state = getenv("XDG_STATE_HOME");
+        const char *home = getenv("HOME");
+        
+        if (xdg_state) {
+            snprintf(log_path, sizeof(log_path), "%s/glennergy/glennergy.log", xdg_state);
+        } else if (home) {
+            snprintf(log_path, sizeof(log_path), "%s/.local/state/glennergy/glennergy.log", home);
+        } else {
+            // Fallback to current directory
+            strncpy(log_path, "glennergy.log", sizeof(log_path) - 1);
+        }
+    }
+
+    char log_dir[512];
+    strncpy(log_dir, log_path, sizeof(log_dir) - 1);
+    char *dir = dirname(log_dir);
+    
+    if (access(dir, W_OK) != 0) {
+        fprintf(stderr, "FATAL: Log directory not writable: %s\n", dir);
+        fprintf(stderr, "Run 'make dirs' to create directories.\n");
+        return -1;
     }
 
     int pipe_fds[2];
@@ -123,7 +151,7 @@ void log_Message(LogLevel level, const char* module, const char* msg)
     }
     else if (written < 0)
     {
-        perror("log_Message write");
+        perror("log_Message() write");
     }
     else
     {
@@ -132,6 +160,19 @@ void log_Message(LogLevel level, const char* module, const char* msg)
     }
     
     pthread_mutex_unlock(&log_mutex);
+}
+
+void log_MessageFmt(LogLevel level, const char* module, const char* fmt, ...)
+{
+    char buffer[LOG_MSG_MAX];  // Larger buffer for formatting
+    
+    va_list args;
+    va_start(args, fmt);
+    vsnprintf(buffer, sizeof(buffer), fmt, args);
+    va_end(args);
+    
+    // Call existing log_Message with formatted string
+    log_Message(level, module, buffer);
 }
 
 static void log_ProcessLoop(int read_fd)
@@ -157,6 +198,15 @@ static void log_ProcessLoop(int read_fd)
         {
             printf("Logger: pipe closed\n");
             break;
+        }
+
+        if (bytes_read < 0)
+        {
+            if (errno == EINTR)
+                continue;  // Interrupted by signal, retry
+            
+            perror("Logger: read error");
+            break;  // Fatal error, exit loop
         }
 
         if (bytes_read != sizeof(LogMessage))
@@ -187,8 +237,10 @@ static void log_ToFile(const LogMessage* log_msg)
     fprintf(log_file, "[%s] [PID:%d] [%s] [%s]: %s\n", time_buf, log_msg->pid, log_msg->level, log_msg->module, log_msg->message);
 
     #ifdef DEBUG
-    printf("[%s] [%s] [%s]: %s\n", time_buf, log_msg->level, log_msg->module, log_msg->message);
+    fprintf(stderr, "[%s] [%s] [%s]: %s\n", 
+            time_buf, log_msg->level, log_msg->module, log_msg->message);
     #endif
+
 }
 
 const char* log_GetLevelString(LogLevel level)
@@ -205,6 +257,8 @@ const char* log_GetLevelString(LogLevel level)
 
 void log_SetLevel(LogLevel level)
 {
+    if (level < LOG_LEVEL_DEBUG || level > LOG_LEVEL_ERROR)
+        return;
     log_level = level;
 }
 
