@@ -1,11 +1,11 @@
 #include "Spotpris.h"
-#include "../../Libs/Fetcher.h"
+#include "../../libs/utils/fetcher.h"
 #include <jansson.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 #include <string.h>
-#include "../../Libs/Utils/utils.h"
+#include "../../libs/utils/utils.h"
 
 
 // Support funktions för internt användning

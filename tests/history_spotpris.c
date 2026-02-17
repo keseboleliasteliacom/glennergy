@@ -1,3 +1,5 @@
+#define MODULE_NAME "TEST_HISTORY_SPOTPRIS"
+#include "../server/log/logger.h"
 #include "../libs/utils/fetcher.h"
 #include "../cache/cache.h"
 #include <jansson.h>
@@ -8,10 +10,11 @@
 #include "../libs/utils/utils.h"
 
 #include "../xoxoldAPI/spotpris.h"
-
 #define MAX_BACKLOG_DATE 20260101
 
-//gcc -Wall -Wextra -std=c11 -D_POSIX_C_SOURCE=200112L -D_GNU_SOURCE -IxoxoldAPI -IxoxoldAPI/spotpris -IxoxoldAPI/cache -IxoxoldAPI/utils tests/historyspotpris.c xoxoldAPI/utils/fetcher.c xoxoldAPI/spotpris/spotpris.c xoxoldAPI/cache/cache.c -lcurl -ljansson -o tests/historyspotpris
+//gcc -Wall -Wextra -std=c11 -D_GNU_SOURCE -Ilibs/utils -Icache -IxoxoldAPI -Iserver/log tests/history_spotpris.c libs/utils/fetcher.c xoxoldAPI/spotpris.c cache/cache.c server/log/logger.c -lcurl -ljansson -lpthread -o tests/history_spotpris
+
+//USAGE from project root: ./tests/history_spotpris YYYYMMDD YYYYMMDD AREA(SE1, SE2, SE3, SE4)
 
 int Spotpris_HistoryFetchArea(AllaSpotpriser *spotpris, time_t start_time, int num_days, SpotprisArea area);
 
@@ -76,14 +79,15 @@ int Spotpris_HistoryFetchArea(AllaSpotpriser *spotpris, time_t start_time, int n
         for (size_t i = 0; i < n_elements; i++)
         {
             json_t *obj = json_array_get(root, i);
-            size_t idx = spotpris->num_intervals[area] + i; //dont fuck with the area only fill index
+            size_t entries = spotpris->num_intervals[area] + i; //dont fuck with the area only fill index
 
             const char *start = json_string_value(json_object_get(obj, "time_start"));
-            spotpris->data[area][idx].sek_per_kwh = json_real_value(json_object_get(obj, "SEK_per_kWh"));
+            spotpris->data[area][entries].sek_per_kwh = json_real_value(json_object_get(obj, "SEK_per_kWh"));
 
-            strncpy(spotpris->data[area][idx].time_start, start, 
-                    sizeof(spotpris->data[area][idx].time_start) - 1);
-            spotpris->data[area][idx].time_start[sizeof(spotpris->data[area][idx].time_start)-1] = '\0';
+            strncpy(spotpris->data[area][entries].time_start, start, 
+                    sizeof(spotpris->data[area][entries].time_start) - 1);
+
+            spotpris->data[area][entries].time_start[sizeof(spotpris->data[area][entries].time_start)-1] = '\0';
         }
 
         spotpris->num_intervals[area] += n_elements;
@@ -106,15 +110,15 @@ int Spotpris_HistoryFetchArea(AllaSpotpriser *spotpris, time_t start_time, int n
     }
     
     // Generate filename from start_time and num_days
-    struct tm *start_tm = localtime(&real_start_time);
+    struct tm start_tm = *localtime(&real_start_time);
     time_t end_time = real_start_time + ((num_days - 1) * 86400);
-    struct tm *end_tm = localtime(&end_time);
+    struct tm end_tm = *localtime(&end_time);
     
     char output_filename[256];  // Increase buffer size
     snprintf(output_filename, sizeof(output_filename), 
-         "data/historicspotpris/%04d%02d%02d_%04d%02d%02d_%s.json",
-             start_tm->tm_year + 1900, start_tm->tm_mon + 1, start_tm->tm_mday,
-             end_tm->tm_year + 1900, end_tm->tm_mon + 1, end_tm->tm_mday,
+         "data/history_spotpris/%04d%02d%02d_%04d%02d%02d_%s.json",
+             start_tm.tm_year + 1900, start_tm.tm_mon + 1, start_tm.tm_mday,
+             end_tm.tm_year + 1900, end_tm.tm_mon + 1, end_tm.tm_mday,
              area_str);
     
     if (json_dump_file(output, output_filename, JSON_INDENT(2)) != 0) {
@@ -133,7 +137,7 @@ int Spotpris_HistoryFetchArea(AllaSpotpriser *spotpris, time_t start_time, int n
 
 int main(int argc, char *argv[])
 {
-    if (argc != 3) {
+    if (argc != 4) {
         printf("wrong argvcount\n");
         return 1;
     }
@@ -145,6 +149,11 @@ int main(int argc, char *argv[])
         if (strlen(argv[2]) != 8)
     {
         printf("argv[2] YYYYMMDD format pleese\n");
+        return 1;
+    }
+    SpotprisArea area = string_to_area(argv[3]);
+    if (area < AREA_SE1 || area == AREA_COUNT) {
+        printf("argv[3] must be one of SE1, SE2, SE3, SE4\n");
         return 1;
     }
 
@@ -232,7 +241,7 @@ int main(int argc, char *argv[])
     }
     memset(spotpris_data, 0, sizeof(AllaSpotpriser));
 
-    int result = Spotpris_HistoryFetchArea(spotpris_data, start_time, num_days, AREA_SE1);
+    int result = Spotpris_HistoryFetchArea(spotpris_data, start_time, num_days, area);
     
     free(spotpris_data);
     if (result != 0) {

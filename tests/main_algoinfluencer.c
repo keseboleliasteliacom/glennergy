@@ -4,15 +4,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-//gcc -o test_algoinfluencer tests/main_algoinfluencer.c libs/algorithm/algoinfluencer.c libs/xoxoldAPI/meteo.c libs/xoxoldAPI/spotpris.c libs/utils/fetcher.c libs/cache/cache.c server/log/logger.c -Ilibs -Ilibs/algorithm -Ilibs/xoxoldAPI -Ilibs/utils -Ilibs/cache -Iserver/log -ljansson -lcurl -lpthread
-
+//gcc -o tests/test_algoinfluencer tests/main_algoinfluencer.c libs/algorithm/algoinfluencer.c xoxoldAPI/meteo.c xoxoldAPI/spotpris.c libs/utils/fetcher.c cache/cache.c server/log/logger.c -Ilibs -Ilibs/algorithm -IxoxoldAPI -Ilibs/utils -Ilibs/Cache -Iserver/log -ljansson -lcurl -lpthread
 int main (){
-    log_Init("test_algoinfluencer.log");
+    log_Init("data/logs/test_algoinfluencer.log");
 
     AlgoInfluencer_t influencer;
     algoinfluencer_Init(&influencer);
 
-    if (algoinfluencer_LoadSpotpris(&influencer, "data/historicspotpris/20260101_20260131_SE1.json") != 0) {
+    if (algoinfluencer_LoadSpotpris(&influencer, "data/history_spotpris/20260101_20260131_SE2.json") != 0) {
         fprintf(stderr, "Failed to load spotpris data\n");
         return 1;
     }

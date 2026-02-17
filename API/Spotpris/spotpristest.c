@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include "Spotpris.h"
-#include "../../Libs/Pipes.h"
+#include "../../libs/Pipes.h"
 #include <curl/curl.h>
 #include <stdlib.h>
 #include <fcntl.h>

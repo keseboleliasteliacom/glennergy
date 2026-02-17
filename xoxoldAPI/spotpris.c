@@ -27,7 +27,7 @@ SpotprisArea string_to_area(const char *str) {
     if (strcmp(str, "SE2") == 0) return AREA_SE2;
     if (strcmp(str, "SE3") == 0) return AREA_SE3;
     if (strcmp(str, "SE4") == 0) return AREA_SE4;
-    return AREA_SE1; // default
+    return AREA_COUNT; // default
 }
 
 int spotpris_ParseJSON(SpotPriceEntry *output, int max_entries, const char *json_str)
@@ -84,7 +84,8 @@ int spotpris_ParseJSON(SpotPriceEntry *output, int max_entries, const char *json
 
 int Spotpris_FetchArea(AllaSpotpriser *spotpris, SpotprisArea area)
 {
-    if (!spotpris) return -1;
+    if (!spotpris || area < 0 || area >= AREA_COUNT)
+        return -1;
 
     spotpris->num_intervals[area] = 0;
     const char *area_str = area_to_string(area);
@@ -119,7 +120,7 @@ int Spotpris_FetchArea(AllaSpotpriser *spotpris, SpotprisArea area)
 
         // Save to cache with key: "area_date"
         if (!cache_initialized) {
-            if (cache_Init(&spotpris_cache, "data/cache_spotpris") == 0) {
+            if (cache_Init(&spotpris_cache, "data/cache_spotpris", 0) == 0) {
                 cache_initialized = true;
             }
         }
@@ -127,7 +128,7 @@ int Spotpris_FetchArea(AllaSpotpriser *spotpris, SpotprisArea area)
             char key[128];
             snprintf(key, sizeof(key), "%s_%04d-%02d-%02d",
                      area_str, tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday);
-            cache_Set(&spotpris_cache, key, resp.data, resp.size, 86400); // 24 hour TTL
+            cache_Set(&spotpris_cache, key, resp.data, resp.size);
         }
 
         int parsed = spotpris_ParseJSON( &spotpris->data[area][spotpris->num_intervals[area]],

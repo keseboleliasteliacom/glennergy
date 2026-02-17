@@ -24,7 +24,8 @@ typedef struct {
     //bool valid;
 } MeteoData;
 
-int meteo_Fetch(double lat, double lon, MeteoData *meteo_out, int max_hours);
-int meteo_SaveToFile(const char *data, double lat, double lon);
+int meteo_Fetch(double lat, double lon);
+int meteo_ParseJSON(MeteoData *meteo_out, int max_hours, const char *json_str);
+
 
 #endif // METEO_H

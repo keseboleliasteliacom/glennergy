@@ -1,4 +1,6 @@
 #define _POSIX_C_SOURCE 200809L
+#define MODULE_NAME "CACHE"
+#include "../server/log/logger.h"
 #include "cache.h"
 #include <stdbool.h>
 #include <stdio.h>
@@ -7,21 +9,23 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <time.h>
+#include <unistd.h>
 #include <pthread.h>
 
 #define MAX_CACHE_SIZE (10 * 1024 * 1024)  // 10MB limit
+#define MAX_FILENAME 256
 
 
-
-int cache_Init(Cache *cache, const char *cache_dir)
+int cache_Init(Cache *cache, const char *cache_dir, time_t set_ttl)
 {
     if (!cache || !cache_dir)
         return -1;
     
     cache->cache_dir = strdup(cache_dir);
     if (!cache->cache_dir)
-        return -1;
-
+    return -1;
+    
+    cache->ttl = set_ttl;
     mkdir(cache->cache_dir, 0755);
     
     if (pthread_mutex_init(&cache->mutex, NULL) != 0)
@@ -30,93 +34,130 @@ int cache_Init(Cache *cache, const char *cache_dir)
         return -1;
     }
     
-    printf("[CACHE] Initialized: %s\n", cache->cache_dir);
+    LOG_INFO("Initialized: %s (TTL: %ld seconds)", cache->cache_dir, cache->ttl);
     return 0;
 }
 
-bool cache_Get(Cache *cache, const char *key, char **buffer, size_t *size) //GetFromFile atm
+bool cache_IsValid(Cache *cache, const char *key)
+{
+    if (!cache || !key)
+        return false;
+
+    char filename[MAX_FILENAME];
+    snprintf(filename, sizeof(filename), "%s/%s.json", cache->cache_dir, key);
+
+    struct stat fileinfo;
+    if (stat(filename, &fileinfo) != 0) // File doesn't exist
+        return false;  
+
+    time_t file_age = time(NULL) - fileinfo.st_mtime;
+
+    if (cache->ttl > 0 && file_age > cache->ttl)
+    {
+        LOG_INFO("expired: %s (age: %ld sec, TTL: %ld sec)", key, file_age, cache->ttl);
+        return false;
+    }
+
+    return true;
+}
+
+bool cache_Get(Cache *cache, const char *key, char **buffer, size_t *size)
 {
     if (!cache || !key || !buffer || !size)
         return false;
         
     bool result = false;
-    char filename[128];
-    time_t cached_time, TTL;
-    char *json_line = NULL;
-    size_t len = 0;
-    ssize_t read_count;
+    char filename[MAX_FILENAME];
+    FILE *fptr = NULL;
+    char *json_data = NULL;
+    struct stat fileinfo;
 
     //pthread_mutex_lock(&cache->mutex);
     snprintf(filename, sizeof(filename), "%s/%s.json", cache->cache_dir, key);
 
-    FILE *fptr = fopen(filename, "r");
+    fptr = fopen(filename, "rb");
     if (!fptr)
     {
         //pthread_mutex_unlock(&cache->mutex);
+        LOG_ERROR("fopen() failed for %s", filename);
         return false;  // Quick exit - no cleanup needed
     }
     
-    if (fscanf(fptr, "%ld %ld\n", &cached_time, &TTL) != 2)
-    {
-        fprintf(stderr, "[CACHE] Invalid format in %s\n", filename);
+    if (fstat(fileno(fptr), &fileinfo) != 0) {
+        LOG_ERROR("fstat() failed for %s", filename);
         goto cleanup;
     }
 
-    if (TTL > 0 && (time(NULL) - cached_time) > TTL)
-    {
-        printf("[CACHE] Expired: %s\n", key);
+    time_t file_age = time(NULL) - fileinfo.st_mtime;
+    if (cache->ttl > 0 && file_age > cache->ttl) {
+        LOG_INFO("Expired: %s", key);
         goto cleanup;
     }
 
-    read_count = getline(&json_line, &len, fptr);
-    if (read_count == -1)
-    {
-        fprintf(stderr, "[CACHE] Failed to read data from %s\n", filename);
-        free(json_line);
-        goto cleanup;
-    }
-    if (read_count > MAX_CACHE_SIZE)
-    {
-        free(json_line);
-        fprintf(stderr, "[CACHE] Data too large in %s\n", filename);
+    size_t filesize = fileinfo.st_size;
+    if (filesize > MAX_CACHE_SIZE) {
+        LOG_ERROR("file to large: %s (size: %zu bytes)", filename, filesize);
         goto cleanup;
     }
 
-    *buffer = json_line;  // Caller must free()
-    *size = read_count;
+    json_data = malloc((filesize + 1) * sizeof(char));
+    if (!json_data) {
+        LOG_ERROR("malloc() failed for %s", filename);
+        goto cleanup;
+    }
+
+
+    size_t bytes_read = fread(json_data, sizeof(char), filesize, fptr);
+    if (bytes_read != filesize) {
+        LOG_ERROR("fread() failed for %s", filename);
+        free(json_data);
+        goto cleanup;
+    }
+    json_data[bytes_read] = '\0';
+
+    *buffer = json_data;  // Caller must free()
+    if (size) *size = bytes_read;
+
     result = true;
 
 cleanup:
     fclose(fptr);
     //pthread_mutex_unlock(&cache->mutex);
     if(result)
-        printf("[CACHE] Hit: %s (size: %zd)\n", key, read_count);
+        LOG_INFO("Loaded: %s (size: %zu bytes, age: %ld sec)", key, bytes_read, file_age);
     return result;
 }
 
-int cache_Set(Cache *cache, const char *key, const char *data, size_t size, time_t TTL)     //SaveToFile atm
+int cache_Set(Cache *cache, const char *key, const char *data, size_t size)
 {
     if (!cache || !key || !data)
         return -1;
 
-    char filename[128];
+    char filename[MAX_FILENAME];
+    char temp_filename[MAX_FILENAME + 8];
     //pthread_mutex_lock(&cache->mutex);
     snprintf(filename, sizeof(filename), "%s/%s.json", cache->cache_dir, key);
+    snprintf(temp_filename, sizeof(temp_filename), "%s.tmp", filename);
 
-    FILE *fptr = fopen(filename, "w");
+    FILE *fptr = fopen(temp_filename, "w");
     if (!fptr)
     {
-        fprintf(stderr, "[CACHE] Failed to open %s for writing\n", filename);
+        LOG_ERROR("fopen() failed for %s", temp_filename);
         //pthread_mutex_unlock(&cache->mutex);
         return -1;
     }
 
-    fprintf(fptr, "%ld %ld\n", time(NULL), TTL);
-    fputs(data, fptr);
+    fwrite(data, sizeof(char), size, fptr);
     fclose(fptr);
     
+    if (rename(temp_filename, filename) != 0;)
+    {
+        LOG_ERROR("rename() failed from %s to %s", temp_filename, filename);
+        unlink(temp_filename);
+        return -1;
+    }
     //pthread_mutex_unlock(&cache->mutex);
-    printf("[CACHE] Saved: %s/%s.json (TTL: %ld)\n", cache->cache_dir, key, TTL);
+    LOG_INFO("Saved: %s (size:%zu)", filename, size);
     return 0;
 }
 
@@ -124,9 +165,10 @@ void cache_Dispose(Cache *cache)
 {
     if (!cache)
         return;
-    
+
+    LOG_INFO("Dispose() cache: %s", cache->cache_dir ? cache->cache_dir : "NULL");
     free(cache->cache_dir);
+    cache->cache_dir = NULL;
     pthread_mutex_destroy(&cache->mutex);
     
-    printf("[CACHE] Disposed\n");
 }

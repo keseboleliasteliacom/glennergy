@@ -1,5 +1,5 @@
 #include "meteo.h"
-#include "../utils/fetcher.h"
+#include "../libs/utils/fetcher.h"
 #include "../cache/cache.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -69,14 +69,14 @@ int meteo_ParseJSON(MeteoData *meteo_out, int max_hours, const char *json_str)
     return hours;
 }
 
-int meteo_Fetch(double lat, double lon, MeteoData *meteo_out, int max_hours)
+int meteo_Fetch(double lat, double lon)         //, MeteoData *meteo_out, int max_hours
 {
-    if (!meteo_out || max_hours <= 0 || max_hours > 288)
-        return -1;
+    //if (!meteo_out || max_hours <= 0 || max_hours > 288)
+    //    return -1;
 
     // Initialize cache once
     if (!cache_initialized) {
-        if (cache_Init(&meteo_cache, "data/cache_meteo") == 0) {
+        if (cache_Init(&meteo_cache, "data/cache_meteo", 0) == 0) { // 1 hour TTL
             cache_initialized = true;
         }
     }
@@ -84,16 +84,15 @@ int meteo_Fetch(double lat, double lon, MeteoData *meteo_out, int max_hours)
     char url[512];
     snprintf(url, sizeof(url), METEO_LINK, lat, lon);
     
-    CurlResponse *response = (CurlResponse *)malloc(sizeof(CurlResponse));
-    if (!response) return -1;
+    CurlResponse response;
+    if (Curl_Initialize(&response) < 0)
+        return -1;
     
-    response->data = NULL;
-    response->size = 0;
     
-    int fetch_result = Curl_HTTPGet(response, url);
-    if (fetch_result != 0 || response->data == NULL) {
+    int fetch_result = Curl_HTTPGet(&response, url);
+    if (fetch_result != 0 || response.data == NULL) {
         fprintf(stderr, "[METEO] HTTP fetch failed with code %d\n", fetch_result);
-        Curl_Dispose(response);
+        Curl_Dispose(&response);
         return -1;
     }
 
@@ -104,16 +103,16 @@ int meteo_Fetch(double lat, double lon, MeteoData *meteo_out, int max_hours)
         char key[128];
         snprintf(key, sizeof(key), "%.2f_%.2f_%04d-%02d-%02d",
                  lat, lon, tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday);
-        cache_Set(&meteo_cache, key, response->data, response->size, 3600); // 1 hour TTL
+        cache_Set(&meteo_cache, key, response.data, response.size); 
     }
 
-    int hours = meteo_ParseJSON(meteo_out, max_hours, response->data);
-    if (hours < 0) {
-        fprintf(stderr, "[METEO] Failed to parse meteo data\n");
-        Curl_Dispose(response);
-        return -1;
-    }
+    //int hours = meteo_ParseJSON(meteo_out, max_hours, response->data);
+    //if (hours < 0) {
+    //    fprintf(stderr, "[METEO] Failed to parse meteo data\n");
+    //    Curl_Dispose(response);
+    //    return -1;
+    //}
 
-    Curl_Dispose(response);
-    return hours;
+    Curl_Dispose(&response);
+    return 0;       //hours;
 }

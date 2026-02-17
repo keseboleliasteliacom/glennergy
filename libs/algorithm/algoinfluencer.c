@@ -74,7 +74,7 @@ int algoinfluencer_LoadSpotpris(AlgoInfluencer_t *influencer, const char *spotpr
     }
 
     if (influencer->spotpris) {
-        LOG_INFO("free old spotpris data");
+        LOG_INFO("free() old spotpris data");
         free(influencer->spotpris);
         influencer->spotpris = NULL;
         influencer->spotpris_valcount = 0;

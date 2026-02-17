@@ -1,5 +1,5 @@
 #include "InputCache.h"
-#include "../Libs/Pipes.h"
+#include "../libs/Pipes.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
