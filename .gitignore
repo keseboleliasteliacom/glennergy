@@ -58,6 +58,7 @@ cache_meteo/*
 test_cache/*
 tests/*
 !tests/*.c
+xoxoldAPI/
 
 # Cache files
 *.json

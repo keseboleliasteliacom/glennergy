@@ -21,6 +21,13 @@ int cache_Init(Cache *cache, const char *cache_dir, time_t set_ttl)
     if (!cache || !cache_dir)
         return -1;
     
+    struct stat st;
+    if (stat(cache_dir, &st) != 0 || !S_ISDIR(st.st_mode)) {
+        LOG_ERROR("Cache directory doesn't exist: %s", cache_dir);
+        LOG_ERROR("Run 'make install' or create manually");
+        return -1;
+    }
+    
     cache->cache_dir = strdup(cache_dir);
     if (!cache->cache_dir)
     return -1;
@@ -76,8 +83,7 @@ bool cache_Get(Cache *cache, const char *key, char **buffer, size_t *size)
     snprintf(filename, sizeof(filename), "%s/%s.json", cache->cache_dir, key);
 
     fptr = fopen(filename, "rb");
-    if (!fptr)
-    {
+    if (!fptr) {
         //pthread_mutex_unlock(&cache->mutex);
         LOG_ERROR("fopen() failed for %s", filename);
         return false;  // Quick exit - no cleanup needed
@@ -147,11 +153,17 @@ int cache_Set(Cache *cache, const char *key, const char *data, size_t size)
         return -1;
     }
 
-    fwrite(data, sizeof(char), size, fptr);
+    
+    size_t written = fwrite(data, sizeof(char), size, fptr);
     fclose(fptr);
     
-    if (rename(temp_filename, filename) != 0;)
-    {
+    if (written != size) {
+        LOG_ERROR("fwrite() incomplete: %zu/%zu bytes written to %s", written, size, temp_filename);
+        unlink(temp_filename);
+        return -1;
+    }
+
+    if (rename(temp_filename, filename) != 0) {
         LOG_ERROR("rename() failed from %s to %s", temp_filename, filename);
         unlink(temp_filename);
         return -1;

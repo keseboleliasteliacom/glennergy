@@ -8,7 +8,7 @@
 
 typedef struct Cache {
     char *cache_dir;
-    time_t ttl;     // TTL in seconds for cache entries, can be set when initializing or per entry
+    time_t ttl;     // TTL in seconds
     pthread_mutex_t mutex;
 } Cache;
 
