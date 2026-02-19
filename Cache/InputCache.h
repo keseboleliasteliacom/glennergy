@@ -7,12 +7,14 @@
 
 typedef struct {
     MeteoData meteoData;
-    DagligSpotpris spotprisData;
+    AllaSpotpriser spotprisData;
     //Userdata userdata; // Todo - Detta ska fixas
 } InputCache;
 
 
 int InputCache_SaveSpotpris(const AllaSpotpriser *spotpris);
 int InputCache_SaveMeteo(const MeteoData *_Data);
+
+int InputCache_PipeToAlgorithm(int fifo_fd, const InputCache *cache);
 
 #endif

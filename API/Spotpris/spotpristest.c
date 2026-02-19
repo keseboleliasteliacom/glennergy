@@ -35,7 +35,6 @@ int main(void)
     AllaSpotpriser_Print(&spotpriser);
 
     
-    
     mkfifo(FIFO_SPOTPRIS_WRITE, 0666);
     
     int spotpris_fd_write = open(FIFO_SPOTPRIS_WRITE, O_WRONLY);

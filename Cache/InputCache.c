@@ -126,3 +126,22 @@ int InputCache_SaveMeteo(const MeteoData *_Data)
 
     return 0;
 }
+
+int InputCache_PipeToAlgorithm(int fifo_fd, const InputCache *cache)
+{
+    if (fifo_fd < 0 || !cache )
+        return -1;
+    
+    ssize_t bytes = Pipes_WriteBinary(fifo_fd, cache, sizeof(InputCache));
+    
+    if (bytes != sizeof(InputCache)) {
+        fprintf(stderr, "Failed to write complete data to algorithm pipe (wrote %zd of %zu bytes)\n", 
+                bytes, sizeof(InputCache));
+        return -2;
+    }
+    
+    printf("Forwarded to algorithm: %zu properties, 4 price areas\n", 
+           cache->meteoData.pCount);
+    
+    return 0;
+}
