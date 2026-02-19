@@ -29,7 +29,7 @@ int main()
     MeteoData data;
     Meteo_LoadPropertyInfo(&data);
 
-    if (file_lastModified("/mnt/c/Users/lison/glennergy/glennergy/API/Meteo/fastighets_test.json", &last_modified) == 1)
+    if (file_lastModified("/etc/Glennergy-Fastigheter.json", &last_modified) == 1)
     {
         Meteo_LoadPropertyInfo(&data);
         printf("Info changed, reloaded file.\n");

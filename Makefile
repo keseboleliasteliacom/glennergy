@@ -18,7 +18,10 @@ SRC := $(shell find Libs Server Server/Connection Server/Log Libs/Algorithm Libs
 OBJ := $(patsubst %.c, $(BUILD)/%.o, $(SRC))
 
 # ---- Final target ----
-TARGET := glen
+PREFIX ?= /usr/local/bin
+TARGET := Glennergy-Main
+
+INSTALLDIR = $(PREFIX)
 
 all: $(TARGET)
 
@@ -49,6 +52,16 @@ $(DEBUG_BUILD)/%.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@ 
 
 
+install:
+	# Create directory
+	install -d $(DESTDIR)$(INSTALLDIR)
+
+	# Install binary
+	install -m 755 $(TARGET) $(DESTDIR)$(INSTALLDIR)
+
+
+uninstall:
+	rm -rf $(DESTDIR)$(INSTALLDIR)/$(TARGET)
 
 
 # ---- Cleanup ----

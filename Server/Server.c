@@ -69,7 +69,7 @@ int Server_Run(Server *_Server)
     }
     else if (pid_cache == 0)
     {
-        execlp("./InputCache", "InputCache", NULL);
+        execlp("Glennergy-InputCache", "Glennergy-InputCache", NULL);
         exit(EXIT_SUCCESS);
     }
     else

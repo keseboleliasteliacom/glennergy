@@ -33,12 +33,11 @@ int Meteo_Initialize(MeteoData *_MeteoData)
 int Meteo_LoadPropertyInfo(MeteoData *_MeteoData)
 {
     json_error_t err;
-    json_t *property = json_load_file("/mnt/c/Users/lison/glennergy/glennergy/API/Meteo/fastighets_test.json", 0, &err);
+    json_t *property = json_load_file("/etc/Glennergy-Fastigheter.json", 0, &err);
 
     if (property == NULL)
     {
         printf("failed to load file!\n");
-        return -1;
     }
 
     _MeteoData->pCount = json_array_size(property);
