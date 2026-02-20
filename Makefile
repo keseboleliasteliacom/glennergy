@@ -1,3 +1,6 @@
+PROJECT := glennergy
+VERSION := 1.0
+
 CC      := gcc
 CFLAGS  := -Wall -Wextra -std=c11 -D_POSIX_C_SOURCE=200112L 
 LDFLAGS := -lcurl -ljansson -lpthread
@@ -11,10 +14,11 @@ CFLAGS  += -ILibs \
 		   -IServer/Log \
 		   -ILibs/Algorithm \
 
-# ---- Find all source files recursively ----
-SRC := $(shell find Libs Server Server/Connection Server/Log Libs/Algorithm Libs/Utils -name "*.c")
 
-# Convert .c → build/.../.o
+# ============================================
+# Source files
+# ============================================
+SRC := $(shell find Libs Server -name "*.c")
 OBJ := $(patsubst %.c, $(BUILD)/%.o, $(SRC))
 
 # ---- Final target ----
@@ -26,14 +30,18 @@ INSTALLDIR = $(PREFIX)
 all: $(TARGET)
 
 $(TARGET): $(OBJ)
+	@echo "Linking $@..."	
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+	@echo "Build complete: $@"
 
 # ---- Rule to compile each .c file ----
 $(BUILD)/%.o: %.c
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-
+# ============================================
+# Debug build
+# ============================================
 
 DEBUG_BUILD := build_debug
 DEBUG_TARGET := gln_app_debug
@@ -45,7 +53,9 @@ debug: OBJ := $(patsubst %.c, $(DEBUG_BUILD)/%.o, $(SRC))
 debug: $(DEBUG_TARGET)
 
 $(DEBUG_TARGET): $(OBJ)
+	@echo "Linking $@(debug)..."	
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+	@echo "Debug build complete: $@"
 
 $(DEBUG_BUILD)/%.o: %.c
 	@mkdir -p $(dir $@)
@@ -66,6 +76,15 @@ uninstall:
 
 # ---- Cleanup ----
 clean:
-	rm -rf $(BUILD) $(TARGET)
+	@echo "Cleaning build files..."
+	rm -rf $(BUILD) $(DEBUG_BUILD)
+	rm -f $(TARGET) $(DEBUG_TARGET)
+	@echo "Clean complete"
 
-.PHONY: all clean
+# ============================================
+# Help
+# ============================================
+
+
+
+.PHONY: all clean debug install uninstall dirs run test help

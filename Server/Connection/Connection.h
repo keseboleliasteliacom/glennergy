@@ -6,6 +6,7 @@
 
 typedef struct{
     int socket;
+    uint64_t timeout;
 }Connection;
 
 

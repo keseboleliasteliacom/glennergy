@@ -1,5 +1,7 @@
+#define MODULE_NAME "Connection"
 #include "Connection.h"
 #include "../TCPServer.h"
+#include "../Log/Logger.h"
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/socket.h>
@@ -35,11 +37,12 @@ int Connection_Initialize(Connection **_Connection, int _Socket)
 
 int Connection_Handle(Connection *_Connection)
 {
+    LOG_INFO("Handling incoming connection");
     char response[2048];
     snprintf(response, sizeof(response), RESPONSE_HEADER);
-    printf("before send fd=%d\n", _Connection->socket);
+    LOG_DEBUG("Sending response to socket");
     send(_Connection->socket, response, strlen(response), MSG_NOSIGNAL);
-    printf("after send fd=%d\n", _Connection->socket);
+    LOG_DEBUG("Response sent");
     return 0;
 }
 

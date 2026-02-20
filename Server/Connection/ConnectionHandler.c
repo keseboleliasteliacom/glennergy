@@ -1,6 +1,8 @@
+#define MODULE_NAME "ConnHandler"
 #include <stdlib.h>
 #include "ConnectionHandler.h"
 #include "SignalHandler.h"
+#include "../Log/Logger.h"
 
 int ConnectionHandler_OnAccept(void *_Context, int _Socket);
 
@@ -32,15 +34,18 @@ int ConnectionHandler_OnAccept(void *_Context, int _Socket)
     if (cHandler == NULL)
         return -1;
 
+    LOG_INFO("New connection accepted");
+    
     Connection* connection = NULL;
     if (Connection_Initialize(&connection, _Socket) != 0)
     {
-        
+        LOG_ERROR("Failed to initialize connection");
         return -2;
     }
 
     if (cHandler->client_add(connection) < 0)
     {
+        LOG_ERROR("Failed to add connection to queue");
         Connection_Dispose(&connection);
         return -3;
     }
