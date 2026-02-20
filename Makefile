@@ -1,5 +1,3 @@
-PROJECT := glennergy
-VERSION := 1.0
 
 CC      := gcc
 CFLAGS  := -Wall -Wextra -std=c11 -D_POSIX_C_SOURCE=200112L 
