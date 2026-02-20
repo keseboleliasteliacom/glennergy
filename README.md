@@ -1,10 +1,15 @@
 # glennergy
 Hämtar spotpris och optimerar elförbrukning
 
+## Installation
+```bash
+Run glennergy_install.sh script in the root directory
+```
+
 ## Usage
 
 ```bash
-./glen [port] [log_level]
+sudo Glennergy-Main [port] [log_level]
 ```
 
 ### Arguments 
@@ -15,6 +20,7 @@ Hämtar spotpris och optimerar elförbrukning
   - `1` - INFO: General information messages
   - `2` - WARNING: Warning messages
   - `3` - ERROR: Error messages only
+
 
 
 

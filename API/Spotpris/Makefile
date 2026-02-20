@@ -7,11 +7,26 @@ CACHE_DIR = .
 API_DIR = ../API
 
 # Körbar fil
-TARGET = Spotpris
+PREFIX ?= /usr/local/bin
+TARGET = Glennergy-Spotpris
+
+INSTALLDIR = $(PREFIX)
 
 # Default target
 all:
 	$(CC) $(CFLAGS) Spotpris.c spotpristest.c ../../Libs/Pipes.c ../../Libs/Fetcher.c -o $(TARGET) -lcurl -ljansson
+
+
+install:
+	# Create directory
+	install -d $(DESTDIR)$(INSTALLDIR)
+
+	# Install binary
+	install -m 755 $(TARGET) $(DESTDIR)$(INSTALLDIR)
+
+
+uninstall:
+	rm -rf $(DESTDIR)$(INSTALLDIR)/$(TARGET)
 
 # Rensa körbar fil
 clean:

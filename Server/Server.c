@@ -60,10 +60,6 @@ int Server_Run(Server *_Server)
         log_CloseWrite();
         exit(EXIT_SUCCESS);
     }
-    else
-    {
-        wait(&status_pid);
-    }
 
     pid_t pid_cache = fork();
 
@@ -73,11 +69,12 @@ int Server_Run(Server *_Server)
     }
     else if (pid_cache == 0)
     {
-        execlp("./Spotpris", "Spotpris", NULL);
+        execlp("Glennergy-InputCache", "Glennergy-InputCache", NULL);
         exit(EXIT_SUCCESS);
     }
     else
     {
+        wait(&status_pid);
         wait(&status_cache);
     }
 

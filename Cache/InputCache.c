@@ -39,7 +39,7 @@ int InputCache_SaveSpotpris(const AllaSpotpriser *spotpris)
     int result = 0;
     // Finns cache-foldern?
 
-    const char *cache_folder = "../cache_spotpris";
+    const char *cache_folder = "/var/cache/glennergy/spotpris";
     dir_result_t dir_res = create_folder(cache_folder);
     if (dir_res == DIR_ERROR)
     {
@@ -90,7 +90,7 @@ int InputCache_SaveMeteo(const MeteoData *_Data)
 
     int result = 0;
 
-    const char *meteo_folder = "../cache_meteo";
+    const char *meteo_folder = "/var/cache/glennergy/meteo";
     dir_result_t dir_res = create_folder(meteo_folder);
     if (dir_res == DIR_ERROR)
     {
