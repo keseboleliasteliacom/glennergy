@@ -32,7 +32,7 @@ int main(void)
     }
 
     // Todo - Endast för debugging/testing, ta bort i prod
-    AllaSpotpriser_Print(&spotpriser);
+   // AllaSpotpriser_Print(&spotpriser);
 
     
     mkfifo(FIFO_SPOTPRIS_WRITE, 0666);
@@ -46,7 +46,7 @@ int main(void)
     }    
     ssize_t bytesWritten = Pipes_WriteBinary(spotpris_fd_write, &spotpriser, sizeof(spotpriser));
     
-    //printf("bytes skickade: %zd\n", bytesWritten);
+    printf("bytes skickade: %zd\n", bytesWritten);
         
     curl_global_cleanup();
     close(spotpris_fd_write);

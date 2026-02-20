@@ -26,14 +26,14 @@ int main()
     static time_t last_modified = -1;
 
     MeteoData data;
-    Meteo_LoadPropertyInfo(&data);
+    Meteo_LoadGlennergy(&data);
 
     while (1)
     {
 
-        if(file_lastModified("fastighets_test.json", &last_modified) == 1)
+        if(file_lastModified("glennergy_fastigheter.json", &last_modified) == 1)
         {
-            Meteo_LoadPropertyInfo(&data);
+            Meteo_LoadGlennergy(&data);
             printf("Info changed, reloaded file.\n");
         }
 
