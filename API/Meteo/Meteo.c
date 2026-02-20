@@ -131,7 +131,7 @@ int Meteo_Parse(MeteoData *_MeteoData, const char *_JsonRaw)
             _MeteoData->pInfo[i].sample[j].valid = _MeteoData->pInfo[i].sample[j].is_day;
         }
 
-        //snprintf(_MeteoData->pInfo[i].raw_json_data, RAW_DATA_MAX, "%s", _JsonRaw);
+        snprintf(_MeteoData->pInfo[i].raw_json_data, RAW_DATA_MAX, "%s", _JsonRaw);
     }
 
     json_decref(root);

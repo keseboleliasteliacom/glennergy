@@ -79,7 +79,7 @@ int main()
                 printf("Got new data Meteo ID:%d City:%s\n", cache->meteo[i].id, cache->meteo[i].city);
             }
         }
-        // InputCache_SaveMeteo(&meteo_test);
+         InputCache_SaveMeteo(&meteo_test);
     } else {
         fprintf(stderr, "failed to read meteo data, got %zd bytes\n", bytesReadMeteo);
     }
@@ -122,7 +122,7 @@ int main()
                cache->spotpris.areas[i].count);
         }
 
-    //InputCache_SaveSpotpris(&cache->spotprisData);
+    InputCache_SaveSpotpris(&spotpris_test);
         
     printf("Sending complete packet to algorithm...\n");
     if (InputCache_PipeToAlgorithm(cache) != 0)

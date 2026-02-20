@@ -32,7 +32,7 @@
 //     //printf("Raw JSON (first 20 chars): %.20s\n", d->raw_json_data);
 // }
 
-// OBS: Just nu printar vi 4 kvartar för att debuggingen inte ska bli cluttrad. Kan ändras till 96 om man vill se hela resultatet
+// //OBS: Just nu printar vi 4 kvartar för att debuggingen inte ska bli cluttrad. Kan ändras till 96 om man vill se hela resultatet
 // AllaSpotpriser
 // void AllaSpotpriser_Print(const AllaSpotpriser *a)
 // {
@@ -97,8 +97,8 @@ int Spotpris_FetchAll(AllaSpotpriser *_AllaSpotpriser)
         _AllaSpotpriser->areas[i].count = n;
         
         // Lägg till råa JSON-datan så InputCache kan spara ner det. Glömm inte nullterminering
-        //strncpy(_AllaSpotpriser->areas[i].raw_json_data, resp.data, sizeof(_AllaSpotpriser->areas[i].raw_json_data) -1);
-        //_AllaSpotpriser->areas[i].raw_json_data[sizeof(_AllaSpotpriser->areas[i].raw_json_data) -1] = '\0';
+        strncpy(_AllaSpotpriser->areas[i].raw_json_data, resp.data, sizeof(_AllaSpotpriser->areas[i].raw_json_data) -1);
+        _AllaSpotpriser->areas[i].raw_json_data[sizeof(_AllaSpotpriser->areas[i].raw_json_data) -1] = '\0';
         
         // Todo - Kanske onödigt med hårdkodat att vi aldrig läser mer än 96 kvartar, eftersom SpotPris bara kommer leverera 96?
         for (size_t j = 0; j < n && j < 96; j++) 

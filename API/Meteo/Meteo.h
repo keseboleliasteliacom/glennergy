@@ -39,7 +39,7 @@ typedef struct
     double lat;
     double lon;
     Samples sample[KVARTAR_TOTALT];
-    //char raw_json_data[RAW_DATA_MAX];
+    char raw_json_data[RAW_DATA_MAX];
 } PropertyInfo;
 
 typedef struct
