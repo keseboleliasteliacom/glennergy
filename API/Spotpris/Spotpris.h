@@ -5,10 +5,10 @@
 
 typedef struct {
     char time_start[32];
-    char time_end[32];
+    //char time_end[32];
     double sek_per_kwh;
-    double eur_per_kwh;
-    double exchange_rate;
+    //double eur_per_kwh;
+    //double exchange_rate;
 } SpotPriceEntry;
 
 

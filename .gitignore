@@ -58,6 +58,17 @@ cache_meteo/*
 test_cache/*
 Tests/*
 !Tests/*.c
+xoxoldAPI/*
+# API Executables
+API/Meteo/Meteo
+API/Spotpris/Spotpris
+# Cache Executable
+Cache/InputCache
+# Algorithm Executables
+Libs/Algorithm/testreader
+Libs/Algorithm/Algorithm
+# Server Executable
+Server/glen
 
 # Cache files
 *.json

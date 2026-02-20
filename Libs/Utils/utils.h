@@ -11,7 +11,7 @@
 #include <time.h>
 #include <ctype.h>
 #include <errno.h> // Den här för create_Folder, resten för system monotonic grejer
-
+#include <stdio.h>
 // Plattformsepcifika headers 
 #if defined(_WIN32)
     #include <windows.h>
@@ -36,6 +36,21 @@ static uint64_t SystemMonotonicMS()
     result += ms;
 
     return result;
+}
+
+static void GetTodayDate(char *buffer, size_t size) {
+    time_t t = time(NULL);
+    struct tm tm = *localtime(&t);
+    snprintf(buffer, size, "%04d/%02d-%02d",
+             tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday);
+}
+
+static void GetTodayDateFile(char *buffer, size_t size)
+{
+    time_t t = time(NULL);
+    struct tm tm = *localtime(&t);
+    snprintf(buffer, size, "%04d-%02d-%02d",
+             tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday);
 }
 
 // Filesystem utils

@@ -9,7 +9,7 @@
 #include <math.h>
 #include <jansson.h>
 
-#define METEO_LINK "https://api.open-meteo.com/v1/forecast?latitude=%2.f&longitude=%2f&minutely_15=temperature_2m,shortwave_radiation,direct_normal_irradiance,diffuse_radiation,cloud_cover,is_day&forecast_days=3&forecast_minutely_15=128"
+#define METEO_LINK "https://api.open-meteo.com/v1/forecast?latitude=%2.f&longitude=%2f&minutely_15=temperature_2m,shortwave_radiation,direct_normal_irradiance,diffuse_radiation,cloud_cover,is_day&forecast_days=3&forecast_minutely_15=128&timezone=Europe/Stockholm"
 
 int Meteo_Initialize(MeteoData *_MeteoData)
 {
@@ -30,16 +30,23 @@ int Meteo_Initialize(MeteoData *_MeteoData)
     return 0;
 }
 
-int Meteo_LoadPropertyInfo(MeteoData *_MeteoData)
+int Meteo_LoadGlennergy(MeteoData *_MeteoData)
 {
     json_error_t err;
-    json_t *property = json_load_file("/etc/Glennergy-Fastigheter.json", 0, &err);
+    json_t *root = json_load_file("/etc/Glennergy-Fastigheter.json", 0, &err);
 
-    if (property == NULL)
+    if (root == NULL)
     {
         printf("failed to load file!\n");
     }
-
+    json_t *property = json_object_get(root, "systems");
+    if (!json_is_array(property))
+    {
+        printf("'systems' is not an array!\n");
+        json_decref(root);
+        return -1;
+    }
+    
     _MeteoData->pCount = json_array_size(property);
 
     if (_MeteoData->pCount > PROPERTIES_MAX)
@@ -59,9 +66,11 @@ int Meteo_LoadPropertyInfo(MeteoData *_MeteoData)
 
 
         const char *city;
-        int result = json_unpack(object, "{s:s, s:f, s:f, s:i}", "city", &city,
-                                 "lat", &_MeteoData->pInfo[i].lat, "lon", &_MeteoData->pInfo[i].lon,
-                                 "id", &_MeteoData->pInfo[i].id);
+        int result = json_unpack(object, "{s:i, s:s, s:f, s:f}",
+                                "id", &_MeteoData->pInfo[i].id,
+                                "city", &city,
+                                "lat", &_MeteoData->pInfo[i].lat,
+                                "lon", &_MeteoData->pInfo[i].lon);
 
         if (result != 0)
             continue;
@@ -71,7 +80,7 @@ int Meteo_LoadPropertyInfo(MeteoData *_MeteoData)
         printf("Loaded property: %s (ID: %d, Lat: %.2f, Lon: %.2f)\n", _MeteoData->pInfo[i].property_name, _MeteoData->pInfo[i].id, _MeteoData->pInfo[i].lat, _MeteoData->pInfo[i].lon);
     }
 
-    json_decref(property);
+    json_decref(root);
 
     return 0;
 }
@@ -94,7 +103,7 @@ int Meteo_Parse(MeteoData *_MeteoData, const char *_JsonRaw)
         json_decref(root);
         return -2;
     }
-
+    json_t *times = json_object_get(hourly, "time");
     json_t *temps = json_object_get(hourly, "temperature_2m");
     json_t *ghi = json_object_get(hourly, "shortwave_radiation");
     json_t *dni = json_object_get(hourly, "direct_normal_irradiance");
@@ -109,6 +118,9 @@ int Meteo_Parse(MeteoData *_MeteoData, const char *_JsonRaw)
 
         for (size_t j = 0; j < array_size; j++)
         {
+            snprintf(_MeteoData->pInfo[i].sample[j].time_start,
+            sizeof(_MeteoData->pInfo[i].sample[j].time_start), "%s", json_string_value(json_array_get(times, j)));
+            
             _MeteoData->pInfo[i].sample[j].temp = json_number_value(json_array_get(temps, j));
             _MeteoData->pInfo[i].sample[j].ghi = json_number_value(json_array_get(ghi, j));
             _MeteoData->pInfo[i].sample[j].dni = json_number_value(json_array_get(dni, j));

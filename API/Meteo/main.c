@@ -27,11 +27,11 @@ int main()
     static time_t last_modified = -1;
 
     MeteoData data;
-    Meteo_LoadPropertyInfo(&data);
+    Meteo_LoadGlennergy(&data);
 
     if (file_lastModified("/etc/Glennergy-Fastigheter.json", &last_modified) == 1)
     {
-        Meteo_LoadPropertyInfo(&data);
+        Meteo_LoadGlennergy(&data);
         printf("Info changed, reloaded file.\n");
     }
 
