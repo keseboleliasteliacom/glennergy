@@ -16,6 +16,8 @@
 // #define FIFO_SPOTPRIS_READ "/tmp/fifo_spotpris"
 // #define FIFO_ALGORITHM_WRITE "/tmp/fifo_algoritm_write"
 
+const char *area_names[AREA_COUNT] = {"SE1", "SE2", "SE3", "SE4"};
+
 int main()
 {
     log_Init(NULL);
@@ -107,22 +109,20 @@ int main()
     } else {
         fprintf(stderr, "failed to read spotpris data, got %zd bytes\n", bytesReadSpotpris);
     }
-        for (int i = 0; i < 4; i++)
+
+        for (int area = 0; area < AREA_COUNT; area++)
         {
-            strncpy(cache->spotpris.areas[i].areaname, spotpris_test.areas[i].areaname, 4);
+            //strncpy(cache->spotpris.areas[i].areaname, spotpris_test.areas[i].areaname, 4);
 
-            cache->spotpris.areas[i].count = spotpris_test.areas[i].count;
-        
-
-            for (size_t j = 0; j < spotpris_test.areas[i].count; j++)
+            cache->spotpris.count[area] = spotpris_test.areas[area].count;
+            
+            for (size_t entry = 0; entry < spotpris_test.areas[area].count; entry++)
             {
-            strncpy(cache->spotpris.areas[i].kvartar[j].time_start, spotpris_test.areas[i].kvartar[j].time_start, 32);
-                    cache->spotpris.areas[i].kvartar[j].sek_per_kwh = spotpris_test.areas[i].kvartar[j].sek_per_kwh;
+            strncpy(cache->spotpris.data[area][entry].time_start, spotpris_test.areas[area].kvartar[entry].time_start, 32);
+                    cache->spotpris.data[area][entry].sek_per_kwh = spotpris_test.areas[area].kvartar[entry].sek_per_kwh;
             }
         
-            printf("  Area %s: %zu price entries copied\n", 
-               cache->spotpris.areas[i].areaname,
-               cache->spotpris.areas[i].count);
+            printf("  Area %s: %zu price entries copied\n", area_names[area], cache->spotpris.count[area]);
         }
 
     InputCache_SaveSpotpris(&spotpris_test);

@@ -12,6 +12,14 @@
 
 #define MAX 5
 
+typedef enum {
+    AREA_SE1 = 0,
+    AREA_SE2 = 1,
+    AREA_SE3 = 2,
+    AREA_SE4 = 3,
+    AREA_COUNT = 4
+} SpotprisArea;
+
 typedef struct {
     int id;
     char city[NAME_MAX];
@@ -23,18 +31,12 @@ typedef struct {
 typedef struct {
     char time_start[32];
     double sek_per_kwh;
-} SpotPriceEntry_t;
-
-
-typedef struct {
-    char areaname[4];
-    size_t count;
-    SpotPriceEntry_t kvartar[96]; //100
-} AreaSpotpris_t;
+} SpotEntry_t;
 
 typedef struct {
-    AreaSpotpris_t areas[4]; // "SE1", "SE2", "SE3", "SE4"
-} SpotprisData_t;
+    SpotEntry_t data[AREA_COUNT][96];
+    size_t count[AREA_COUNT];
+} Spot_t;
 
 typedef struct {
 
@@ -44,7 +46,7 @@ typedef struct {
     Meteo_t meteo[MAX];
     size_t meteo_count;
 
-    SpotprisData_t spotpris;
+    Spot_t spotpris; // Spot_t spotpris[AREA_MAX][SAMPLES]
 } InputCache_t;
 
 

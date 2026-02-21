@@ -4,6 +4,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <string.h>
+#include "algoinfluencer.h"
 
 #include "../../Cache/InputCache.h"
 #include "../Pipes.h"
@@ -33,7 +34,7 @@ int test_reader() {
                 bytes_read, sizeof(InputCache_t));
         return -1;
     }
-    printf("Received from cache Meteo: %zu HomeSystem: %zu price areas: %zu \n", cache->meteo_count, cache->home_count, sizeof(cache->spotpris.areas) / sizeof(cache->spotpris.areas[0]));
+    printf("Received from cache Meteo: %zu HomeSystem: %zu price areas: %zu \n", cache->meteo_count, cache->home_count, sizeof(cache->spotpris.count) / sizeof(cache->spotpris.count[0]));
 
     for (size_t i = 0; i < cache->meteo_count; i++) {
 
@@ -61,23 +62,26 @@ int test_reader() {
                cache->home[i].electricity_area);
     }
 
-    for (size_t area_idx = 0; area_idx < 4; area_idx++) {
-        printf("\n=== Area %s ===\n", cache->spotpris.areas[area_idx].areaname);
-        printf("Total kvartar: %zu\n", cache->spotpris.areas[area_idx].count);
+    const char *area_names[AREA_COUNT] = {"SE1", "SE2", "SE3", "SE4"};
+
+    for (size_t area_idx = 0; area_idx < 4; area_idx++)
+    {
+        printf("\n=== Area %s ===\n", area_names[area_idx]);
+        printf("Total kvartar: %zu\n", cache->spotpris.count[area_idx]);
     
-        size_t show_count = cache->spotpris.areas[area_idx].count;
+        size_t show_count = cache->spotpris.count[area_idx];
         if (show_count > 10) show_count = 10;  // Show only first 10
         
-        for (size_t j = 0; j < show_count; j++) {
+        for (size_t entry = 0; entry < show_count; entry++) {
             printf("  [%2zu] %s -> %.5f SEK/kWh\n", 
-                   j,
-                   cache->spotpris.areas[area_idx].kvartar[j].time_start,
-                   cache->spotpris.areas[area_idx].kvartar[j].sek_per_kwh);
+                   entry,
+                   cache->spotpris.data[area_idx][entry].time_start,
+                   cache->spotpris.data[area_idx][entry].sek_per_kwh);
         }
     
-        if (cache->spotpris.areas[area_idx].count > 10) {
+        if (cache->spotpris.count[area_idx] > 10) {
             printf("  ... (%zu more entries)\n", 
-           cache->spotpris.areas[area_idx].count - 10);
+           cache->spotpris.count[area_idx] - 10);
         }
     }
 
