@@ -4,13 +4,13 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include "Server.h"
-
+#include "../Libs/Algorithm/testreader.h"
 
 int main(int argc, char* argv[]) {
     log_Init(NULL);
-
+    test_reader();
     printf("Server is starting...\n");
-    
+    return 0;
     Server* server = NULL;
     Server_Initialize(&server, argv, argc);
     

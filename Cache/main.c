@@ -10,11 +10,11 @@
 #include <stdbool.h>
 #include <errno.h>
 #include <sys/stat.h>
-#include <sys/types.h>
-#include "../Libs/Homesystem.h"
-#define FIFO_METEO_READ "/tmp/fifo_meteo"
-#define FIFO_SPOTPRIS_READ "/tmp/fifo_spotpris"
-#define FIFO_ALGORITHM_WRITE "/tmp/fifo_algoritm_write"
+//#include <sys/types.h>
+//#include "../Libs/Homesystem.h"
+// #define FIFO_METEO_READ "/tmp/fifo_meteo"
+// #define FIFO_SPOTPRIS_READ "/tmp/fifo_spotpris"
+// #define FIFO_ALGORITHM_WRITE "/tmp/fifo_algoritm_write"
 
 int main()
 {
@@ -29,7 +29,7 @@ int main()
     memset(cache, 0, sizeof(InputCache_t));
 
     printf("Loading homesystem file..\n");
-    int loaded = homesystem_LoadAllCount(cache->home, "glennergy_fastigheter.json", MAX);
+    int loaded = homesystem_LoadAllCount(cache->home, "/etc/Glennergy-Fastigheter.json", MAX);
     if (loaded < 0)
     {
         fprintf(stderr, "Failed to load homesystem file\n");
@@ -38,7 +38,6 @@ int main()
     }
     cache->home_count = loaded;
 
-    unlink(FIFO_ALGORITHM_WRITE);
     if (mkfifo(FIFO_ALGORITHM_WRITE, 0666) < 0 && errno != EEXIST)
     {
         printf("Failed to create FIFO: %s\n", FIFO_ALGORITHM_WRITE);
@@ -74,15 +73,15 @@ int main()
             cache->meteo[i].lat = meteo_test.pInfo[i].lat;
             cache->meteo[i].lon = meteo_test.pInfo[i].lon;
         
+            printf("Got new data Meteo ID:%d City:%s\n", cache->meteo[i].id, cache->meteo[i].city);
             // Copy the samples array
             memcpy(cache->meteo[i].sample, meteo_test.pInfo[i].sample, sizeof(Samples) * KVARTAR_TOTALT);
-            printf("New data meteo: %zu meteodata entries\n", cache->meteo_count);
-
+            
             for (int i = 0; i < cache->meteo_count; i++)
             {
-                printf("Got new data Meteo ID:%d City:%s\n", cache->meteo[i].id, cache->meteo[i].city);
             }
         }
+        printf("New data meteo: %zu meteodata entries\n", cache->meteo_count);
          InputCache_SaveMeteo(&meteo_test);
     } else {
         fprintf(stderr, "failed to read meteo data, got %zd bytes\n", bytesReadMeteo);
@@ -146,6 +145,7 @@ int main()
     free(cache);
     close(meteo_fd_read);
     close(spotpris_fd_read);
+    unlink(FIFO_ALGORITHM_WRITE);
 
     return 0;
 }

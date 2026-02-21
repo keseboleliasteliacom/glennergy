@@ -6,6 +6,10 @@
 #include "../API/Spotpris/Spotpris.h"
 #include "../Libs/Homesystem.h"
 
+#define FIFO_METEO_READ "/tmp/fifo_meteo"
+#define FIFO_SPOTPRIS_READ "/tmp/fifo_spotpris"
+#define FIFO_ALGORITHM_WRITE "/tmp/fifo_algoritm"
+
 #define MAX 5
 
 typedef struct {

@@ -1,3 +1,4 @@
+#include "testreader.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
@@ -7,12 +8,11 @@
 #include "../../Cache/InputCache.h"
 #include "../Pipes.h"
 
-#define FIFO_ALGORITHM_READ "/tmp/fifo_algoritm_write"
+#define FIFO_ALGORITHM_READ "/tmp/fifo_algoritm"
 
 //gcc -Wall -Wextra -std=c11 -g testreader.c ../Pipes.c -I../../ -o testreader
 
-
-int main () {
+int test_reader() {
 
     InputCache_t *cache = malloc(sizeof(InputCache_t));
     if (!cache) {
@@ -83,4 +83,5 @@ int main () {
 
     printf("Free cache\n");
     free(cache);
+    return 0;
 }

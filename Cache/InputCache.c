@@ -1,18 +1,19 @@
 #include "InputCache.h"
 #include "../Libs/Utils/utils.h"
+#include "../Libs/Pipes.h"
 #include <stdio.h>
-#include <time.h>
+//#include <time.h>
 #include <jansson.h>
-#include <stdlib.h>
+//#include <stdlib.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <string.h>
 #include <stdbool.h>
 #include <errno.h>
 
-#define FIFO_METEO_READ "/tmp/fifo_meteo_read"
-#define FIFO_SPOTPRIS_READ "/tmp/fifo_spotpris"
-#define FIFO_ALGORITHM_WRITE "/tmp/fifo_algoritm_write"
+// #define FIFO_METEO_READ "/tmp/fifo_meteo_read"
+// #define FIFO_SPOTPRIS_READ "/tmp/fifo_spotpris"
+// #define FIFO_ALGORITHM_WRITE "/tmp/fifo_algoritm_write"
 
 int InputCache_SaveSpotpris(const AllaSpotpriser *spotpris)
 {
