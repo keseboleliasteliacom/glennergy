@@ -1,10 +1,12 @@
+#define MODULE_NAME "TESTREADER"
+#include "../../Server/Log/Logger.h"
 #include "testreader.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <string.h>
-#include "algoinfluencer.h"
+#include "average.h"
 
 #include "../../Cache/InputCache.h"
 #include "../Pipes.h"
@@ -17,7 +19,7 @@ int test_reader() {
 
     InputCache_t *cache = malloc(sizeof(InputCache_t));
     if (!cache) {
-        fprintf(stderr, "Failed to allocate memory for InputCache\n");
+        LOG_ERROR("malloc() Failed to allocate memory for InputCache");
         return -1;
     }
     memset(cache, 0, sizeof(InputCache_t));
@@ -30,11 +32,10 @@ int test_reader() {
     unlink(FIFO_ALGORITHM_READ);
 
     if (bytes_read != sizeof(InputCache_t)) {
-        fprintf(stderr, "Failed to read complete data (got %zd, expected %zu bytes)\n",
-                bytes_read, sizeof(InputCache_t));
+        LOG_ERROR("Failed to read complete data (got %zd, expected %zu bytes)", bytes_read, sizeof(InputCache_t));
         return -1;
     }
-    printf("Received from cache Meteo: %zu HomeSystem: %zu price areas: %zu \n", cache->meteo_count, cache->home_count, sizeof(cache->spotpris.count) / sizeof(cache->spotpris.count[0]));
+    LOG_INFO("Received from cache Meteo: %zu HomeSystem: %zu price areas: %zu", cache->meteo_count, cache->home_count, sizeof(cache->spotpris.count) / sizeof(cache->spotpris.count[0]));
 
     for (size_t i = 0; i < cache->meteo_count; i++) {
 
@@ -84,6 +85,12 @@ int test_reader() {
            cache->spotpris.count[area_idx] - 10);
         }
     }
+
+    SpotStats_t spotpris_stats;
+    // AlgoInfluencer_t influencer = {
+    //     .spotpris = &spotpris_stats
+    // };
+    int result = average_SpotprisStats(&spotpris_stats, cache);
 
     printf("Free cache\n");
     free(cache);

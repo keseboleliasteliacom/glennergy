@@ -1,8 +1,9 @@
-#ifndef ALGOINFLUENCER_H
-#define ALGOINFLUENCER_H
+#ifndef AVERAGE_H
+#define AVERAGE_H
 
 #include <stddef.h>
 
+#include "../../Cache/InputCache.h"
 #include "testreader.h"
 
 
@@ -21,17 +22,17 @@ typedef struct {
 }   MeteoStats_t;
 
 typedef struct {
-    Stats_t spot_area[4];
+    Stats_t area[4];
 } SpotStats_t;
 
-typedef struct {
+// typedef struct {
 
-    MeteoStats_t *meteo;
-    size_t meteo_valcount;
+//     MeteoStats_t *meteo;
+//     size_t meteo_valcount;
 
-    SpotStats_t *spotpris;
-    size_t spotpris_valcount;
-} AlgoInfluencer_t;
+//     SpotStats_t *spotpris;
+//     size_t spotpris_valcount;
+// } AlgoInfluencer_t;
 
 // void algoinfluencer_Init(AlgoInfluencer_t *influencer);
 // void algoinfluencer_Cleanup(AlgoInfluencer_t *influencer);
@@ -40,7 +41,7 @@ typedef struct {
 
 // //int algoinfluencer_LoadHomesystem(AlgoInfluencer_t *influencer, const char *home_filepath);
 //int algoinfluencer_LoadMeteo(AlgoInfluencer_t *influencer);
-//int algoinfluencer_CalculateSpotpris(AlgoInfluencer_t *influencer, InputCache_t *cache);
+int average_SpotprisStats(SpotStats_t *spot, InputCache_t *cache);
 
 
 #endif

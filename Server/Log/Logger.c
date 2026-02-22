@@ -10,7 +10,6 @@
 #include <fcntl.h>
 #include <stdarg.h>
 #include <sys/stat.h>
-#include <libgen.h>
 
 // add threadid, LOG_FILE_SIZE, name:YYYY_MM_DD new file everyday? blocking for dev, fix message before shutdown
 
@@ -29,7 +28,7 @@ static pid_t logger_pid = -1;
 static LogLevel log_level = LOG_LEVEL_INFO;
 
 static FILE* log_file = NULL;
-static char log_path[256] = ""; //will be set in log_Init
+static char log_path[128] = ""; //will be set in log_Init
 
 static pthread_mutex_t log_mutex = PTHREAD_MUTEX_INITIALIZER;
 
@@ -37,32 +36,22 @@ static void log_ProcessLoop(int read_fd);
 static void log_ToFile(const LogMessage* log_msg);
 const char* log_GetLevelString(LogLevel level);
 
-int log_Init(const char* custom_path)
+int log_Init(const char* filename)
 {
-    // Auto-detect XDG path if no custom path provided
-    if (custom_path != NULL) {
-        strncpy(log_path, custom_path, sizeof(log_path) - 1);
-        log_path[sizeof(log_path) - 1] = '\0';
+    const char* base_dir = "/var/log/glennergy";
+    const char* default_filename = "glennergy.log";
+    const char* log_filename;
+    
+    if (filename == NULL) {
+        log_filename = default_filename;
     } else {
-        const char *xdg_state = getenv("XDG_STATE_HOME");
-        const char *home = getenv("HOME");
-        
-        if (xdg_state) {
-            snprintf(log_path, sizeof(log_path), "%s/glennergy/glennergy.log", xdg_state);
-        } else if (home) {
-            snprintf(log_path, sizeof(log_path), "%s/.local/state/glennergy/glennergy.log", home);
-        } else {
-            // Fallback to current directory
-            strncpy(log_path, "glennergy.log", sizeof(log_path) - 1);
-        }
+        log_filename = filename;
     }
 
-    char log_dir[512];
-    strncpy(log_dir, log_path, sizeof(log_dir) - 1);
-    char *dir = dirname(log_dir);
-    
-    if (access(dir, W_OK) != 0) {
-        fprintf(stderr, "FATAL: Log directory not writable: %s\n", dir);
+    snprintf(log_path, sizeof(log_path), "%s/%s", base_dir, log_filename);
+
+    if (access(base_dir, W_OK) != 0) {
+        fprintf(stderr, "FATAL: Log directory not writable: %s\n", base_dir);
         fprintf(stderr, "Run 'make dirs' to create directories.\n");
         return -1;
     }

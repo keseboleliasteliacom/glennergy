@@ -20,21 +20,21 @@ const char *area_names[AREA_COUNT] = {"SE1", "SE2", "SE3", "SE4"};
 
 int main()
 {
-    log_Init(NULL);
+    log_Init("cache.log");
     InputCache_t *cache = malloc(sizeof(InputCache_t));
     bool WorkDone = false;
     
     if (!cache) {
-        fprintf(stderr, "Failed to allocate memory\n");
+        LOG_ERROR("malloc() Failed to allocate memory for InputCache");
         return -1;
     }
     memset(cache, 0, sizeof(InputCache_t));
 
-    printf("Loading homesystem file..\n");
+    LOG_INFO("Loading homesystem file...");
     int loaded = homesystem_LoadAllCount(cache->home, "/etc/Glennergy-Fastigheter.json", MAX);
     if (loaded < 0)
     {
-        fprintf(stderr, "Failed to load homesystem file\n");
+        LOG_ERROR("Failed to load homesystem file");
         free(cache);
         return -1;
     }
@@ -42,7 +42,7 @@ int main()
 
     if (mkfifo(FIFO_ALGORITHM_WRITE, 0666) < 0 && errno != EEXIST)
     {
-        printf("Failed to create FIFO: %s\n", FIFO_ALGORITHM_WRITE);
+        LOG_ERROR("Failed to create FIFO: %s", FIFO_ALGORITHM_WRITE);
         free(cache);
         return -1;
     }
@@ -54,7 +54,7 @@ int main()
     int meteo_fd_read = open(FIFO_METEO_READ, O_RDONLY);
     if (meteo_fd_read < 0)
     {
-        printf("Failed to open file: %s\n", FIFO_METEO_READ);
+        LOG_ERROR("Failed to open file: %s", FIFO_METEO_READ);
         free(cache);
         return -1;
     }
@@ -64,8 +64,8 @@ int main()
 
     if (bytesReadMeteo == sizeof(MeteoData))
     {
-        printf("Got new data meteo %zd\n", bytesReadMeteo);
-        printf("Meteo data count: %zu\n", meteo_test.pCount);
+        LOG_INFO("Got new data meteo %zd", bytesReadMeteo);
+        LOG_INFO("Meteo data count: %zu", meteo_test.pCount);
 
         cache->meteo_count = meteo_test.pCount;
         for (size_t i = 0; i < cache->meteo_count; i++)
@@ -83,18 +83,18 @@ int main()
             {
             }
         }
-        printf("New data meteo: %zu meteodata entries\n", cache->meteo_count);
+        LOG_INFO("meteo after copy: %zu meteodata entries", cache->meteo_count);
          InputCache_SaveMeteo(&meteo_test);
     } else {
-        fprintf(stderr, "failed to read meteo data, got %zd bytes\n", bytesReadMeteo);
+        LOG_ERROR("failed to read meteo data, got %zd bytes", bytesReadMeteo);
     }
 
     // --- SPOTPRIS ---
-    
+    LOG_INFO("Waiting for spotpris data...");
     int spotpris_fd_read = open(FIFO_SPOTPRIS_READ, O_RDONLY);
     if (spotpris_fd_read < 0)
     {
-        printf("Failed to open file: %s\n", FIFO_SPOTPRIS_READ);
+        LOG_ERROR("Failed to open file: %s", FIFO_SPOTPRIS_READ);
         free(cache);
         return -1;
     }
@@ -105,9 +105,9 @@ int main()
     
     if (bytesReadSpotpris == sizeof(AllaSpotpriser))
     {
-        printf("Got new data spotpris %zd\n", bytesReadSpotpris);
+        LOG_INFO("Got new data spotpris %zd", bytesReadSpotpris);
     } else {
-        fprintf(stderr, "failed to read spotpris data, got %zd bytes\n", bytesReadSpotpris);
+        LOG_ERROR("failed to read spotpris data, got %zd bytes", bytesReadSpotpris);
     }
 
         for (int area = 0; area < AREA_COUNT; area++)
@@ -122,22 +122,22 @@ int main()
                     cache->spotpris.data[area][entry].sek_per_kwh = spotpris_test.areas[area].kvartar[entry].sek_per_kwh;
             }
         
-            printf("  Area %s: %zu price entries copied\n", area_names[area], cache->spotpris.count[area]);
+            LOG_INFO("Area %s: %zu price entries copied", area_names[area], cache->spotpris.count[area]);
         }
 
     InputCache_SaveSpotpris(&spotpris_test);
         
-    printf("Sending complete packet to algorithm...\n");
+    LOG_INFO("Sending complete packet to algorithm...");
     if (InputCache_PipeToAlgorithm(cache) != 0)
     {
-        fprintf(stderr, "Failed to pipe data to algorithm\n");
+        LOG_ERROR("Failed to pipe data to algorithm\n");
         free(cache);
         return -3;
     }
 
     
     printf("cleaning up...\n");
-
+    LOG_INFO("Cleaning up...");
     // AllaSpotpriser_Print(&spotpris_test);
     
     
@@ -146,6 +146,6 @@ int main()
     close(meteo_fd_read);
     close(spotpris_fd_read);
     unlink(FIFO_ALGORITHM_WRITE);
-
+    log_Cleanup();
     return 0;
 }
