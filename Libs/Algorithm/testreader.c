@@ -92,6 +92,7 @@ int test_reader() {
     // };
     int result = average_SpotprisStats(&spotpris_stats, cache);
 
+    int window_result = average_WindowLow(cache, spotpris_stats.area[0].q25);
     printf("Free cache\n");
     free(cache);
     return 0;

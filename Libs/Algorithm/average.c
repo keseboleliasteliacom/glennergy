@@ -38,39 +38,73 @@ int average_SpotprisStats(SpotStats_t *spot, InputCache_t *cache)
         double sorted[96];
         double sum = 0.0;
         
-        for (size_t j = 0; j < count; j++) {
-            sorted[j] = cache->spotpris.data[areaindx][j].sek_per_kwh;
-            sum += sorted[j];
+        for (size_t samples = 0; samples < count; samples++) {
+            sorted[samples] = cache->spotpris.data[areaindx][samples].sek_per_kwh;
+            sum += sorted[samples];
         }
         
         qsort(sorted, count, sizeof(double), compare_double);
-
-        double min = sorted[0];
-        double max = sorted[count - 1];
-        double average = sum / count;
         
         size_t mid = count / 2;
         double median = (count % 2 == 0) 
             ? (sorted[mid - 1] + sorted[mid]) / 2.0 
             : sorted[mid];
 
-        spot->area[areaindx].min = min;
-        spot->area[areaindx].max = max;
-        spot->area[areaindx].average = average;
+        spot->area[areaindx].min = sorted[0];
+        spot->area[areaindx].max = sorted[count - 1];
+        spot->area[areaindx].average = sum / count;
         spot->area[areaindx].median = median;
         spot->area[areaindx].q25 = sorted[count / 4];
         spot->area[areaindx].q75 = sorted[(3 * count) / 4];
 
         printf("\nArea %s: min=%.3f, max=%.3f, avg=%.3f, median=%.3f, q25=%.3f, q75=%.3f\n",
-               area_names[areaindx],
-               spot->area[areaindx].min,
-               spot->area[areaindx].max,
-               spot->area[areaindx].average,
-               spot->area[areaindx].median,
-               spot->area[areaindx].q25,
-               spot->area[areaindx].q75);
+                area_names[areaindx],
+                spot->area[areaindx].min,
+                spot->area[areaindx].max,
+                spot->area[areaindx].average,
+                spot->area[areaindx].median,
+                spot->area[areaindx].q25,
+                spot->area[areaindx].q75);
     }
 
     return 0;
 }
 
+int average_WindowLow(InputCache_t *cache, double q25_threshold)
+{
+    if (!cache) {
+        fprintf(stderr, "Invalid cache parameter\n");
+        return -1;
+    }
+    
+    printf(" q25_threshold: %.3f\n", q25_threshold);
+    int start = -1;
+    for (size_t i = 0; i < cache->spotpris.count[0]; i++) 
+    {
+        double price = cache->spotpris.data[0][i].sek_per_kwh;
+        
+        if (price < q25_threshold) {
+            if (start == -1) {
+                start = i; // Start of a low-price window
+            }
+        } else {
+            if (start != -1) {
+                printf(" Low price window: %s (%.3f SEK/kWh)\n\t\tto %s (%.3f SEK/kWh)\n",
+                    cache->spotpris.data[0][start].time_start,
+                    cache->spotpris.data[0][start].sek_per_kwh,
+                    cache->spotpris.data[0][i-1].time_start,
+                    cache->spotpris.data[0][i-1].sek_per_kwh);
+                start = -1; // Reset for next window
+            }
+        }
+    }
+        if (start != -1) {
+            printf(" Low price window: %s (%.3f SEK/kWh)\n\t\tto %s (%.3f SEK/kWh)\n",
+                cache->spotpris.data[0][start].time_start,
+                cache->spotpris.data[0][start].sek_per_kwh,
+                cache->spotpris.data[0][cache->spotpris.count[0]-1].time_start,
+                cache->spotpris.data[0][cache->spotpris.count[0]-1].sek_per_kwh);
+        }
+
+    return 0;
+}
