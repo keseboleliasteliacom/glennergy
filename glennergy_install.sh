@@ -8,7 +8,7 @@ if [ -f Makefile ]; then
     sudo make install
 fi
 
-crontab -l 2>/dev/null | {
+crontab -l 2>/dev/null | grep -v "# Glennergy" | {
     cat
     echo "* * * * * /usr/local/bin/Glennergy-Spotpris # Glennergy-Spotpris cron"
     echo "* * * * * /usr/local/bin/Glennergy-Meteo # Glennergy-Meteo cron"

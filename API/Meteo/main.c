@@ -42,7 +42,6 @@ int main()
     printf("bytes skickade: %zd\n", bytesWritten);
 
     close(meteo_fd_write);
-    unlink(FIFO_METEO_WRITE);
 
     return 0;
 }

@@ -22,6 +22,9 @@ int test_reader() {
         LOG_ERROR("malloc() Failed to allocate memory for InputCache");
         return -1;
     }
+
+    while(1)
+    {
     memset(cache, 0, sizeof(InputCache_t));
 
     int fifo_fd = open(FIFO_ALGORITHM_READ, O_RDONLY);
@@ -29,7 +32,7 @@ int test_reader() {
     ssize_t bytes_read = Pipes_ReadBinary(fifo_fd, cache, sizeof(InputCache_t));
 
     close(fifo_fd);
-    unlink(FIFO_ALGORITHM_READ);
+    //unlink(FIFO_ALGORITHM_READ);
 
     if (bytes_read != sizeof(InputCache_t)) {
         LOG_ERROR("Failed to read complete data (got %zd, expected %zu bytes)", bytes_read, sizeof(InputCache_t));
@@ -93,6 +96,10 @@ int test_reader() {
     int result = average_SpotprisStats(&spotpris_stats, cache);
 
     int window_result = average_WindowLow(cache, spotpris_stats.area[0].q25);
+
+    LOG_INFO("Sleeping for 10 seconds before next read...");
+    sleep(10);
+}   //while
     printf("Free cache\n");
     free(cache);
     return 0;

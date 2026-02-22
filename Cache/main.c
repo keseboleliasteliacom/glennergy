@@ -48,103 +48,108 @@ int main()
     }
     
     LOG_INFO("InputCache started, waiting for data...");
-    MeteoData meteo_test;
-    AllaSpotpriser spotpris_test;
-    // --- METEO ---
-    int meteo_fd_read = open(FIFO_METEO_READ, O_RDONLY);
-    if (meteo_fd_read < 0)
-    {
-        LOG_ERROR("Failed to open file: %s", FIFO_METEO_READ);
-        free(cache);
-        return -1;
-    }
-    
-    ssize_t bytesReadMeteo = Pipes_ReadBinary(meteo_fd_read, &meteo_test, sizeof(MeteoData));
-    close(meteo_fd_read);
 
-    if (bytesReadMeteo == sizeof(MeteoData))
+    while(1)
     {
-        LOG_INFO("Got new data meteo %zd", bytesReadMeteo);
-        LOG_INFO("Meteo data count: %zu", meteo_test.pCount);
-
-        cache->meteo_count = meteo_test.pCount;
-        for (size_t i = 0; i < cache->meteo_count; i++)
-        {
-            cache->meteo[i].id = meteo_test.pInfo[i].id;
-            strncpy(cache->meteo[i].city, meteo_test.pInfo[i].property_name, NAME_MAX);
-            cache->meteo[i].lat = meteo_test.pInfo[i].lat;
-            cache->meteo[i].lon = meteo_test.pInfo[i].lon;
-        
-            printf("Got new data Meteo ID:%d City:%s\n", cache->meteo[i].id, cache->meteo[i].city);
-            // Copy the samples array
-            memcpy(cache->meteo[i].sample, meteo_test.pInfo[i].sample, sizeof(Samples) * KVARTAR_TOTALT);
-            
-            for (int i = 0; i < cache->meteo_count; i++)
+            if (WorkDone)
             {
+                LOG_INFO("Work done, sleeping for 10 seconds...");
+                sleep(10);
+                WorkDone = false;
+                continue;
             }
+        MeteoData meteo_test;
+        AllaSpotpriser spotpris_test;
+        // --- METEO ---
+        LOG_INFO("Waiting for meteo data...");
+
+        int meteo_fd_read = open(FIFO_METEO_READ, O_RDONLY);
+        if (meteo_fd_read < 0)
+        {
+            LOG_ERROR("Failed to open file: %s", FIFO_METEO_READ);
+            sleep(5);
+            continue;
         }
-        LOG_INFO("meteo after copy: %zu meteodata entries", cache->meteo_count);
-         InputCache_SaveMeteo(&meteo_test);
-    } else {
-        LOG_ERROR("failed to read meteo data, got %zd bytes", bytesReadMeteo);
-    }
-
-    // --- SPOTPRIS ---
-    LOG_INFO("Waiting for spotpris data...");
-    int spotpris_fd_read = open(FIFO_SPOTPRIS_READ, O_RDONLY);
-    if (spotpris_fd_read < 0)
-    {
-        LOG_ERROR("Failed to open file: %s", FIFO_SPOTPRIS_READ);
-        free(cache);
-        return -1;
-    }
-
-    
-    ssize_t bytesReadSpotpris = Pipes_ReadBinary(spotpris_fd_read, &spotpris_test, sizeof(AllaSpotpriser));
-    close(spotpris_fd_read);
-    
-    if (bytesReadSpotpris == sizeof(AllaSpotpriser))
-    {
-        LOG_INFO("Got new data spotpris %zd", bytesReadSpotpris);
-    } else {
-        LOG_ERROR("failed to read spotpris data, got %zd bytes", bytesReadSpotpris);
-    }
-
-        for (int area = 0; area < AREA_COUNT; area++)
-        {
-            //strncpy(cache->spotpris.areas[i].areaname, spotpris_test.areas[i].areaname, 4);
-
-            cache->spotpris.count[area] = spotpris_test.areas[area].count;
-            
-            for (size_t entry = 0; entry < spotpris_test.areas[area].count; entry++)
-            {
-            strncpy(cache->spotpris.data[area][entry].time_start, spotpris_test.areas[area].kvartar[entry].time_start, 32);
-                    cache->spotpris.data[area][entry].sek_per_kwh = spotpris_test.areas[area].kvartar[entry].sek_per_kwh;
-            }
         
-            LOG_INFO("Area %s: %zu price entries copied", area_names[area], cache->spotpris.count[area]);
+        ssize_t bytesReadMeteo = Pipes_ReadBinary(meteo_fd_read, &meteo_test, sizeof(MeteoData));
+        close(meteo_fd_read);
+
+        if (bytesReadMeteo == sizeof(MeteoData))
+        {
+            LOG_INFO("Got new data meteo %zd", bytesReadMeteo);
+            LOG_INFO("Meteo data count: %zu", meteo_test.pCount);
+
+            cache->meteo_count = meteo_test.pCount;
+            for (size_t i = 0; i < cache->meteo_count; i++)
+            {
+                cache->meteo[i].id = meteo_test.pInfo[i].id;
+                strncpy(cache->meteo[i].city, meteo_test.pInfo[i].property_name, NAME_MAX);
+                cache->meteo[i].lat = meteo_test.pInfo[i].lat;
+                cache->meteo[i].lon = meteo_test.pInfo[i].lon;
+            
+                printf("Got new data Meteo ID:%d City:%s\n", cache->meteo[i].id, cache->meteo[i].city);
+                // Copy the samples array
+                memcpy(cache->meteo[i].sample, meteo_test.pInfo[i].sample, sizeof(Samples) * KVARTAR_TOTALT);
+                
+            }
+            LOG_INFO("meteo after copy: %zu meteodata entries", cache->meteo_count);
+            InputCache_SaveMeteo(&meteo_test);
+        } else {
+            LOG_ERROR("failed to read meteo data, got %zd bytes", bytesReadMeteo);
         }
 
-    InputCache_SaveSpotpris(&spotpris_test);
-        
-    LOG_INFO("Sending complete packet to algorithm...");
-    if (InputCache_PipeToAlgorithm(cache) != 0)
-    {
-        LOG_ERROR("Failed to pipe data to algorithm\n");
-        free(cache);
-        return -3;
-    }
+        // --- SPOTPRIS ---
+        LOG_INFO("Waiting for spotpris data...");
+        int spotpris_fd_read = open(FIFO_SPOTPRIS_READ, O_RDONLY);
+        if (spotpris_fd_read < 0)
+        {
+            LOG_ERROR("Failed to open file: %s", FIFO_SPOTPRIS_READ);
+            sleep(5);
+            continue;
+        }
 
-    
-    printf("cleaning up...\n");
-    LOG_INFO("Cleaning up...");
-    // AllaSpotpriser_Print(&spotpris_test);
-    
-    
+        
+        ssize_t bytesReadSpotpris = Pipes_ReadBinary(spotpris_fd_read, &spotpris_test, sizeof(AllaSpotpriser));
+        close(spotpris_fd_read);
+        
+        if (bytesReadSpotpris == sizeof(AllaSpotpriser))
+        {
+            LOG_INFO("Got new data spotpris %zd", bytesReadSpotpris);
+        } else {
+            LOG_ERROR("failed to read spotpris data, got %zd bytes", bytesReadSpotpris);
+        }
+
+            for (int area = 0; area < AREA_COUNT; area++)
+            {
+                //strncpy(cache->spotpris.areas[i].areaname, spotpris_test.areas[i].areaname, 4);
+
+                cache->spotpris.count[area] = spotpris_test.areas[area].count;
+                
+                for (size_t entry = 0; entry < spotpris_test.areas[area].count; entry++)
+                {
+                strncpy(cache->spotpris.data[area][entry].time_start, spotpris_test.areas[area].kvartar[entry].time_start, 32);
+                        cache->spotpris.data[area][entry].sek_per_kwh = spotpris_test.areas[area].kvartar[entry].sek_per_kwh;
+                }
+            
+                LOG_INFO("Area %s: %zu price entries copied", area_names[area], cache->spotpris.count[area]);
+            }
+
+        InputCache_SaveSpotpris(&spotpris_test);
+            
+        LOG_INFO("Sending complete packet to algorithm...");
+        if (InputCache_PipeToAlgorithm(cache) != 0)
+        {
+            LOG_ERROR("Failed to pipe data to algorithm\n");
+        }
+
+        
+        printf("cleaning up...\n");
+        LOG_INFO("Cycle complete, ready for next data...");
+        // AllaSpotpriser_Print(&spotpris_test);
+        WorkDone = true;
+    }
     // close(algorithm_fd_write);
     free(cache);
-    close(meteo_fd_read);
-    close(spotpris_fd_read);
     unlink(FIFO_ALGORITHM_WRITE);
     log_Cleanup();
     return 0;

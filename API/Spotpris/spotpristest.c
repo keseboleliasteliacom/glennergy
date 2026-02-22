@@ -50,6 +50,5 @@ int main(void)
         
     curl_global_cleanup();
     close(spotpris_fd_write);
-    unlink(FIFO_SPOTPRIS_WRITE);
     return 0;
 }
