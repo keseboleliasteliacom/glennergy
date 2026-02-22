@@ -5,6 +5,11 @@ Hämtar spotpris och optimerar elförbrukning
 ```bash
 Run glennergy_install.sh script in the root directory
 ```
+/usr/local/bin/ 		        #executeable
+/var/log/glennergy/ 		    #logs
+/etc/Glennergy-Fastigheter.json	#json-system
+/tmp                            #FIFO
+tail -f cache.log glennergy.log
 
 ## Usage
 
