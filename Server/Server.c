@@ -6,6 +6,8 @@
 #include "../Libs/Utils/utils.h"
 #include "../Libs/Threads.h"
 
+extern char **environ;
+
 int Server_Initialize(Server **_Server, char **_Argv, int _Argc)
 {
     Server *srv = (Server *)malloc(sizeof(Server));
@@ -20,11 +22,55 @@ int Server_Initialize(Server **_Server, char **_Argv, int _Argc)
     return 0;
 }
 
+void Crontab_Add()
+{
+    pid_t pid = fork();
+
+    if (pid < 0)
+    {
+        exit(EXIT_FAILURE);
+    }
+    else if (pid == 0)
+    {
+        char path[1024];
+        realpath("./crontab_inst.sh", path); // resolves the absolute path at runtime
+        execlp("/bin/bash", "bash", path, "add", NULL);
+        perror("execl failed");
+        exit(EXIT_SUCCESS);
+    }
+    else
+    {
+        int status;
+        waitpid(pid, &status, 0);
+    }
+}
+
+void Crontab_Remove()
+{
+    pid_t pid = fork();
+
+    if (pid < 0)
+    {
+        exit(EXIT_FAILURE);
+    }
+    else if (pid == 0)
+    {
+        execlp("./crontab.sh", "crontab.sh", "remove", NULL);
+        perror("execl failed");
+        exit(EXIT_SUCCESS);
+    }
+    else
+    {
+        int status;
+        waitpid(pid, &status, 0);
+    }
+}
+
 int Server_Run(Server *_Server)
 {
 
     SignalHandler_Initialize();
-
+    Crontab_Add();
     int status_pid, status_cache;
     pid_t pid = fork();
 
@@ -74,11 +120,11 @@ int Server_Run(Server *_Server)
     }
     else
     {
-        test_reader();
+        // test_reader();
         wait(&status_pid);
         wait(&status_cache);
     }
-
+    // Crontab_Remove();
     return 0;
 }
 
