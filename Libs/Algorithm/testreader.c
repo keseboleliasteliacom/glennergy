@@ -28,6 +28,9 @@ int test_reader() {
     memset(cache, 0, sizeof(InputCache_t));
 
     int fifo_fd = open(FIFO_ALGORITHM_READ, O_RDONLY);
+    
+    
+
 
     ssize_t bytes_read = Pipes_ReadBinary(fifo_fd, cache, sizeof(InputCache_t));
 
