@@ -1,3 +1,5 @@
+#define MODULE_NAME "MAIN"
+#include "../../Server/Log/Logger.h"
 #include "Meteo.h"
 #include "../../Libs/Pipes.h"
 #include <stdio.h>
@@ -11,6 +13,8 @@
 
 int main()
 {
+    log_Init("meteo.log");
+    LOG_INFO("Starting Meteo API...\n");
     mkfifo(FIFO_METEO_WRITE, 0666);
 
     setvbuf(stdout, NULL, _IONBF, 0);
@@ -18,11 +22,11 @@ int main()
 
     if (meteo_fd_write < 0)
     {
-        printf("Failed to open file: %s\n", FIFO_METEO_WRITE);
+        LOG_ERROR("Failed to open file: %s\n", FIFO_METEO_WRITE);
         return -3;
     }
 
-    printf("nu börjar loopen\n");
+    LOG_INFO("nu börjar loopen\n");
 
     static time_t last_modified = -1;
 
@@ -32,16 +36,16 @@ int main()
     if (file_lastModified("/etc/Glennergy-Fastigheter.json", &last_modified) == 1)
     {
         Meteo_LoadGlennergy(&data);
-        printf("Info changed, reloaded file.\n");
+        LOG_INFO("Info changed, reloaded file.\n");
     }
 
     meteo_Fetch(&data);
-
+    LOG_INFO("Fetched meteo data, sending to cache...\n");
     ssize_t bytesWritten = Pipes_WriteBinary(meteo_fd_write, &data, sizeof(data));
 
-    printf("bytes skickade: %zd\n", bytesWritten);
+    LOG_INFO("bytes skickade: %zd\n", bytesWritten);
 
     close(meteo_fd_write);
-
+    log_Cleanup();
     return 0;
 }

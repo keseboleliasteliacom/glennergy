@@ -14,7 +14,7 @@ INSTALLDIR = $(PREFIX)
 
 # Default target
 all:
-	$(CC) $(CFLAGS) Spotpris.c spotpristest.c ../../Libs/Pipes.c ../../Libs/Fetcher.c -o $(TARGET) -lcurl -ljansson
+	$(CC) $(CFLAGS) Spotpris.c spotpristest.c ../../Libs/Pipes.c ../../Libs/Fetcher.c ../../Server/Log/Logger.c -o $(TARGET) -lcurl -ljansson
 
 
 install:

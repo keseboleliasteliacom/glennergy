@@ -8,9 +8,8 @@
 
 int main(int argc, char* argv[]) {
     log_Init(NULL);
-    test_reader();
+
     printf("Server is starting...\n");
-    log_Cleanup();
     Server* server = NULL;
     Server_Initialize(&server, argv, argc);
     
@@ -19,9 +18,9 @@ int main(int argc, char* argv[]) {
     
     Server_Run(server);
     
-    return 0;
     Server_Dispose(&server);
-
+    
     printf("Server is shutting down\n");
+    log_Cleanup();
     return 0;
 }

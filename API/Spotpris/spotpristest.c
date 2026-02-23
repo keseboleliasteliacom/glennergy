@@ -1,5 +1,7 @@
-#include <stdio.h>
+#define MODULE_NAME "MAIN"
+#include "../../Server/Log/Logger.h"
 #include "Spotpris.h"
+#include <stdio.h>
 #include "../../Libs/Pipes.h"
 #include <curl/curl.h>
 #include <stdlib.h>
@@ -20,35 +22,38 @@
 
 int main(void)
 {
+    log_Init("spotpris.log");
     curl_global_init(CURL_GLOBAL_DEFAULT);
 
     AllaSpotpriser spotpriser;
-    
+    LOG_INFO("Fetching spotpris data...\n");
     int rc = Spotpris_FetchAll(&spotpriser);
     if (rc != 0)
     {
-        fprintf(stderr, "Failed to fetch: %d\n", rc);
+        LOG_ERROR("Failed to fetch: %d\n", rc);
         return -4;
     }
 
     // Todo - Endast för debugging/testing, ta bort i prod
    // AllaSpotpriser_Print(&spotpriser);
 
-    
+
     mkfifo(FIFO_SPOTPRIS_WRITE, 0666);
-    
+    LOG_INFO("Created FIFO: %s\n", FIFO_SPOTPRIS_WRITE);
     int spotpris_fd_write = open(FIFO_SPOTPRIS_WRITE, O_WRONLY);
 
     if (spotpris_fd_write < 0)
     {
-        printf("Failed to open file: %s\n", FIFO_SPOTPRIS_WRITE);
+        LOG_ERROR("Failed to open file: %s\n", FIFO_SPOTPRIS_WRITE);
         return -3;
-    }    
+    }
+    LOG_INFO("Sending spotpris data to cache...\n");    
     ssize_t bytesWritten = Pipes_WriteBinary(spotpris_fd_write, &spotpriser, sizeof(spotpriser));
     
-    printf("bytes skickade: %zd\n", bytesWritten);
+    LOG_INFO("bytes skickade: %zd\n", bytesWritten);
         
     curl_global_cleanup();
     close(spotpris_fd_write);
+    log_Cleanup();
     return 0;
 }

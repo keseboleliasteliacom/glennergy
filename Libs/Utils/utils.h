@@ -94,7 +94,7 @@ static inline int file_lastModified(const char *_FilePath, time_t* _LastModified
 
     if (stat(_FilePath, &st) != 0)
     {
-        printf("Property file doesnt exist\n");
+        LOG_ERROR("Property file doesnt exist\n");
         return -1;
     }
 

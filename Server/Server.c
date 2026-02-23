@@ -74,6 +74,7 @@ int Server_Run(Server *_Server)
     }
     else
     {
+        test_reader();
         wait(&status_pid);
         wait(&status_cache);
     }

@@ -1,3 +1,5 @@
+#define MODULE_NAME "SPOTPRIS"
+#include "../../Server/Log/Logger.h"
 #include "Spotpris.h"
 #include "../../Libs/Fetcher.h"
 #include <jansson.h>
@@ -79,14 +81,16 @@ int Spotpris_FetchAll(AllaSpotpriser *_AllaSpotpriser)
         
         if (!root)
         {
-            fprintf(stderr, "JSON parse error: %s\n", error.text);
+            LOG_ERROR("JSON parse error: %s\n", error.text);
             Curl_Dispose(&resp);
             return -2;
         }
         
         if (!json_is_array(root))
         {
+            LOG_ERROR("JSON is not an array\n");
             json_decref(root);
+            Curl_Dispose(&resp);
             return -3;
         }
                 

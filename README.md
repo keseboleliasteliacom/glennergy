@@ -9,7 +9,7 @@ Run glennergy_install.sh script in the root directory
 /var/log/glennergy/ 		    #logs
 /etc/Glennergy-Fastigheter.json	#json-system
 /tmp                            #FIFO
-tail -f cache.log glennergy.log
+tail -f *.log
 
 ## Usage
 

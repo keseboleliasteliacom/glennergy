@@ -15,7 +15,7 @@ CONFIGDIR = /etc
 
 # Default target
 all:
-	$(CC) $(CFLAGS) main.c Meteo.c ../../Libs/Pipes.c ../../Libs/Fetcher.c -o $(TARGET) -lcurl -ljansson
+	$(CC) $(CFLAGS) main.c Meteo.c ../../Libs/Pipes.c ../../Libs/Fetcher.c ../../Server/Log/Logger.c -o $(TARGET) -lcurl -ljansson
 
 
 install:

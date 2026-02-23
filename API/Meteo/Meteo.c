@@ -1,3 +1,5 @@
+#define MODULE_NAME "METEO"
+#include "../../Server/Log/Logger.h"
 #include "Meteo.h"
 #include "../../Libs/Fetcher.h"
 #include <sys/stat.h>
@@ -37,12 +39,13 @@ int Meteo_LoadGlennergy(MeteoData *_MeteoData)
 
     if (root == NULL)
     {
-        printf("failed to load file!\n");
+        LOG_ERROR("failed to load file!\n");
+        return -1;
     }
     json_t *property = json_object_get(root, "systems");
     if (!json_is_array(property))
     {
-        printf("'systems' is not an array!\n");
+        LOG_ERROR("'systems' is not an array!\n");
         json_decref(root);
         return -1;
     }
@@ -51,6 +54,7 @@ int Meteo_LoadGlennergy(MeteoData *_MeteoData)
 
     if (_MeteoData->pCount > PROPERTIES_MAX)
     {
+        LOG_WARNING("Too many properties in JSON, truncating to %d\n", PROPERTIES_MAX);
         _MeteoData->pCount = PROPERTIES_MAX;
     }
 
@@ -58,7 +62,7 @@ int Meteo_LoadGlennergy(MeteoData *_MeteoData)
     {
         json_t *object = json_array_get(property, i);
 
-        printf("Loading property %zu/%zu\n", i + 1, _MeteoData->pCount);
+        LOG_INFO("Loading property %zu/%zu\n", i + 1, _MeteoData->pCount);
 
         if (!json_is_object(object))
             continue;
@@ -77,7 +81,7 @@ int Meteo_LoadGlennergy(MeteoData *_MeteoData)
 
         snprintf(_MeteoData->pInfo[i].property_name, NAME_MAX, "%s", city);
 
-        printf("Loaded property: %s (ID: %d, Lat: %.2f, Lon: %.2f)\n", _MeteoData->pInfo[i].property_name, _MeteoData->pInfo[i].id, _MeteoData->pInfo[i].lat, _MeteoData->pInfo[i].lon);
+        LOG_INFO("Loaded property: %s (ID: %d, Lat: %.2f, Lon: %.2f)\n", _MeteoData->pInfo[i].property_name, _MeteoData->pInfo[i].id, _MeteoData->pInfo[i].lat, _MeteoData->pInfo[i].lon);
     }
 
     json_decref(root);
@@ -92,14 +96,14 @@ int Meteo_Parse(MeteoData *_MeteoData, const char *_JsonRaw)
     json_t *root = json_loads(_JsonRaw, 0, &error);
     if (!root)
     {
-        fprintf(stderr, "[METEO] JSON parse failed: %s\n", error.text);
+        LOG_ERROR("JSON parse failed: %s\n", error.text);
         return -1;
     }
 
     json_t *hourly = json_object_get(root, "minutely_15");
     if (!hourly || !json_is_object(hourly))
     {
-        fprintf(stderr, "[METEO] JSON missing 'hourly' object\n");
+        LOG_ERROR("JSON missing 'minutely_15' object\n");
         json_decref(root);
         return -2;
     }
@@ -147,19 +151,22 @@ int meteo_Fetch(MeteoData *_MeteoData)
         int curl_result = Curl_Initialize(&response);
 
         if (curl_result < 0)
+        {
+            LOG_WARNING("Curl initialization failed with code %d\n", curl_result);
             return -1;
+        }
 
         char url[512];
         snprintf(url, sizeof(url), METEO_LINK, _MeteoData->pInfo[i].lat, _MeteoData->pInfo[i].lon);
 
 
-        printf("URL: %s\n", url);
+        LOG_INFO("URL: %s\n", url);
 
         // Use Fetcher to get the data
         int fetch_result = Curl_HTTPGet(&response, url);
         if (fetch_result != 0 || response.data == NULL)
         {
-            fprintf(stderr, "[METEO] HTTP fetch failed with code %d\n", fetch_result);
+            LOG_WARNING("HTTP fetch failed with code %d\n", fetch_result);
             Curl_Dispose(&response);
             return -2;
         }
