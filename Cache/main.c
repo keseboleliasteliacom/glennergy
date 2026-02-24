@@ -1,7 +1,10 @@
+#define _XOPEN_SOURCE 700 
 #define MODULE_NAME "INPUTCACHE"
 #include "../Server/Log/Logger.h"
+#include "Shm.h"
 #include "InputCache.h"
 #include "../Libs/Pipes.h"
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
@@ -21,43 +24,61 @@ const char *area_names[AREA_COUNT] = {"SE1", "SE2", "SE3", "SE4"};
 int main()
 {
     log_Init("cache.log");
-    InputCache_t *cache = malloc(sizeof(InputCache_t));
     bool WorkDone = false;
-    
+
+    InputCache_t *cache = malloc(sizeof(InputCache_t));
     if (!cache) {
         LOG_ERROR("malloc() Failed to allocate memory for InputCache");
         return -1;
     }
     memset(cache, 0, sizeof(InputCache_t));
 
+    if (shm_Create() < 0) {
+        LOG_ERROR("Failed to create shared memory");
+        free(cache);
+        return -1;
+    }
+
+    SharedCache_t *shm = shm_Attach();
+    if (!shm) {
+        LOG_ERROR("Failed to attach to shared memory");
+        shm_Destroy();
+        free(cache);
+        return -1;
+    }
+
     LOG_INFO("Loading homesystem file...");
-    int loaded = homesystem_LoadAllCount(cache->home, "/etc/Glennergy-Fastigheter.json", MAX);
+    int loaded = homesystem_LoadAllCount(shm->input.home, "/etc/Glennergy-Fastigheter.json", MAX);
+    shm->input.home_count = loaded;
+
     if (loaded < 0)
     {
         LOG_ERROR("Failed to load homesystem file");
+        shm_Detach(shm);
+        shm_Destroy();
         free(cache);
         return -1;
     }
-    cache->home_count = loaded;
+    LOG_INFO("Loaded %d homesystem entries", loaded);
 
-    if (mkfifo(FIFO_ALGORITHM_WRITE, 0666) < 0 && errno != EEXIST)
-    {
-        LOG_ERROR("Failed to create FIFO: %s", FIFO_ALGORITHM_WRITE);
-        free(cache);
-        return -1;
-    }
+    // if (mkfifo(FIFO_ALGORITHM_WRITE, 0666) < 0 && errno != EEXIST)
+    // {
+    //     LOG_ERROR("Failed to create FIFO: %s", FIFO_ALGORITHM_WRITE);
+    //     //free(cache);
+    //     return -1;
+    // }
     
     LOG_INFO("InputCache started, waiting for data...");
 
     while(1)
     {
-            if (WorkDone)
-            {
-                LOG_INFO("Work done, sleeping for 10 seconds...");
-                sleep(10);
-                WorkDone = false;
-                continue;
-            }
+        if (WorkDone) {
+            LOG_INFO("Work done, sleeping for 10 seconds...");
+            sleep(10);
+            WorkDone = false;
+            continue;
+        }
+
         MeteoData meteo_test;
         AllaSpotpriser spotpris_test;
         // --- METEO ---
@@ -136,10 +157,24 @@ int main()
 
         InputCache_SaveSpotpris(&spotpris_test);
             
-        LOG_INFO("Sending complete packet to algorithm...");
-        if (InputCache_PipeToAlgorithm(cache) != 0)
-        {
-            LOG_ERROR("Failed to pipe data to algorithm\n");
+        // LOG_INFO("Sending complete packet to algorithm...");
+        // if (InputCache_PipeToAlgorithm(cache) != 0)
+        // {
+        //     LOG_ERROR("Failed to pipe data to algorithm\n");
+        // }
+
+        LOG_INFO("Writing data to shared memory...");
+
+        if (shm_Lock_Input_Write(shm) < 0) {
+            LOG_ERROR("Failed to lock shared memory for writing");
+        } else {
+            shm->input.meteo_count = cache->meteo_count;
+            memcpy(shm->input.meteo, cache->meteo, sizeof(cache->meteo));
+            shm->input.spotpris = cache->spotpris;
+            
+            shm->last_input_update = time(NULL);
+            shm_Unlock_Input_Write(shm);
+            LOG_INFO("Data written to shared memory");
         }
 
         
@@ -148,9 +183,12 @@ int main()
         // AllaSpotpriser_Print(&spotpris_test);
         WorkDone = true;
     }
+
     // close(algorithm_fd_write);
+    shm_Detach(shm);
+    shm_Destroy();
     free(cache);
-    unlink(FIFO_ALGORITHM_WRITE);
+    //unlink(FIFO_ALGORITHM_WRITE);
     log_Cleanup();
     return 0;
 }
