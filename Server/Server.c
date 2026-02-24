@@ -55,7 +55,7 @@ void Crontab_Remove()
     }
     else if (pid == 0)
     {
-        execlp("./crontab.sh", "crontab.sh", "remove", NULL);
+        execlp("./crontab_inst.sh", "crontab.sh", "remove", NULL);
         perror("execl failed");
         exit(EXIT_SUCCESS);
     }
@@ -120,11 +120,11 @@ int Server_Run(Server *_Server)
     }
     else
     {
-        // test_reader();
+        test_reader();
         wait(&status_pid);
         wait(&status_cache);
     }
-    // Crontab_Remove();
+    Crontab_Remove();
     return 0;
 }
 

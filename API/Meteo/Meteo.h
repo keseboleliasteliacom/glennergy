@@ -52,7 +52,6 @@ typedef struct
 int Meteo_Initialize(MeteoData *_MeteoData);
 int meteo_Fetch(MeteoData *_MeteoData);
 int Meteo_LoadGlennergy(MeteoData *_MeteoData);
-int Meteo_Parse(MeteoData *_MeteoData, const char *_JsonRaw);
 void Meteo_Dispose(MeteoData* _MeteoData);
 
 
