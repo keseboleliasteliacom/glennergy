@@ -89,7 +89,7 @@ int Meteo_LoadGlennergy(MeteoData *_MeteoData)
     return 0;
 }
 
-int Meteo_Parse(MeteoData *_MeteoData, const char *_JsonRaw)
+int Meteo_Parse(PropertyInfo *_PropertyInfo, const char *_JsonRaw)
 {
 
     json_error_t error;
@@ -117,25 +117,33 @@ int Meteo_Parse(MeteoData *_MeteoData, const char *_JsonRaw)
 
     size_t array_size = json_array_size(temps);
 
-    for (int i = 0; i < _MeteoData->pCount; i++)
+    for (size_t j = 0; j < array_size; j++)
     {
+        snprintf(_PropertyInfo->sample[j].time_start,
+                 sizeof(_PropertyInfo->sample[j].time_start), "%s", json_string_value(json_array_get(times, j)));
 
-        for (size_t j = 0; j < array_size; j++)
+        _PropertyInfo->sample[j].temp = json_number_value(json_array_get(temps, j));
+        _PropertyInfo->sample[j].ghi = json_number_value(json_array_get(ghi, j));
+        _PropertyInfo->sample[j].dni = json_number_value(json_array_get(dni, j));
+        _PropertyInfo->sample[j].diffuse_radiation = json_number_value(json_array_get(diffuse, j));
+        _PropertyInfo->sample[j].cloud_cover = json_number_value(json_array_get(cloud_cover, j));
+        _PropertyInfo->sample[j].is_day = json_integer_value(json_array_get(is_day, j)) != 0;
+        _PropertyInfo->sample[j].valid = _PropertyInfo->sample[j].is_day;
+
+        if (j < 2)
         {
-            snprintf(_MeteoData->pInfo[i].sample[j].time_start,
-            sizeof(_MeteoData->pInfo[i].sample[j].time_start), "%s", json_string_value(json_array_get(times, j)));
-            
-            _MeteoData->pInfo[i].sample[j].temp = json_number_value(json_array_get(temps, j));
-            _MeteoData->pInfo[i].sample[j].ghi = json_number_value(json_array_get(ghi, j));
-            _MeteoData->pInfo[i].sample[j].dni = json_number_value(json_array_get(dni, j));
-            _MeteoData->pInfo[i].sample[j].diffuse_radiation = json_number_value(json_array_get(diffuse, j));
-            _MeteoData->pInfo[i].sample[j].cloud_cover = json_number_value(json_array_get(cloud_cover, j));
-            _MeteoData->pInfo[i].sample[j].is_day = json_integer_value(json_array_get(is_day, j)) != 0;
-            _MeteoData->pInfo[i].sample[j].valid = _MeteoData->pInfo[i].sample[j].is_day;
+            printf("Parsed sample %zu for property ID %d: time: %s, temp: %.2f, GHI: %.2f, DNI: %.2f, diffuse: %.2f, cloud: %.2f, is_day: %d\n",
+                   j, _PropertyInfo->id, _PropertyInfo->sample[j].time_start,
+                   _PropertyInfo->sample[j].temp,
+                   _PropertyInfo->sample[j].ghi,
+                   _PropertyInfo->sample[j].dni,
+                   _PropertyInfo->sample[j].diffuse_radiation,
+                   _PropertyInfo->sample[j].cloud_cover,
+                   _PropertyInfo->sample[j].is_day);
         }
-
-        snprintf(_MeteoData->pInfo[i].raw_json_data, RAW_DATA_MAX, "%s", _JsonRaw);
     }
+
+    snprintf(_PropertyInfo->raw_json_data, RAW_DATA_MAX, "%s", _JsonRaw);
 
     json_decref(root);
     return 0;
@@ -172,7 +180,7 @@ int meteo_Fetch(MeteoData *_MeteoData)
         }
 
         // printf("%s\n", response.data);
-        int parse_result = Meteo_Parse(_MeteoData, response.data);
+        int parse_result = Meteo_Parse(&_MeteoData->pInfo[i], response.data);
 
         if (parse_result < 0)
         {

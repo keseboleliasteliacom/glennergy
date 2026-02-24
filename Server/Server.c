@@ -116,7 +116,7 @@ int Server_Run(Server *_Server)
     else if (pid_cache == 0)
     {
         execlp("Glennergy-InputCache", "Glennergy-InputCache", NULL);
-        exit(EXIT_SUCCESS);
+        exit(EXIT_FAILURE);
     }
     else
     {
@@ -124,7 +124,7 @@ int Server_Run(Server *_Server)
         wait(&status_pid);
         wait(&status_cache);
     }
-    // Crontab_Remove();
+    Crontab_Remove();
     return 0;
 }
 

@@ -1,5 +1,3 @@
-#include <signal.h>
-#include <sys/types.h>
 #include "SignalHandler.h"
 
 static sig_atomic_t stop = 0;
