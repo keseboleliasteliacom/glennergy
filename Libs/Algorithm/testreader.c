@@ -7,6 +7,7 @@
 #include <unistd.h>
 #include <string.h>
 #include "average.h"
+#include <errno.h>
 
 #include "../../Cache/InputCache.h"
 #include "../Pipes.h"
@@ -28,6 +29,10 @@ int test_reader() {
     memset(cache, 0, sizeof(InputCache_t));
 
     int fifo_fd = open(FIFO_ALGORITHM_READ, O_RDONLY);
+    if (fifo_fd < 0) {
+        LOG_ERROR("Failed to open FIFO %s: %s", FIFO_ALGORITHM_READ, strerror(errno));
+        continue;  // Skip to next iteration instead of returning
+    }
 
     ssize_t bytes_read = Pipes_ReadBinary(fifo_fd, cache, sizeof(InputCache_t));
 
@@ -36,7 +41,7 @@ int test_reader() {
 
     if (bytes_read != sizeof(InputCache_t)) {
         LOG_ERROR("Failed to read complete data (got %zd, expected %zu bytes)", bytes_read, sizeof(InputCache_t));
-        return -1;
+        continue;
     }
     LOG_INFO("Received from cache Meteo: %zu HomeSystem: %zu price areas: %zu", cache->meteo_count, cache->home_count, sizeof(cache->spotpris.count) / sizeof(cache->spotpris.count[0]));
 
