@@ -8,8 +8,9 @@
 
 #define FIFO_METEO_READ "/tmp/fifo_meteo"
 #define FIFO_SPOTPRIS_READ "/tmp/fifo_spotpris"
-#define FIFO_ALGORITHM_WRITE "/tmp/fifo_algoritm"
+#define CACHE_SOCKET_PATH "/tmp/glennergy_cache.sock"
 
+#define MAX_BACKLOG 5
 #define MAX 5
 
 typedef enum {
@@ -49,14 +50,13 @@ typedef struct {
     Spot_t spotpris; // Spot_t spotpris[AREA_MAX][SAMPLES]
 } InputCache_t;
 
+int inputcache_Init(InputCache_t *cache, const char* file_path); //can do more?
+int inputcache_CreateSocket(void);
+int inputcache_OpenFIFOs(int *meteo_fd, int *spotpris_fd);
 
-int InputCache_SaveSpotpris(const AllaSpotpriser *spotpris);
-int InputCache_SaveMeteo(const MeteoData *_Data);
+void inputcache_HandleRequest(InputCache_t *cache, int client_fd);
+void inputcache_HandleMeteoData(InputCache_t *cache, int meteo_fd);
+void inputcache_HandleSpotprisData(InputCache_t *cache, int spotpris_fd);
 
-int InputCache_LoadHomesystem(InputCache_t *cache, const char* file_path);
-int InputCache_ReceiveMeteo(InputCache_t *cache, const char* fifo_path);
-int InputCache_ReceiveSpotpris(InputCache_t *cache, const char* fifo_path);
-
-int InputCache_PipeToAlgorithm(const InputCache_t *cache);
-
+void inputcache_Cleanup(InputCache_t *cache); //also can do more?
 #endif
