@@ -10,11 +10,12 @@
 #include <errno.h>
 #include <sys/stat.h>
 #include <sys/select.h>
-
+#include "../Server/SignalHandler.h"
 
 int main()
 {
     log_Init("cache.log");
+    SignalHandler_Initialize();
     LOG_INFO("Starting Cache module...");
 
     InputCache_t *cache = malloc(sizeof(InputCache_t));
@@ -48,7 +49,7 @@ int main()
 
     LOG_INFO("InputCache ready - entering event loop...");
 
-    while(1)
+    while(!SignalHandler_Stop())
     {
         fd_set read_fds;
         FD_ZERO(&read_fds);
