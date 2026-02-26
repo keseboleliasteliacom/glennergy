@@ -69,3 +69,30 @@ int socket_Accept(int socket_fd)
     
     return client_fd;
 }
+
+int socket_Connect(const char *socket_path)
+{
+    if (socket_path == NULL) {
+        fprintf(stderr, "Socket path cannot be NULL\n");
+        return -1;
+    }
+
+    int sock_fd = socket(AF_UNIX, SOCK_STREAM, 0);
+    if (sock_fd < 0) {
+        perror("Socket creation failed");
+        return -1;
+    }
+
+    struct sockaddr_un addr;
+    memset(&addr, 0, sizeof(addr));
+    addr.sun_family = AF_UNIX;
+    strncpy(addr.sun_path, socket_path, sizeof(addr.sun_path) - 1);
+
+    if (connect(sock_fd, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
+        perror("Connect failed");
+        close(sock_fd);
+        return -1;
+    }
+
+    return sock_fd;
+}

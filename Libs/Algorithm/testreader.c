@@ -10,11 +10,61 @@
 #include <errno.h>
 
 #include "../../Cache/InputCache.h"
-#include "../Pipes.h"
+#include "../../Cache/CacheProtocol.h"
+#include "../Sockets.h"
 
 #define FIFO_ALGORITHM_READ "/tmp/fifo_algoritm"
 
-//gcc -Wall -Wextra -std=c11 -g testreader.c ../Pipes.c -I../../ -o testreader
+//gcc -Wall -Wextra -std=c11 -g testreader.c ../Sockets.c ../../Server/Log/Logger.c -I../../ -o testreader
+int cache_request(CacheCommand cmd, void *data_out, size_t expected_size)
+{
+    if (!data_out || expected_size == 0) {
+        LOG_ERROR("Invalid parameters for cache_request");
+        return -1;
+    }
+
+    // Connect to cache socket
+    int sock_fd = socket_Connect(CACHE_SOCKET_PATH);
+    if (sock_fd < 0) {
+        LOG_ERROR("Failed to connect to cache socket: %s", strerror(errno));
+        return -1;
+    }
+
+    // Send request
+    CacheRequest req = { .command = cmd };
+    if (send(sock_fd, &req, sizeof(req), 0) != sizeof(req)) {
+        LOG_ERROR("Failed to send request");
+        close(sock_fd);
+        return -1;
+    }
+
+    // Receive response header
+    CacheResponse resp;
+    ssize_t bytes_read = recv(sock_fd, &resp, sizeof(resp), 0);
+    if (bytes_read != sizeof(resp)) {
+        LOG_ERROR("Failed to receive response (got %zd bytes)", bytes_read);
+        close(sock_fd);
+        return -1;
+    }
+
+    if (resp.status != 0) {
+        LOG_ERROR("Cache returned error status: %u", resp.status);
+        close(sock_fd);
+        return -1;
+    }
+
+    // Receive actual data
+    bytes_read = recv(sock_fd, data_out, expected_size, 0);
+    close(sock_fd);
+
+    if (bytes_read != (ssize_t)expected_size) {
+        LOG_ERROR("Failed to read complete data (got %zd, expected %zu bytes)", 
+                  bytes_read, expected_size);
+        return -1;
+    }
+
+    return 0;
+}
 
 int test_reader() {
 
@@ -28,21 +78,26 @@ int test_reader() {
     {
     memset(cache, 0, sizeof(InputCache_t));
 
-    int fifo_fd = open(FIFO_ALGORITHM_READ, O_RDONLY);
-    if (fifo_fd < 0) {
-        LOG_ERROR("Failed to open FIFO %s: %s", FIFO_ALGORITHM_READ, strerror(errno));
-        continue;  // Skip to next iteration instead of returning
-    }
-
-    ssize_t bytes_read = Pipes_ReadBinary(fifo_fd, cache, sizeof(InputCache_t));
-
-    close(fifo_fd);
-    //unlink(FIFO_ALGORITHM_READ);
-
-    if (bytes_read != sizeof(InputCache_t)) {
-        LOG_ERROR("Failed to read complete data (got %zd, expected %zu bytes)", bytes_read, sizeof(InputCache_t));
+    if (cache_request(CMD_GET_ALL, cache, sizeof(InputCache_t)) < 0) {
+        LOG_WARNING("cache_request failed");
+        sleep(10); // Wait before retrying
         continue;
     }
+    // int fifo_fd = open(FIFO_ALGORITHM_READ, O_RDONLY);
+    // if (fifo_fd < 0) {
+    //     LOG_ERROR("Failed to open FIFO %s: %s", FIFO_ALGORITHM_READ, strerror(errno));
+    //     continue;  // Skip to next iteration instead of returning
+    // }
+
+    // ssize_t bytes_read = Pipes_ReadBinary(fifo_fd, cache, sizeof(InputCache_t));
+
+    // close(fifo_fd);
+    // //unlink(FIFO_ALGORITHM_READ);
+
+    // if (bytes_read != sizeof(InputCache_t)) {
+    //     LOG_ERROR("Failed to read complete data (got %zd, expected %zu bytes)", bytes_read, sizeof(InputCache_t));
+    //     continue;
+    // }
     LOG_INFO("Received from cache Meteo: %zu HomeSystem: %zu price areas: %zu", cache->meteo_count, cache->home_count, sizeof(cache->spotpris.count) / sizeof(cache->spotpris.count[0]));
 
     for (size_t i = 0; i < cache->meteo_count; i++) {

@@ -17,6 +17,7 @@ int socket_Listen(int socket_fd, int backlog);
 // Accept a client connection
 int socket_Accept(int socket_fd);
 
+int socket_Connect(const char *socket_path);
 // // Set socket options (reuse address, etc.)
 // int socket_SetSocketOptions(int socket_fd);
 
