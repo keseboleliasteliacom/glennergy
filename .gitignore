@@ -35,7 +35,10 @@
 *.i*86
 *.x86_64
 *.hex
-
+Cache/Glennergy-InputCache
+API/Spotpris/Glennergy-Spotpris
+API/Meteo/Glennergy-Meteo
+Glennergy-Main
 # Debug files
 *.dSYM/
 *.su
@@ -51,5 +54,22 @@ Module.symvers
 Mkfile.old
 dkms.conf
 
+# Folders
+Logs/*
+cache_spotpris/*
+cache_meteo/*
+test_cache/*
+Tests/*
+!Tests/*.c
+xoxoldAPI/*
+
+
+# Cache files
+*.json
+
 # debug information files
 *.dwo
+glennergy_install.sh
+.gitignore
+glennergy_install.sh
+glennergy_install.sh

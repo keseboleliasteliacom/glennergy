@@ -1,78 +1,97 @@
+#define MODULE_NAME "SERVER"
+#include "Log/Logger.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <signal.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <syslog.h>
+#include "Server.h"
+#include "SignalHandler.h"
+#include "../Libs/Utils/utils.h"
+#include "../Libs/Threads.h"
 
-static void create_daemon()
+int Server_Initialize(Server **_Server, char **_Argv, int _Argc)
 {
-    pid_t pid;
+    Server *srv = (Server *)malloc(sizeof(Server));
 
-    /* Fork off the parent process */
-    pid = fork();
+    if (srv == NULL)
+        return -1;
 
-    /* An error occurred */
-    if (pid < 0)
-        exit(EXIT_FAILURE);
-
-     /* Success: Let the parent terminate */
-    if (pid > 0)
-        exit(EXIT_SUCCESS);
-
-    /* On success: The child process becomes session leader */
-    if (setsid() < 0)
-        exit(EXIT_FAILURE);
-
-    /*TODO: Implement a working signal handler */
-    signal(SIGCHLD, SIG_IGN);
-    signal(SIGHUP, SIG_IGN);
-
-    /* Fork off for the second time*/
-    pid = fork();
-
-    /* An error occurred */
-    if (pid < 0)
-        exit(EXIT_FAILURE);
-
-    /* Success: Let the parent terminate */
-    if (pid > 0)
-        exit(EXIT_SUCCESS);
-
-    /* Set new file permissions */
-    umask(0);
-
-    /* Change the working directory to the root directory */
-    /* or another appropriated directory */
-    chdir("/");
-
-    /* Close all open file descriptors */
-    int x;
-    for (x = sysconf(_SC_OPEN_MAX); x>=0; x--)
-    {
-        close (x);
-    }
-
-    /* Open the log file */
-    openlog ("glennergy", LOG_PID, LOG_DAEMON);
+    ServerConfig_Init(&srv->config, _Argv, _Argc);
+    printf("Port_ %d\n", srv->config.port);
+    printf("Log level %d\n", srv->config.log_level);
+    *_Server = srv;
+    return 0;
 }
 
-int main()
+int Server_Run(Server *_Server)
 {
-    create_daemon();
 
-    //TODO: Move to another file?
-    while (1)
+    SignalHandler_Initialize();
+
+    int status_pid, status_cache;
+    pid_t pid = fork();
+
+    if (pid < 0)
     {
-        //TODO: Insert daemon code here.
-        syslog (LOG_NOTICE, "Started.");
-        sleep (20);
-        break;
+        exit(EXIT_FAILURE);
+    }
+    else if (pid == 0)
+    {
+
+        Threads threads[POOL_SIZE];
+        Threads_Initialize(threads);
+
+        smw_init();
+
+        ConnectionHandler *cHandler = NULL;
+
+        ConnectionHandler_Initialize(&cHandler, _Server->config.port, Threads_AddQueueItem);
+
+        uint64_t monTime = 0;
+        while (SignalHandler_Stop() == 0)
+        {
+            monTime = SystemMonotonicMS();
+            smw_work(monTime);
+            usleep(100000); // Todo från compiler warning - Byta till använda "nanosleep" från "time.h" istället för "usleep" från "unistd.h"?
+        }
+
+        ConnectionHandler_Dispose(&cHandler);
+        smw_dispose();
+
+        Threads_Dispose(threads);
+
+        log_CloseWrite();
+        exit(EXIT_SUCCESS);
     }
 
-    syslog (LOG_NOTICE, "Ended.");
-    closelog();
+    pid_t pid_cache = fork();
 
-    return EXIT_SUCCESS;
+    if (pid_cache < 0)
+    {
+        exit(EXIT_FAILURE);
+    }
+    else if (pid_cache == 0)
+    {
+        execlp("Glennergy-InputCache", "Glennergy-InputCache", NULL);
+        LOG_ERROR("Failed to execute Glennergy-InputCache");
+        exit(EXIT_SUCCESS);
+    }
+    else
+    {
+        test_reader();
+        wait(&status_pid);
+        wait(&status_cache);
+    }
+
+    return 0;
+}
+
+void Server_Dispose(Server **_Server)
+{
+    if (_Server == NULL || *_Server == NULL)
+        return;
+
+    Server *srv = *_Server;
+
+    free(srv);
+    srv = NULL;
 }

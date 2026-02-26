@@ -10,7 +10,7 @@ typedef struct{
 
 int Curl_Initialize(CurlResponse *_Response);
 
-CurlResponse* Curl_HTTPGet(CurlResponse *_Response, char* url);
+int Curl_HTTPGet(CurlResponse *_Response, char* url);
 
 void Curl_Dispose(CurlResponse* _Response);
 
