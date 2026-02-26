@@ -63,7 +63,7 @@ int main()
         // --- METEO ---
         LOG_INFO("Waiting for meteo data...");
 
-        int meteo_fd_read = open(FIFO_METEO_READ, O_RDONLY);
+        int meteo_fd_read = open(FIFO_METEO_READ, O_RDWR);
         if (meteo_fd_read < 0)
         {
             LOG_ERROR("Failed to open file: %s", FIFO_METEO_READ);
@@ -86,6 +86,7 @@ int main()
                 strncpy(cache->meteo[i].city, meteo_test.pInfo[i].property_name, NAME_MAX);
                 cache->meteo[i].lat = meteo_test.pInfo[i].lat;
                 cache->meteo[i].lon = meteo_test.pInfo[i].lon;
+                strncpy(cache->meteo[i].electricity_area, meteo_test.pInfo[i].electricity_area, 5);
             
                 printf("Got new data Meteo ID:%d City:%s\n", cache->meteo[i].id, cache->meteo[i].city);
                 // Copy the samples array
@@ -100,7 +101,7 @@ int main()
 
         // --- SPOTPRIS ---
         LOG_INFO("Waiting for spotpris data...");
-        int spotpris_fd_read = open(FIFO_SPOTPRIS_READ, O_RDONLY);
+        int spotpris_fd_read = open(FIFO_SPOTPRIS_READ, O_RDWR);
         if (spotpris_fd_read < 0)
         {
             LOG_ERROR("Failed to open file: %s", FIFO_SPOTPRIS_READ);

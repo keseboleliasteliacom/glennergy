@@ -70,17 +70,19 @@ int Meteo_LoadGlennergy(MeteoData *_MeteoData)
 
 
         const char *city;
-        int result = json_unpack(object, "{s:i, s:s, s:f, s:f}",
+        const char *electricity_area;
+        int result = json_unpack(object, "{s:i, s:s, s:f, s:f, s:s}",
                                 "id", &_MeteoData->pInfo[i].id,
                                 "city", &city,
                                 "lat", &_MeteoData->pInfo[i].lat,
-                                "lon", &_MeteoData->pInfo[i].lon);
+                                "lon", &_MeteoData->pInfo[i].lon,
+                                "electricity_area", &electricity_area);
 
         if (result != 0)
             continue;
 
         snprintf(_MeteoData->pInfo[i].property_name, NAME_MAX, "%s", city);
-
+        snprintf(_MeteoData->pInfo[i].electricity_area, 5, "%s", electricity_area);
         LOG_INFO("Loaded property: %s (ID: %d, Lat: %.2f, Lon: %.2f)\n", _MeteoData->pInfo[i].property_name, _MeteoData->pInfo[i].id, _MeteoData->pInfo[i].lat, _MeteoData->pInfo[i].lon);
     }
 

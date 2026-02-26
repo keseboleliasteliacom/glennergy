@@ -40,6 +40,7 @@ typedef struct
     double lon;
     Samples sample[KVARTAR_TOTALT];
     char raw_json_data[RAW_DATA_MAX];
+    char electricity_area[5];
 } PropertyInfo;
 
 typedef struct

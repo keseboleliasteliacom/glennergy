@@ -25,6 +25,7 @@ typedef struct {
     char city[NAME_MAX];
     double lat;
     double lon;
+    char electricity_area[5];
     Samples sample[KVARTAR_TOTALT];
 } Meteo_t;
 

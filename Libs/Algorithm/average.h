@@ -28,5 +28,6 @@ typedef struct {
 
 int average_SpotprisStats(SpotStats_t *spot, InputCache_t *cache);
 int average_WindowLow(InputCache_t *cache, double q25_threshold);
+int average_WindowLow_test(SpotEntry_t *entry, double q25_threshold, double q75_threshold);
 
 #endif
