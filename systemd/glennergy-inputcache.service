@@ -1,0 +1,13 @@
+[Unit]
+Description=Glennergy InputCache
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/Glennergy-InputCache
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

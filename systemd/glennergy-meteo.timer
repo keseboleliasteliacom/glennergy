@@ -1,0 +1,10 @@
+[Unit]
+Description=Glennergy Meteo Timer
+
+[Timer]
+OnBootSec=1min
+OnUnitActiveSec=15min
+Unit=glennergy-meteo.service
+
+[Install]
+WantedBy=timers.target

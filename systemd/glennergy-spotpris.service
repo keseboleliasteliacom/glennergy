@@ -1,0 +1,8 @@
+[Unit]
+Description=Glennergy Spotpris
+After=glennergy-inputcache.service
+Requires=glennergy-inputcache.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/Glennergy-Spotpris

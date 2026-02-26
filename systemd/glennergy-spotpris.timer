@@ -1,0 +1,10 @@
+[Unit]
+Description=Glennergy Spotpris Timer
+
+[Timer]
+OnBootSec=1min
+OnUnitActiveSec=15min
+Unit=glennergy-spotpris.service
+
+[Install]
+WantedBy=timers.target
