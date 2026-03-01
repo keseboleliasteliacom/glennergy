@@ -50,13 +50,21 @@ int inputcache_CreateSocket(void)
         return -1;
     }
 
-    if (socket_Listen(sock_fd, MAX_BACKLOG) < 0) {
-        LOG_ERROR("Failed to listen on socket");
+    if (chmod(CACHE_SOCKET_PATH, 0600) < 0) {
+        LOG_ERROR("Failed to set permissions on socket: %s", strerror(errno));
         close(sock_fd);
+        unlink(CACHE_SOCKET_PATH);
         return -1;
     }
 
-    LOG_INFO("Cache socket listening on %s", CACHE_SOCKET_PATH);
+    if (socket_Listen(sock_fd, MAX_BACKLOG) < 0) {
+        LOG_ERROR("Failed to listen on socket");
+        close(sock_fd);
+        unlink(CACHE_SOCKET_PATH);
+        return -1;
+    }
+
+    LOG_INFO("Cache socket listening on %s (permissions: 0600)", CACHE_SOCKET_PATH);
     return sock_fd;
 }
 
@@ -68,10 +76,10 @@ int inputcache_OpenFIFOs(int *meteo_fd, int *spotpris_fd)
     }
 
     // Create FIFOs if they don't exist
-    if (mkfifo(FIFO_METEO_READ, 0666) < 0 && errno != EEXIST) {
+    if (mkfifo(FIFO_METEO_READ, 0660) < 0 && errno != EEXIST) {
         LOG_WARNING("mkfifo %s: %s", FIFO_METEO_READ, strerror(errno));
     }
-    if (mkfifo(FIFO_SPOTPRIS_READ, 0666) < 0 && errno != EEXIST) {
+    if (mkfifo(FIFO_SPOTPRIS_READ, 0660) < 0 && errno != EEXIST) {
         LOG_WARNING("mkfifo %s: %s", FIFO_SPOTPRIS_READ, strerror(errno));
     }
 
@@ -105,6 +113,17 @@ void inputcache_HandleRequest(InputCache_t *cache, int client_fd)
     if (bytesread != sizeof(req)) 
     {
         LOG_ERROR("Invalid request size: %zd", bytesread);
+        close(client_fd);
+        return;
+    }
+
+    if (req.command < CMD_GET_ALL || (req.command > CMD_GET_SPOTPRIS && req.command != CMD_PING))
+    {
+        LOG_ERROR("Invalid command: %d from client", req.command);
+        resp.status = 1;  // Error
+        resp.data_size = 0;
+        
+        send(client_fd, &resp, sizeof(resp), 0);
         close(client_fd);
         return;
     }

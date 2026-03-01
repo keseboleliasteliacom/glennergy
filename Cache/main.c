@@ -14,37 +14,35 @@
 
 int main()
 {
+    int ret = -1;
     log_Init("cache.log");
     SignalHandler_Initialize();
     LOG_INFO("Starting Cache module...");
 
-    InputCache_t *cache = malloc(sizeof(InputCache_t));
+    InputCache_t *cache = NULL;
+    int meteo_fd = -1, spotpris_fd = -1, socket_fd = -1;
+
+    cache = malloc(sizeof(InputCache_t));
     if (!cache) {
         LOG_ERROR("malloc() Failed to allocate memory for InputCache");
-        return -1;
+        goto cleanup;
     }
     memset(cache, 0, sizeof(InputCache_t));
 
     if (inputcache_Init(cache, "/etc/Glennergy-Fastigheter.json") != 0) {
         LOG_ERROR("Failed to initialize InputCache");
-        free(cache);
-        return -1;
+        goto cleanup;
     }
 
-    int meteo_fd, spotpris_fd;
     if (inputcache_OpenFIFOs(&meteo_fd, &spotpris_fd) != 0) {
         LOG_ERROR("Failed to open FIFOs");
-        free(cache);
-        return -1;
+        goto cleanup;
     }
 
-    int socket_fd = inputcache_CreateSocket();
+    socket_fd = inputcache_CreateSocket();
     if (socket_fd < 0) {
         LOG_ERROR("Failed to create socket");
-        close(meteo_fd);
-        close(spotpris_fd);
-        free(cache);
-        return -1;
+        goto cleanup;
     }
 
     LOG_INFO("InputCache ready - entering event loop...");
@@ -63,6 +61,8 @@ int main()
 
         int ready = select(max_fd + 1, &read_fds, NULL, NULL, NULL);
         if (ready < 0) {
+            if (errno == EINTR)
+                continue;
             LOG_ERROR("select() error: %s", strerror(errno));
             break;
         }
@@ -82,13 +82,22 @@ int main()
         }
     }
 
+    ret = 0; // Success
 
+cleanup:
     LOG_INFO("Shutting down Cache module...");
-    close(meteo_fd);
-    close(spotpris_fd);
-    close(socket_fd);
     
+    if (meteo_fd >= 0)
+        close(meteo_fd);
+    if (spotpris_fd >= 0)
+        close(spotpris_fd);
+
+    if (socket_fd >= 0) {
+        close(socket_fd);
+        unlink(CACHE_SOCKET_PATH);
+    }
+
     free(cache);
     log_Cleanup();
-    return 0;
+    return ret;
 }
