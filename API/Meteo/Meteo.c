@@ -62,7 +62,7 @@ int Meteo_LoadGlennergy(MeteoData *_MeteoData)
     {
         json_t *object = json_array_get(property, i);
 
-        LOG_INFO("Loading property %zu/%zu\n", i + 1, _MeteoData->pCount);
+        //LOG_INFO("Loading property %zu/%zu\n", i + 1, _MeteoData->pCount);
 
         if (!json_is_object(object))
             continue;

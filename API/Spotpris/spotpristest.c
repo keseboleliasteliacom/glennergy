@@ -38,8 +38,13 @@ int main(void)
    // AllaSpotpriser_Print(&spotpriser);
 
 
-    mkfifo(FIFO_SPOTPRIS_WRITE, 0666);
-    LOG_INFO("Created FIFO: %s\n", FIFO_SPOTPRIS_WRITE);
+    if (mkfifo(FIFO_SPOTPRIS_WRITE, 0666) < 0 && errno != EEXIST)
+    {
+        LOG_ERROR("Failed to create FIFO: %s", FIFO_SPOTPRIS_WRITE);
+        return -1;
+    }
+    
+    LOG_INFO("FIFO ready: %s\n", FIFO_SPOTPRIS_WRITE);
     int spotpris_fd_write = open(FIFO_SPOTPRIS_WRITE, O_WRONLY);
 
     if (spotpris_fd_write < 0)

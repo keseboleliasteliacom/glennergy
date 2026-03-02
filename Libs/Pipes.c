@@ -18,6 +18,7 @@ ssize_t Pipes_ReadBinary(int _Fd, void *_Buf, size_t _Size)
         if (bytesRead > 0)
         {
             total += bytesRead;
+            continue;
         }
 
         if(bytesRead == 0)
@@ -27,7 +28,9 @@ ssize_t Pipes_ReadBinary(int _Fd, void *_Buf, size_t _Size)
 
         if (bytesRead < 0)
         {
-
+            if (errno == EINTR)
+                continue; // Retry if interrupted by signal
+        
             if (errno == EAGAIN)
             {
                 return total;

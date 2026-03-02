@@ -15,7 +15,12 @@ int main()
 {
     log_Init("meteo.log");
     LOG_INFO("Starting Meteo API...\n");
-    mkfifo(FIFO_METEO_WRITE, 0666);
+
+    if (mkfifo(FIFO_METEO_WRITE, 0666) < 0 && errno != EEXIST) {
+        LOG_ERROR("Failed to create FIFO: %s", FIFO_METEO_WRITE);
+        return -1;
+    }
+    LOG_INFO("FIFO ready: %s\n", FIFO_METEO_WRITE);
 
     setvbuf(stdout, NULL, _IONBF, 0);
     int meteo_fd_write = open(FIFO_METEO_WRITE, O_WRONLY);

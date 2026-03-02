@@ -1,3 +1,5 @@
+#define MODULE_NAME "SERVER"
+#include "Log/Logger.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -116,6 +118,7 @@ int Server_Run(Server *_Server)
     else if (pid_cache == 0)
     {
         execlp("Glennergy-InputCache", "Glennergy-InputCache", NULL);
+        LOG_ERROR("Failed to execute Glennergy-InputCache");
         exit(EXIT_SUCCESS);
     }
     else
