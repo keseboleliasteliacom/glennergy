@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <signal.h>
 #include "Server.h"
 #include "SignalHandler.h"
 #include "../Libs/Utils/utils.h"
@@ -27,14 +28,14 @@ int Server_Run(Server *_Server)
 
     SignalHandler_Initialize();
 
-    int status_pid, status_cache;
-    pid_t pid = fork();
+    int status_server, status_cache, status_algo;
+    pid_t pid_server = fork();
 
-    if (pid < 0)
+    if (pid_server < 0)
     {
         exit(EXIT_FAILURE);
     }
-    else if (pid == 0)
+    else if (pid_server == 0)
     {
 
         Threads threads[POOL_SIZE];
@@ -67,20 +68,40 @@ int Server_Run(Server *_Server)
 
     if (pid_cache < 0)
     {
+        kill(pid_server, SIGTERM);
         exit(EXIT_FAILURE);
     }
     else if (pid_cache == 0)
     {
         execlp("Glennergy-InputCache", "Glennergy-InputCache", NULL);
         LOG_ERROR("Failed to execute Glennergy-InputCache");
-        exit(EXIT_SUCCESS);
+        exit(EXIT_FAILURE);
     }
-    else
+    // else
+    // {
+    //     test_reader();
+    //     wait(&status_pid);
+    //     wait(&status_cache);
+    // }
+    pid_t pid_algo = fork();
+    if (pid_algo < 0)
     {
-        test_reader();
-        wait(&status_pid);
-        wait(&status_cache);
+        LOG_ERROR("Failed to fork for Glennergy-Algorithm");
+        kill(pid_server, SIGTERM);
+        kill(pid_cache, SIGTERM);       //handle restart instead of kill?
+        exit(EXIT_FAILURE);
     }
+    else if (pid_algo == 0)
+    {
+        execlp("Glennergy-Algorithm", "Glennergy-Algorithm", NULL);
+        LOG_ERROR("Failed to execute Glennergy-Algorithm");
+        exit(EXIT_FAILURE);
+    }
+
+    LOG_INFO("All processes started: Server PID: %d, Cache PID: %d, Algorithm PID: %d", pid_server, pid_cache, pid_algo);
+    waitpid(pid_server, &status_server, 0);
+    waitpid(pid_cache, &status_cache, 0);
+    waitpid(pid_algo, &status_algo, 0);
 
     return 0;
 }

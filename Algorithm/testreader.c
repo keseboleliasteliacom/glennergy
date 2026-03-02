@@ -1,5 +1,5 @@
 #define MODULE_NAME "TESTREADER"
-#include "../../Server/Log/Logger.h"
+#include "../Server/Log/Logger.h"
 #include "testreader.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -9,9 +9,9 @@
 #include "average.h"
 #include <errno.h>
 
-#include "../../Cache/InputCache.h"
-#include "../../Cache/CacheProtocol.h"
-#include "../Sockets.h"
+#include "../Cache/InputCache.h"
+#include "../Cache/CacheProtocol.h"
+#include "../Libs/Sockets.h"
 
 #define FIFO_ALGORITHM_READ "/tmp/fifo_algoritm"
 
