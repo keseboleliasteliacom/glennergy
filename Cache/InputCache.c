@@ -220,6 +220,7 @@ void inputcache_HandleMeteoData(InputCache_t *cache, int meteo_fd)
                 strncpy(cache->meteo[i].city, meteo_test.pInfo[i].property_name, NAME_MAX - 1);
                 cache->meteo[i].lat = meteo_test.pInfo[i].lat;
                 cache->meteo[i].lon = meteo_test.pInfo[i].lon;
+                snprintf(cache->meteo[i].electricity_area, sizeof(cache->meteo[i].electricity_area), "%s", meteo_test.pInfo[i].electricity_area);
             
                 memcpy(cache->meteo[i].sample, meteo_test.pInfo[i].sample, sizeof(Samples) * KVARTAR_TOTALT);
                 
