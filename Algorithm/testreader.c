@@ -8,7 +8,7 @@
 #include <string.h>
 #include "average.h"
 #include <errno.h>
-
+#include "../Server/SignalHandler.h"
 #include "../Cache/InputCache.h"
 #include "../Cache/CacheProtocol.h"
 #include "../Libs/Sockets.h"
@@ -23,14 +23,12 @@ int cache_request(CacheCommand cmd, void *data_out, size_t expected_size)
         return -1;
     }
 
-    // Connect to cache socket
     int sock_fd = socket_Connect(CACHE_SOCKET_PATH);
     if (sock_fd < 0) {
         LOG_ERROR("Failed to connect to cache socket: %s", strerror(errno));
         return -1;
     }
 
-    // Send request
     CacheRequest req = { .command = cmd };
     if (send(sock_fd, &req, sizeof(req), 0) != sizeof(req)) {
         LOG_ERROR("Failed to send request");
@@ -38,7 +36,6 @@ int cache_request(CacheCommand cmd, void *data_out, size_t expected_size)
         return -1;
     }
 
-    // Receive response header
     CacheResponse resp;
     ssize_t bytes_read = recv(sock_fd, &resp, sizeof(resp), 0);
     if (bytes_read != sizeof(resp)) {
@@ -53,7 +50,6 @@ int cache_request(CacheCommand cmd, void *data_out, size_t expected_size)
         return -1;
     }
 
-    // Receive actual data
     bytes_read = recv(sock_fd, data_out, expected_size, 0);
     close(sock_fd);
 
@@ -66,7 +62,33 @@ int cache_request(CacheCommand cmd, void *data_out, size_t expected_size)
     return 0;
 }
 
-int test_reader() {
+int cache_SendResults(const ResultRequest *results)
+{
+    int sock_fd = socket_Connect(CACHE_SOCKET_PATH);
+    if (sock_fd < 0) {
+        LOG_ERROR("Failed to connect to cache");
+        return -1;
+    }
+
+    CacheRequest req = { .command = CMD_SET_RESULT };
+    send(sock_fd, &req, sizeof(req), 0);
+    send(sock_fd, results, sizeof(ResultRequest), 0);
+
+    CacheResponse resp;
+    recv(sock_fd, &resp, sizeof(resp), 0);
+    close(sock_fd);
+    
+    if (resp.status != 0) {
+        LOG_ERROR("Cache rejected results");
+        return -1;
+    }
+
+    LOG_INFO("Sent %zu results to cache", results->count);
+    return 0;
+}
+
+int test_reader()
+{
 
     InputCache_t *cache = malloc(sizeof(InputCache_t));
     if (!cache) {
@@ -74,93 +96,60 @@ int test_reader() {
         return -1;
     }
 
-    while(1)
+    while(!SignalHandler_Stop())
     {
-    memset(cache, 0, sizeof(InputCache_t));
+        memset(cache, 0, sizeof(InputCache_t));
 
-    if (cache_request(CMD_GET_ALL, cache, sizeof(InputCache_t)) < 0) {
-        LOG_WARNING("cache_request failed");
-        sleep(10); // Wait before retrying
-        continue;
-    }
-    // int fifo_fd = open(FIFO_ALGORITHM_READ, O_RDONLY);
-    // if (fifo_fd < 0) {
-    //     LOG_ERROR("Failed to open FIFO %s: %s", FIFO_ALGORITHM_READ, strerror(errno));
-    //     continue;  // Skip to next iteration instead of returning
-    // }
-
-    // ssize_t bytes_read = Pipes_ReadBinary(fifo_fd, cache, sizeof(InputCache_t));
-
-    // close(fifo_fd);
-    // //unlink(FIFO_ALGORITHM_READ);
-
-    // if (bytes_read != sizeof(InputCache_t)) {
-    //     LOG_ERROR("Failed to read complete data (got %zd, expected %zu bytes)", bytes_read, sizeof(InputCache_t));
-    //     continue;
-    // }
-    LOG_INFO("Received from cache Meteo: %zu HomeSystem: %zu price areas: %zu", cache->meteo_count, cache->home_count, sizeof(cache->spotpris.count) / sizeof(cache->spotpris.count[0]));
-
-    for (size_t i = 0; i < cache->meteo_count; i++) {
-
-        for (size_t j = 0; j < 2 && j < KVARTAR_TOTALT; j++) {
-            printf("ID: %d, city: %s, lat: %.2f, lon: %.2f, time: %s, temp: %.2f, GHI: %.2f, cloud: %.2f\n", 
-                   cache->meteo[i].id,
-                   cache->meteo[i].city, 
-                   cache->meteo[i].lat, 
-                   cache->meteo[i].lon,
-                   cache->meteo[i].sample[j].time_start,
-                   cache->meteo[i].sample[j].temp,
-                   cache->meteo[i].sample[j].ghi,
-                   cache->meteo[i].sample[j].cloud_cover);
+        if (cache_request(CMD_GET_ALL, cache, sizeof(InputCache_t)) < 0) {
+            LOG_WARNING("cache_request failed");
+            sleep(10); // Wait before retrying
+            continue;
         }
 
-    }
-    for (size_t i = 0; i < cache->home_count; i++) {
-        printf("FROM HOME id: %d: %s (lat: %.2f, lon: %.2f) Panel: capacity: %.2f kWh, tilt: %.2f degrees, electricity_area: %s\n", 
-               cache->home[i].id,
-               cache->home[i].city, 
-               cache->home[i].lat, 
-               cache->home[i].lon,
-               cache->home[i].panel_capacitykwh,
-               cache->home[i].panel_tiltdegrees,
-               cache->home[i].electricity_area);
-    }
+        LOG_INFO("Received from cache Meteo: %zu HomeSystem: %zu Spotpris: SE1=%zu SE2=%zu SE3=%zu SE4=%zu", cache->meteo_count, cache->home_count, cache->spotpris.count[0], cache->spotpris.count[1], cache->spotpris.count[2], cache->spotpris.count[3]);
 
-    const char *area_names[AREA_COUNT] = {"SE1", "SE2", "SE3", "SE4"};
+        SpotStats_t spotpris_stats;
 
-    for (size_t area_idx = 0; area_idx < 4; area_idx++)
-    {
-        printf("\n=== Area %s ===\n", area_names[area_idx]);
-        printf("Total kvartar: %zu\n", cache->spotpris.count[area_idx]);
-    
-        size_t show_count = cache->spotpris.count[area_idx];
-        if (show_count > 10) show_count = 10;  // Show only first 10
+        int result = average_SpotprisStats(&spotpris_stats, cache);
+        int window_result = average_WindowLow(cache, spotpris_stats.area[0].q25);
+
+        ResultRequest algo_results = {0};
+        algo_results.count = cache->home_count;
+
+        for (size_t i = 0; i < cache->home_count; i++)
+        {
+            double solar_predictions[96];
+            if (solar_PredictHome(cache, i, solar_predictions) < 0) {
+                LOG_WARNING("Failed to predict solar for home_id=%d", cache->home[i].id);
+                algo_results.results[i].valid = false;
+                continue;
+            }
+
+            if (optimize_HomeEnergy(cache, i, solar_predictions, &spotpris_stats, &algo_results.results[i]) < 0) {
+                LOG_WARNING("Failed to optimize energy for home_id=%d", cache->home[i].id);
+                algo_results.results[i].valid = false;
+                continue;
+            }
+
+            LOG_INFO("Home: %d solar: %.2f kWh, peak slot: %d, cheapest grid slot: %d, most expensive slot: %d",
+                    algo_results.results[i].home_id,
+                    algo_results.results[i].total_solar_kwh,
+                    algo_results.results[i].peak_solar_slot,
+                    algo_results.results[i].cheapest_grid_slot,
+                    algo_results.results[i].most_expensive_slot);
+
+        }
+        if (cache_SendResults(&algo_results) < 0) {
+            LOG_ERROR("Failed to send results to cache");
+        } else {
+            LOG_INFO("Results sent to cache successfully");
+        }
+
+        LOG_INFO("Sleeping for 10 seconds before next read...");
+        sleep(10);
         
-        for (size_t entry = 0; entry < show_count; entry++) {
-            printf("  [%2zu] %s -> %.5f SEK/kWh\n", 
-                   entry,
-                   cache->spotpris.data[area_idx][entry].time_start,
-                   cache->spotpris.data[area_idx][entry].sek_per_kwh);
-        }
-    
-        if (cache->spotpris.count[area_idx] > 10) {
-            printf("  ... (%zu more entries)\n", 
-           cache->spotpris.count[area_idx] - 10);
-        }
-    }
-
-    SpotStats_t spotpris_stats;
-    // AlgoInfluencer_t influencer = {
-    //     .spotpris = &spotpris_stats
-    // };
-    int result = average_SpotprisStats(&spotpris_stats, cache);
-
-    int window_result = average_WindowLow(cache, spotpris_stats.area[0].q25);
-
-    LOG_INFO("Sleeping for 10 seconds before next read...");
-    sleep(10);
-}   //while
-    printf("Free cache\n");
+    }   //while
+    LOG_INFO("Cleaning up and exiting...");
     free(cache);
     return 0;
 }

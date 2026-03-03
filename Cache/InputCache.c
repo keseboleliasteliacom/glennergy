@@ -5,6 +5,7 @@
 #include "../Libs/Utils/utils.h"
 #include "../Libs/Sockets.h"
 #include "../Libs/Pipes.h"
+#include "../Libs/Shm.h"
 #include <stdio.h>
 #include <jansson.h>
 #include <stdlib.h>
@@ -24,12 +25,13 @@ int inputcache_Init(InputCache_t *cache, const char* file_path)
     }
 
     LOG_INFO("Loading homesystem file: %s", file_path);
-    cache->home_count = homesystem_LoadAllCount(cache->home, file_path, MAX);
-    if (cache->home_count < 0)
+    int loaded = homesystem_LoadAllCount(cache->home, file_path, MAX);
+    if (loaded < 0)
     {
         LOG_ERROR("Failed to load homesystem file: %s", file_path);
         return -1;
     }
+    cache->home_count = (size_t)loaded;
     LOG_INFO("Loaded %zu homesystem entries", cache->home_count);
     return 0;
 }
@@ -50,7 +52,7 @@ int inputcache_CreateSocket(void)
         return -1;
     }
 
-    if (chmod(CACHE_SOCKET_PATH, 0600) < 0) {
+    if (chmod(CACHE_SOCKET_PATH, 0660) < 0) {
         LOG_ERROR("Failed to set permissions on socket: %s", strerror(errno));
         close(sock_fd);
         unlink(CACHE_SOCKET_PATH);
@@ -64,7 +66,7 @@ int inputcache_CreateSocket(void)
         return -1;
     }
 
-    LOG_INFO("Cache socket listening on %s (permissions: 0600)", CACHE_SOCKET_PATH);
+    LOG_INFO("Cache socket listening on %s (permissions: 0660)", CACHE_SOCKET_PATH);
     return sock_fd;
 }
 
@@ -104,6 +106,29 @@ int inputcache_OpenFIFOs(int *meteo_fd, int *spotpris_fd)
     return 0;
 }
 
+int inputcache_InitShm(InputCache_t *cache)
+{
+    if (!cache) {
+        LOG_ERROR("Invalid cache pointer for shm init");
+        return -1;
+    }
+
+    if (shm_Create() < 0) {
+        LOG_ERROR("Failed to create shared memory");
+        return -1;
+    }
+
+    cache->shm = shm_Attach();
+    if (!cache->shm) {
+        LOG_ERROR("Failed to attach to shared memory");
+        shm_Destroy();
+        return -1;
+    }
+
+    LOG_INFO("Shared memory initialized successfully");
+    return 0;
+}
+
 void inputcache_HandleRequest(InputCache_t *cache, int client_fd)
 {
     CacheRequest req;
@@ -117,7 +142,7 @@ void inputcache_HandleRequest(InputCache_t *cache, int client_fd)
         return;
     }
 
-    if (req.command < CMD_GET_ALL || (req.command > CMD_GET_SPOTPRIS && req.command != CMD_PING))
+    if (req.command < CMD_GET_ALL || (req.command > CMD_SET_RESULT && req.command != CMD_PING))
     {
         LOG_ERROR("Invalid command: %d from client", req.command);
         resp.status = 1;  // Error
@@ -161,6 +186,50 @@ void inputcache_HandleRequest(InputCache_t *cache, int client_fd)
             LOG_INFO("Sent Spotpris data to client");
             break;
 
+        case CMD_SET_RESULT:
+        {
+            LOG_INFO("Handling CMD_SET_RESULT request");
+            ResultRequest set_req;
+            ssize_t result_bytes = recv(client_fd, &set_req, sizeof(set_req), 0);
+
+            if (result_bytes != sizeof(set_req)) {
+                LOG_ERROR("Failed to receive complete results data (got %zd bytes)", result_bytes);
+                resp.status = 1;
+                resp.data_size = 0;
+                send(client_fd, &resp, sizeof(resp), 0);
+                break;
+            }
+
+            if (!cache->shm) {
+                LOG_ERROR("Shared memory not initialized");
+                resp.status = 1;
+                resp.data_size = 0;
+                send(client_fd, &resp, sizeof(resp), 0);
+                break;
+            }
+
+            if (shm_Lock_Write(cache->shm) == 0) {
+                int updated = 0;
+                for (size_t i = 0; i < set_req.count; i++) {
+                    if (shm_UpdateResults(cache->shm, &set_req.results[i]) == 0) {
+                        updated++;
+                    } else {
+                        LOG_WARNING("Failed to update results for home_id %d", set_req.results[i].home_id);
+                    }
+                }
+                shm_Unlock_Write(cache->shm);
+
+                LOG_INFO("Updated %d/%zu results in shared memory", updated, set_req.count);
+                resp.status = 0;
+            } else {
+                LOG_ERROR("Failed to lock shared memory for writing");
+                resp.status = 1;
+            }
+            resp.data_size = 0;
+            send(client_fd, &resp, sizeof(resp), 0);
+        }
+        break;
+            
         case CMD_PING:
             LOG_INFO("Handling CMD_PING request");
             resp.status = 0;
@@ -276,7 +345,7 @@ int inputcache_SaveSpotpris(const AllaSpotpriser *spotpris)
 
         json_t *root = json_array();
 
-        for (size_t j = 0; j < 96; j++)
+        for (size_t j = 0; j < spotpris->areas[i].count; j++)
         {
             json_t *obj = json_object();
             json_object_set_new(obj, "time_start", json_string(spotpris->areas[i].kvartar[j].time_start));
@@ -332,6 +401,16 @@ void inputcache_HandleSpotprisData(InputCache_t *cache, int spotpris_fd)
         } else {
             LOG_ERROR("Failed to read spotpris data, got %zd bytes", bytesReadSpotpris); //fixed size so can still be wrong
         }
+}
+
+void inputcache_CleanupShm(InputCache_t *cache)
+{
+    if (cache && cache->shm) {
+        shm_Detach(cache->shm);
+        cache->shm = NULL;
+    }
+    shm_Destroy();
+    LOG_INFO("Shared memory cleaned up");
 }
 
 void inputcache_Cleanup(InputCache_t *cache)

@@ -10,6 +10,7 @@
 #include <errno.h>
 #include <sys/stat.h>
 #include <sys/select.h>
+#include <sys/socket.h>
 #include "../Server/SignalHandler.h"
 
 int main()
@@ -42,6 +43,11 @@ int main()
     socket_fd = inputcache_CreateSocket();
     if (socket_fd < 0) {
         LOG_ERROR("Failed to create socket");
+        goto cleanup;
+    }
+    
+    if (inputcache_InitShm(cache) != 0) {
+        LOG_ERROR("Failed to initialize shared memory");
         goto cleanup;
     }
 
@@ -96,7 +102,7 @@ cleanup:
         close(socket_fd);
         unlink(CACHE_SOCKET_PATH);
     }
-
+    inputcache_CleanupShm(cache);
     free(cache);
     log_Cleanup();
     return ret;

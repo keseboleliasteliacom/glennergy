@@ -5,6 +5,7 @@
 #include "../API/Meteo/Meteo.h"
 #include "../API/Spotpris/Spotpris.h"
 #include "../Libs/Homesystem.h"
+#include "../Libs/Shm.h"
 
 #define FIFO_METEO_READ "/tmp/fifo_meteo"
 #define FIFO_SPOTPRIS_READ "/tmp/fifo_spotpris"
@@ -48,11 +49,16 @@ typedef struct {
     size_t meteo_count;
 
     Spot_t spotpris; // Spot_t spotpris[AREA_MAX][SAMPLES]
+
+    SharedData_t *shm;
 } InputCache_t;
 
 int inputcache_Init(InputCache_t *cache, const char* file_path); //can do more?
 int inputcache_CreateSocket(void);
 int inputcache_OpenFIFOs(int *meteo_fd, int *spotpris_fd);
+
+int inputcache_InitShm(InputCache_t *cache);    //add to Init?
+void inputcache_CleanupShm(InputCache_t *cache); //same cleanup?
 
 void inputcache_HandleRequest(InputCache_t *cache, int client_fd);
 void inputcache_HandleMeteoData(InputCache_t *cache, int meteo_fd);
