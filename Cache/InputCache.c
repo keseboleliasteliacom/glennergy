@@ -39,13 +39,14 @@ int inputcache_Init(InputCache_t *cache, const char* file_path)
 
 int inputcache_CreateSocket(void)
 {
+    unlink(CACHE_SOCKET_PATH);
+    
     int sock_fd = socket_CreateSocket();
     if (sock_fd < 0) {
         LOG_ERROR("Failed to create socket");
         return -1;
     }
 
-    unlink(CACHE_SOCKET_PATH);
 
     if (socket_Bind(sock_fd, CACHE_SOCKET_PATH) < 0) {
         LOG_ERROR("Failed to bind socket to %s", CACHE_SOCKET_PATH);
@@ -148,6 +149,11 @@ int inputcache_InitNotifyPipe(void)
 
 int inputcache_InitAll(InputCacheContext_t *ctx, const char* config_path)
 {
+    ctx->meteo_fd = -1;
+    ctx->spotpris_fd = -1;
+    ctx->socket_fd = -1;
+    ctx->cache = NULL;
+    
     ctx->cache = malloc(sizeof(InputCache_t));
     if (!ctx->cache) {
         LOG_ERROR("malloc() failed");
@@ -504,7 +510,7 @@ void inputcache_CleanupAll(InputCacheContext_t *ctx)
     if (!ctx) return;
     
     if (notify_fd >= 0) {
-        inputcache_SendNotification(NOTIFY_SHUTDOWN, 0);
+        //inputcache_SendNotification(NOTIFY_SHUTDOWN, 0);
         close(notify_fd);
         notify_fd = -1;
     }

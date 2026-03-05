@@ -20,41 +20,49 @@ int algorithm_WaitForNotification(void)
     static int notify_fd = -1;
     NotifyMessage msg;
     
-    // Open on first call
-    if (notify_fd < 0) {
-        notify_fd = open(NOTIFY_FIFO_PATH, O_RDONLY);
-        if (notify_fd < 0) {
-            LOG_ERROR("Failed to open notification pipe: %s", strerror(errno));
+    while(1)
+    {
+        if (SignalHandler_Stop()) {
+            if (notify_fd >= 0) {
+                close(notify_fd);
+                notify_fd = -1;
+            }
             return -1;
         }
-        LOG_INFO("Notification pipe opened, waiting for events...");
-    }
-    
-    ssize_t bytes_read = read(notify_fd, &msg, sizeof(NotifyMessage));
-    
-    if (bytes_read == sizeof(NotifyMessage)) {
-        if (msg.type == NOTIFY_SHUTDOWN) {
-            LOG_INFO("Shutdown notification received");
-            close(notify_fd);
-            notify_fd = -1;
-            return -2;  // Special return code for shutdown
-        }
-        LOG_DEBUG("Received notification (type=%d, count=%u)", msg.type, msg.data_count);
-        return 0;  // Success - data ready
 
-    } else if (bytes_read == 0) {
-        LOG_WARNING("Notification pipe closed (InputCache shutdown?)");
+        if (notify_fd < 0) {
+            notify_fd = open(NOTIFY_FIFO_PATH, O_RDONLY);
+            if (notify_fd < 0) {
+                if (errno == ENXIO) {
+                    LOG_WARNING("No writers on notification pipe, retrying...");
+                    sleep(1);
+                    continue;
+                }
+                LOG_WARNING("Failed to open notification pipe: %s", strerror(errno));
+                sleep(5);
+                continue;
+            }
+            
+            int flags = fcntl(notify_fd, F_GETFL, 0);
+            fcntl(notify_fd, F_SETFL, flags & ~O_NONBLOCK);
+            LOG_INFO("Notification pipe connected");
+        }
+        
+        ssize_t bytes_read = read(notify_fd, &msg, sizeof(NotifyMessage));
+        
+        if (bytes_read == sizeof(NotifyMessage)) {
+            LOG_INFO("Received notification (type=%d, count=%u)", msg.type, msg.data_count);
+            return 0;  // Success - data ready
+        }
+        
+        if (bytes_read == 0) {
+            LOG_INFO("inputcache disconnect, will reconnect...");
+        } else {
+            LOG_WARNING("Read error: %s", strerror(errno));
+        }
         close(notify_fd);
         notify_fd = -1;
-        return -1;  // EOF
-    } else if (bytes_read > 0) {
-        LOG_ERROR("Partial message received (%zd bytes, expected %zu)", bytes_read, sizeof(NotifyMessage));
-        return -1;
-    } else {
-        LOG_ERROR("Read error: %s", strerror(errno));
-        close(notify_fd);
-        notify_fd = -1;
-        return -1;
+        sleep(5);
     }
 }
 

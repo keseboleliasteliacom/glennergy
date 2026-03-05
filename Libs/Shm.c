@@ -12,18 +12,24 @@
 
 int shm_Create() 
 {
-    LOG_INFO("Creating shared memory...");
-    int shm_fd = shm_open(SHM_NAME, O_CREAT | O_RDWR | O_EXCL, 0666);
+    LOG_INFO("processing shared memory...");
+
+    int shm_fd = shm_open(SHM_NAME, O_RDWR, 0666);
+    if (shm_fd >= 0) {
+        LOG_INFO("Connected to existing shared memory");
+        close(shm_fd);
+        return 0;
+    }
+    if (errno != ENOENT) {
+        LOG_WARNING("shm exists but couldn't open (errno=%d), removing stale shm", errno);
+        shm_unlink(SHM_NAME);  // Remove stale/corrupted shm
+    }
+    LOG_INFO("creating new shared memory...");
+    
+    shm_fd = shm_open(SHM_NAME, O_CREAT | O_RDWR | O_EXCL, 0666);
     if (shm_fd < 0) {
-        if (errno == EEXIST) {
-            LOG_WARNING("shm_open() Shared memory exists, recreating");
-            shm_unlink(SHM_NAME);
-            shm_fd = shm_open(SHM_NAME, O_CREAT | O_RDWR | O_EXCL, 0666);
-        }
-        if (shm_fd < 0) {
-            LOG_ERROR("shm_open() failed: %s", strerror(errno));
-            return -1;
-        }
+        LOG_ERROR("shm_open() failed: %s", strerror(errno));
+        return -1;
     }
     
     LOG_DEBUG("Shm setting size to %zu bytes", sizeof(SharedData_t));

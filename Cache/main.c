@@ -21,7 +21,7 @@ int main()
     SignalHandler_Initialize();
     LOG_INFO("Starting Cache module...");
 
-    InputCacheContext_t ctx = {0};
+    InputCacheContext_t ctx;
 
     if (inputcache_InitAll(&ctx, "/etc/Glennergy-Fastigheter.json") != 0) {
         LOG_ERROR("Failed to initialize InputCache");

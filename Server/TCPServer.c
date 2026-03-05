@@ -26,7 +26,7 @@ int TCPServer_Initialize(TCPServer **_TCPServer, int port, int backlog, TCPServe
     tcp_server->port = port;
     tcp_server->backlog = backlog;
     tcp_server->server_socket = -1;
-
+    tcp_server->task = NULL;
     *_TCPServer = tcp_server;
 
     return 0;
@@ -146,7 +146,8 @@ void TCPServer_Dispose(TCPServer** _TCPServer)
     if (tcp_server->task != NULL)
         smw_destroy_task(tcp_server->task);
 
-    close(tcp_server->server_socket);
+    if (tcp_server->server_socket >= 0)
+        close(tcp_server->server_socket);
 
    // free(_TCPServer->client);
     //_TCPServer->client = NULL;
