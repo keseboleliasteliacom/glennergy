@@ -10,7 +10,7 @@ INSTALLDIR = $(PREFIX)
 
 # Default target
 all:
-	$(CC) $(CFLAGS) testreader.c average.c ../Libs/Sockets.c  ../Server/Log/Logger.c -o $(TARGET) -lcurl -ljansson
+	$(CC) $(CFLAGS) testreader.c average.c ../Libs/Sockets.c ../Libs/SHM.c ../Server/Log/Logger.c -o $(TARGET) -lcurl -ljansson
 
 
 install:

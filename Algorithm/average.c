@@ -7,6 +7,7 @@
 // #include <sys/stat.h>
 #include "average.h"
 #include "../Cache/InputCache.h"
+#include "testreader.h"
 
 const char *area_names[AREA_COUNT] = {"SE1", "SE2", "SE3", "SE4"}; // usch
 
@@ -136,16 +137,19 @@ int average_WindowLow_test(SpotEntry_t *entry, double q25_threshold, double q75_
     if (price < q25_threshold)
     {
         printf("Price below q25: %s (%.3f SEK/kWh) [BUY]\n", entry->time_start, price);
+        return 1;
     }
 
     if (price >= q25_threshold && price < q75_threshold)
     {
         printf("Price between q25 and q75: %s (%.3f SEK/kWh) [HOLD]\n", entry->time_start, price);
+        return 2;
     }
 
     if (price >= q75_threshold)
     {
         printf("Price above q75: %s (%.3f SEK/kWh) [SELL]\n", entry->time_start, price);
+        return 3;
     }
 
     return 0;

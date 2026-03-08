@@ -1,4 +1,4 @@
-#define MODULE_NAME "HTTPRequest"
+/*#define MODULE_NAME "HTTPRequest"
 #include "HTTPRequest.h"
 #include "../Log/Logger.h"
 #include <string.h>
@@ -116,4 +116,4 @@ void HTTPRequest_Dispose(HTTPRequest* http_request)
         free(http_request->request_body);
         http_request->request_body = NULL;
     }
-}
+}*/

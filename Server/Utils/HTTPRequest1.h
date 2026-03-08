@@ -1,4 +1,4 @@
-#ifndef HTTP_REQUEST_H
+/*#ifndef HTTP_REQUEST_H
 #define HTTP_REQUEST_H
 
 #define _POSIX_C_SOURCE 200809L
@@ -28,4 +28,4 @@ int HTTPRequest_ParseHeaders(HTTPRequest *http_request, const char *buffer, size
 void HTTPRequest_Dispose(HTTPRequest* http_request);
 
 
-#endif
+#endif*/
