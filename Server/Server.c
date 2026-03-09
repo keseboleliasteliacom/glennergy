@@ -8,6 +8,8 @@
 #include "../Libs/Utils/utils.h"
 #include "../Libs/Threads.h"
 
+extern char **environ;
+
 int Server_Initialize(Server **_Server, char **_Argv, int _Argc)
 {
     Server *srv = (Server *)malloc(sizeof(Server));
@@ -22,12 +24,56 @@ int Server_Initialize(Server **_Server, char **_Argv, int _Argc)
     return 0;
 }
 
+void Crontab_Add()
+{
+    pid_t pid = fork();
+
+    if (pid < 0)
+    {
+        exit(EXIT_FAILURE);
+    }
+    else if (pid == 0)
+    {
+        char path[1024];
+        realpath("./crontab_inst.sh", path); // resolves the absolute path at runtime
+        execlp("/bin/bash", "bash", path, "add", NULL);
+        perror("execl failed");
+        exit(EXIT_SUCCESS);
+    }
+    else
+    {
+        int status;
+        waitpid(pid, &status, 0);
+    }
+}
+
+void Crontab_Remove()
+{
+    pid_t pid = fork();
+
+    if (pid < 0)
+    {
+        exit(EXIT_FAILURE);
+    }
+    else if (pid == 0)
+    {
+        execlp("./crontab_inst.sh", "crontab.sh", "remove", NULL);
+        perror("execl failed");
+        exit(EXIT_SUCCESS);
+    }
+    else
+    {
+        int status;
+        waitpid(pid, &status, 0);
+    }
+}
+
 int Server_Run(Server *_Server)
 {
 
     SignalHandler_Initialize();
-
-    int status_pid, status_cache;
+    Crontab_Add();
+    int status_pid, status_cache, status_algoritm;
     pid_t pid = fork();
 
     if (pid < 0)
@@ -75,13 +121,27 @@ int Server_Run(Server *_Server)
         LOG_ERROR("Failed to execute Glennergy-InputCache");
         exit(EXIT_SUCCESS);
     }
+
+    pid_t pid_algoritm = fork();
+
+    if (pid_algoritm < 0)
+    {
+        exit(EXIT_FAILURE);
+    }
+    else if (pid_algoritm == 0)
+    {
+        execlp("Glennergy-Algoritm", "Glennergy-Algoritm", NULL);
+        LOG_ERROR("Failed to execute Glennergy-InputCache");
+        exit(EXIT_SUCCESS);
+    }
     else
     {
-        test_reader();
+        // test_reader();
         wait(&status_pid);
         wait(&status_cache);
+        wait(&status_algoritm);
     }
-
+    Crontab_Remove();
     return 0;
 }
 

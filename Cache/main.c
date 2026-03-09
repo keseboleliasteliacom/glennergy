@@ -88,6 +88,7 @@ int main()
     close(spotpris_fd);
     close(socket_fd);
     
+    printf("Cleaned up input cache\n");
     free(cache);
     log_Cleanup();
     return 0;

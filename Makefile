@@ -10,7 +10,7 @@ CFLAGS  += -ILibs \
            -IServer \
 		   -IServer/Connection \
 		   -IServer/Log \
-		   -ILibs/Algorithm \
+		   -IServer/HTTP 
 
 
 # ============================================

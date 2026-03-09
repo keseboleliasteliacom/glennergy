@@ -40,6 +40,7 @@ typedef struct
     double lon;
     Samples sample[KVARTAR_TOTALT];
     char raw_json_data[RAW_DATA_MAX];
+    char electricity_area[5];
 } PropertyInfo;
 
 typedef struct
@@ -52,7 +53,6 @@ typedef struct
 int Meteo_Initialize(MeteoData *_MeteoData);
 int meteo_Fetch(MeteoData *_MeteoData);
 int Meteo_LoadGlennergy(MeteoData *_MeteoData);
-int Meteo_Parse(MeteoData *_MeteoData, const char *_JsonRaw);
 void Meteo_Dispose(MeteoData* _MeteoData);
 
 

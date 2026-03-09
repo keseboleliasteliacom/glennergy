@@ -1,0 +1,6 @@
+[Unit]
+Description=Glennergy Meteo
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/Glennergy-Meteo
