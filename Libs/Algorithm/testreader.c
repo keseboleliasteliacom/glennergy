@@ -26,7 +26,7 @@ int cache_request(CacheCommand cmd, void *data_out, size_t expected_size)
     // Connect to cache socket
     int sock_fd = socket_Connect(CACHE_SOCKET_PATH);
     if (sock_fd < 0) {
-        LOG_ERROR("Failed to connect to cache socket: %s", strerror(errno));
+        LOG_ERROR("Connect to %s failed: %s (errno=%d)", CACHE_SOCKET_PATH, strerror(errno), errno);
         return -1;
     }
 

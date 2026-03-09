@@ -5,6 +5,11 @@
 #include <unistd.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <grp.h>
+#include <pwd.h>
+#include <sys/socket.h>
+#include <sys/stat.h>
+#include <sys/un.h>
 
 int socket_CreateSocket()
 {
@@ -14,6 +19,48 @@ int socket_CreateSocket()
         return -1;
     }
     return socket_fd;
+}
+
+int socket_Bind(int socket_fd, const char *socket_path)
+{
+    if (socket_path == NULL) {
+        fprintf(stderr, "Socket path cannot be NULL\n");
+        return -1;
+    }
+
+    // Ta bort gammal socket-fil om den finns
+    unlink(socket_path);
+
+    struct sockaddr_un addr;
+    memset(&addr, 0, sizeof(addr));
+    addr.sun_family = AF_UNIX;
+    strncpy(addr.sun_path, socket_path, sizeof(addr.sun_path) - 1);
+
+    if (bind(socket_fd, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
+        perror("Bind failed");
+        return -1;
+    }
+
+    // --- Sätt rätt ägare och permissions ---
+    // Använd root:glennergy som ägare
+    struct group *grp = getgrnam("glennergy");
+    if (!grp) {
+        fprintf(stderr, "Group 'glennergy' not found\n");
+        return -1;
+    }
+
+    if (chown(socket_path, 0, grp->gr_gid) < 0) {
+        perror("chown failed");
+        return -1;
+    }
+
+    // Ge group write/execute permissions
+    if (chmod(socket_path, 0660) < 0) {
+        perror("chmod failed");
+        return -1;
+    }
+
+    return 0;
 }
 
 // int socket_SetSocketOptions(int socket_fd)
@@ -26,13 +73,15 @@ int socket_CreateSocket()
 //     return 0;
 // }
 
+/*
+
 int socket_Bind(int socket_fd, const char *socket_path)
 {
     if (socket_path == NULL) {
         fprintf(stderr, "Socket path cannot be NULL\n");
         return -1;
     }
-    //unlink(socket_path);
+    unlink(socket_path);
 
     struct sockaddr_un addr;
     memset(&addr, 0, sizeof(addr));
@@ -44,9 +93,27 @@ int socket_Bind(int socket_fd, const char *socket_path)
         perror("Bind failed");
         return -1;
     }
+
+    // --- Sätt rättigheter direkt efter bind ---
+    struct group *grp = getgrnam("glennergy");
+    if (!grp) {
+        fprintf(stderr, "Group 'glennergy' not found\n");
+        return -1;
+    }
+
+    if (chown(socket_path, 0, grp->gr_gid) < 0) {
+        perror("chown failed");
+        return -1;
+    }
+
+    if (chmod(socket_path, 0660) < 0) { // rw-rw----
+        perror("chmod failed");
+        return -1;
+    }
     
     return 0;
 }
+    */
 
 int socket_Listen(int socket_fd, int backlog)
     {
