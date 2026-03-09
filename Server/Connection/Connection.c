@@ -136,6 +136,8 @@ int Connection_Handle(Connection *_Connection)
         printf("Got the stuff: %d\n", memory->result[i].id);
         for (int j = 0; j < 96; j++)
         {
+            
+
             int rec = memory->result[i].recommendation[j];
             const char *type = NULL;
 
