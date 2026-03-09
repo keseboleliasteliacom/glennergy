@@ -13,16 +13,24 @@ int APIHandler_Init(APIHandler_t **ctx)
         LOG_ERROR("Failed to allocate memory for APIHandler");
         return -1;
     }
-    api->shm = shm_Attach();
-    if (api->shm == NULL) {
-        LOG_ERROR("Failed to attach to shared memory");
-        free(api);
-        return -1;
+    // Retry attaching to shared memory (InputCache creates it)
+    LOG_INFO("Waiting for shared memory to be created by InputCache...");
+    for (int retry = 0; retry < 10; retry++) {
+        api->shm = shm_Attach();
+        if (api->shm != NULL) {
+            *ctx = api;
+            LOG_INFO("APIHandler initialized, attached to shared memory");
+            return 0;
+        }
+        
+        if (retry < 9) {
+            LOG_DEBUG("Shared memory not ready, retry %d/10 in 500ms...", retry + 1);
+            usleep(500000); // Wait 500ms
+        }
     }
-
-    *ctx = api;
-    LOG_INFO("APIHandler initialized, attached to shared memory");
-    return 0;
+    LOG_ERROR("Failed to attach to shared memory after 10 retries (5 seconds)");
+    free(api);
+    return -1;
 }
 
 static char* APIHandler_ErrorResponse(const char *message)
@@ -80,6 +88,7 @@ static char* APIHandler_GetResult(APIHandler_t *ctx, int home_id)
     json_t *slots = json_array();
     for (int i = 0; i < 96; i++) {
         json_t *slot = json_object();
+        json_object_set_new(slot, "timestamp", json_string(result_copy.slots[i].timestamp));
         json_object_set_new(slot, "solar_kwh", json_real(result_copy.slots[i].solar_kwh));
         json_object_set_new(slot, "grid_price", json_real(result_copy.slots[i].grid_price));
         json_object_set_new(slot, "strategy", json_string(strategy_to_string(result_copy.slots[i].strategy)));

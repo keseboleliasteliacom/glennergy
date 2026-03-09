@@ -44,14 +44,20 @@ int main()
         if (ctx.socket_fd > max_fd)
             max_fd = ctx.socket_fd;
 
-        int ready = select(max_fd + 1, &read_fds, NULL, NULL, NULL);
+        struct timeval timeout = {1, 0}; // 1 second timeout to check for shutdown signal
+        int ready = select(max_fd + 1, &read_fds, NULL, NULL, &timeout);
         if (ready < 0) {
-            if (errno == EINTR)
+            if (errno == EINTR) {
+                LOG_INFO("Select interrupted by signal, checking shutdown...");
                 continue;
+            }
             LOG_ERROR("select() error: %s", strerror(errno));
             break;
         }
 
+        if (ready == 0)
+            continue;
+    
         if (FD_ISSET(ctx.meteo_fd, &read_fds)) {
             inputcache_HandleMeteoData(ctx.cache, ctx.meteo_fd);
 

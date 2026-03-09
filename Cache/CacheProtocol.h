@@ -49,6 +49,7 @@ typedef enum {
 } EnergyStrategy_t;
 
 typedef struct {
+    char timestamp[32];
     double solar_kwh;
     double grid_price;
     EnergyStrategy_t strategy;

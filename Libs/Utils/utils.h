@@ -11,6 +11,7 @@
 #include <time.h>
 #include <ctype.h>
 #include <errno.h> // Den här för create_Folder, resten för system monotonic grejer
+#include <string.h>
 #include <stdio.h>
 // Plattformsepcifika headers 
 #if defined(_WIN32)
@@ -52,6 +53,25 @@ static void GetTodayDateFile(char *buffer, size_t size)
     snprintf(buffer, size, "%04d-%02d-%02d",
              tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday);
 }
+
+// static inline void normalize_timestamp(char *timestamp, size_t max_len)
+// {
+//     if (!timestamp) return;
+    
+//     size_t len = strlen(timestamp);
+    
+//     // Add :00 if missing seconds
+//     if (len == 16 && max_len >= 20) {
+//         strcat(timestamp, ":00");
+//         len = 19;
+//     }
+    
+//     // Remove timezone suffix
+//     char *tz_pos = strchr(timestamp, '+');
+//     if (tz_pos) {
+//         *tz_pos = '\0';
+//     }
+// }
 
 // Filesystem utils
 

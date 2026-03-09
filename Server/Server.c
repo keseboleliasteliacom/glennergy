@@ -102,6 +102,24 @@ int Server_Run(Server *_Server)
     }
 
     LOG_INFO("All processes started: Server PID: %d, Cache PID: %d, Algorithm PID: %d", pid_server, pid_cache, pid_algo);
+
+    while (!SignalHandler_Stop())
+    {
+        // Check if any child exited
+        pid_t exited = waitpid(-1, NULL, WNOHANG);  // Non-blocking check
+        if (exited > 0) {
+            LOG_WARNING("Child process %d exited unexpectedly", exited);
+            break;  // Child died, clean up
+        }
+        usleep(100000);  // 100ms sleep
+    }
+    
+    // Signal received or child died - terminate all children
+    LOG_INFO("Shutting down, sending SIGTERM to children...");
+    kill(pid_server, SIGTERM);
+    kill(pid_cache, SIGTERM);
+    kill(pid_algo, SIGTERM);
+
     waitpid(pid_server, &status_server, 0);
     waitpid(pid_cache, &status_cache, 0);
     waitpid(pid_algo, &status_algo, 0);

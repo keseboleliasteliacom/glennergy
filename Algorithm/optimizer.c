@@ -69,7 +69,12 @@ int optimize_HomeEnergy(InputCache_t *cache, int home_idx, double *solar_predict
             grid_price = cache->spotpris.data[area_idx][slot].sek_per_kwh;
         }
         
-        // Fill time slot data
+        if (slot < (int)cache->spotpris.count[area_idx]) {
+            strncpy(result->slots[slot].timestamp, cache->spotpris.data[area_idx][slot].time_start, sizeof(result->slots[slot].timestamp) - 1);
+            result->slots[slot].timestamp[sizeof(result->slots[slot].timestamp) - 1] = '\0';
+        } else {
+            result->slots[slot].timestamp[0] = '\0';  // Empty if no data
+        }
         result->slots[slot].solar_kwh = solar_kwh;
         result->slots[slot].grid_price = grid_price;
         

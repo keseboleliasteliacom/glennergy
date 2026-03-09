@@ -6,8 +6,9 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <string.h>
-#include "average.h"
 #include <errno.h>
+#include <sys/select.h>
+#include "average.h"
 #include "../Server/SignalHandler.h"
 #include "../Cache/InputCache.h"
 #include "../Cache/CacheProtocol.h"
@@ -48,6 +49,27 @@ int algorithm_WaitForNotification(void)
             LOG_INFO("Notification pipe connected");
         }
         
+        fd_set read_fds;
+        FD_ZERO(&read_fds);
+        FD_SET(notify_fd, &read_fds);
+        struct timeval timeout = {1, 0};
+        
+        int ready = select(notify_fd + 1, &read_fds, NULL, NULL, &timeout);
+
+        if (ready < 0) {
+            if (errno == EINTR) {
+                continue;  // Check SignalHandler_Stop() at loop start
+            }
+            LOG_WARNING("select() error: %s", strerror(errno));
+            close(notify_fd);
+            notify_fd = -1;
+            sleep(5);
+            continue;
+        }
+        
+        if (ready == 0)
+            continue;
+
         ssize_t bytes_read = read(notify_fd, &msg, sizeof(NotifyMessage));
         
         if (bytes_read == sizeof(NotifyMessage)) {
