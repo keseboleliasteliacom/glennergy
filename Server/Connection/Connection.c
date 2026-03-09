@@ -108,15 +108,7 @@ int Connection_Handle(Connection *_Connection)
     }
     // Now, if we have a get request we actually want to handle, i.e "/id=3", we continue handling it 
 
-    // original
     int client_id = strtol(request.url, request.url + 1, 10);
-    
-    // TODO ev annan lösning, som inte funkar
-    //char *endptr;
-    // Why change from strtol(request.url, request.url +1, 10) to strtol(request.url + 1, &endptr, 10) ? 
-    //Because the first character of the URL is a '/', so we need to skip it to get the actual ID. 
-    //The second argument is a pointer to a pointer that will be set to the character after the last character used in the conversion, which is useful for error checking and further processing if needed.
-    //int client_id = strtol(request.url + 1, &endptr, 10);
     printf("id: %d\n", client_id);
 
     int shm_fd;
