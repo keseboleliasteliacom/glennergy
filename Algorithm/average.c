@@ -7,7 +7,6 @@
 // #include <sys/stat.h>
 #include "average.h"
 #include "../Cache/InputCache.h"
-#include "testreader.h"
 
 const char *area_names[AREA_COUNT] = {"SE1", "SE2", "SE3", "SE4"}; // usch
 
@@ -33,13 +32,14 @@ int average_SpotprisStats(SpotStats_t *spot, InputCache_t *cache)
     {
         size_t count = cache->spotpris.count[areaindx];
 
+        printf("COUNT %zu\n", count);
         if (count == 0)
         {
             fprintf(stderr, "No data for area %s\n", area_names[areaindx]);
             continue;
         }
 
-        double sorted[96];
+        double sorted[192];
         double sum = 0.0;
 
         for (size_t samples = 0; samples < count; samples++)
@@ -130,7 +130,6 @@ int average_WindowLow_test(SpotEntry_t *entry, double q25_threshold, double q75_
     }
 
     printf(" q25_threshold: %.3f\n", q25_threshold);
-    int start = -1;
 
     double price = entry->sek_per_kwh;
 

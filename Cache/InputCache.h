@@ -11,7 +11,8 @@
 #define CACHE_SOCKET_PATH "/tmp/glennergy_cache.sock"
 
 #define MAX_BACKLOG 5
-#define MAX 5
+#define MAX_HOMES 5
+#define MAX_METEO 5
 
 typedef enum {
     AREA_SE1 = 0,
@@ -36,16 +37,16 @@ typedef struct {
 } SpotEntry_t;
 
 typedef struct {
-    SpotEntry_t data[AREA_COUNT][96];
+    SpotEntry_t data[AREA_COUNT][192];
     size_t count[AREA_COUNT];
 } Spot_t;
 
 typedef struct {
 
-    Homesystem_t home[MAX];
+    Homesystem_t home[MAX_HOMES];
     size_t home_count;
 
-    Meteo_t meteo[MAX];
+    Meteo_t meteo[MAX_METEO];
     size_t meteo_count;
 
     Spot_t spotpris;

@@ -154,7 +154,7 @@ int Meteo_Parse(PropertyInfo *_PropertyInfo, const char *_JsonRaw)
 int meteo_Fetch(MeteoData *_MeteoData)
 {
 
-    for (int i = 0; i < _MeteoData->pCount; i++)
+    for (size_t i = 0; i < _MeteoData->pCount; i++)
     {
 
         CurlResponse response;

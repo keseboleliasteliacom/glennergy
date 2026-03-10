@@ -4,7 +4,7 @@
 #include <stddef.h>
 
 #include "../Cache/InputCache.h"
-#include "testreader.h"
+#include "AlgoritmProtocol.h"
 
 
 typedef struct {

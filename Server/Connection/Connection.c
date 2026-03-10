@@ -2,7 +2,7 @@
 #include "Connection.h"
 #include "../TCPServer.h"
 #include "../Log/Logger.h"
-#include "../../Algorithm/testreader.h"
+#include "../../Algorithm/AlgoritmProtocol.h"
 #include "../../Libs/SHM.h"
 #include "../HTTP/HTTPRequest.h"
 #include "../../Libs/Utils/utils.h"
@@ -114,7 +114,7 @@ int Connection_Handle(Connection *_Connection)
     int shm_fd;
     sem_t *mutex;
 
-    SharedMemory *memory;
+    AlgoritmShared *memory;
 
     if (SHM_InitializeReader(&memory, ALGORITM_SHARED, shm_fd) != 0)
         return -1;
@@ -137,7 +137,7 @@ int Connection_Handle(Connection *_Connection)
         for (int j = 0; j < 96; j++)
         {
             
-
+            printf("Recommendation: %d\n", memory->result[i].recommendation[j]);
             int rec = memory->result[i].recommendation[j];
             const char *type = NULL;
 
@@ -168,7 +168,9 @@ int Connection_Handle(Connection *_Connection)
 
     //snprintf(RESPONSE_HEADER, sizeof(RESPONSE_HEADER), "%s", json_data);
 
-    char response[8192];
+    printf("size of json data: %zu\n", strlen(json_data));
+
+    char response[12000];
     //snprintf(response, sizeof(response), RESPONSE_HEADER, strlen(json_data), json_data);
     int actualLength = snprintf(response, sizeof(response), RESPONSE_HEADER, strlen(json_data), json_data);
     if (actualLength >= sizeof(response))
@@ -180,8 +182,8 @@ int Connection_Handle(Connection *_Connection)
 
     printf("data %s\n", response);
     send(_Connection->socket, response, actualLength, MSG_NOSIGNAL);
-    // Todo -free ?
-    //free(json_data); // Don't forget to free the data after we sent the response
+
+    free(json_data); // Don't forget to free the data after we sent the response
     LOG_DEBUG("Response sent");
 
     SHM_CloseSemaphore(&mutex);

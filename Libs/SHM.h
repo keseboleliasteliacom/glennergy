@@ -1,16 +1,16 @@
 #ifndef SHM_H
 #define SHM_H
 
-#include "../Algorithm/testreader.h"
+#include "../Algorithm/AlgoritmProtocol.h"
 #include <semaphore.h>
 #include <unistd.h>
 
 #define MAX 10
 
-int SHM_InitializeWriter(SharedMemory **shared, const char *name, int shm_fd);
+int SHM_InitializeWriter(AlgoritmShared **shared, const char *name, int shm_fd);
 
 
-int SHM_InitializeReader(SharedMemory **shared, const char *name, int shm_fd);
+int SHM_InitializeReader(AlgoritmShared **shared, const char *name, int shm_fd);
 
 
 int SHM_CreateSemaphore(sem_t **sem, const char *name);
@@ -25,10 +25,10 @@ void SHM_CloseSemaphore(sem_t **sem);
 void SHM_DestroySemaphore(sem_t **sem, const char *name);
 
 
-void SHM_DisposeReader(SharedMemory **shared, const char *name, int shm_fd);
+void SHM_DisposeReader(AlgoritmShared **shared, const char *name, int shm_fd);
 
 
-void SHM_DisposeWriter(SharedMemory **shared, const char *name, int shm_fd);
+void SHM_DisposeWriter(AlgoritmShared **shared, const char *name, int shm_fd);
 
 
 #endif

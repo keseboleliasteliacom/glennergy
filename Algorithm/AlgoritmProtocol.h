@@ -23,6 +23,6 @@ typedef struct
 typedef struct
 {
     AlgoritmResult result[MAX_ID];
-} SharedMemory;
+} AlgoritmShared;
 
 #endif
