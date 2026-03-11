@@ -1,29 +1,20 @@
-# Compiler
 CC = gcc
 CFLAGS = -Wall -Wextra -std=c11 -g -D_POSIX_C_SOURCE=200112L
 
-# Körbar fil
 PREFIX ?= /usr/local/bin
-TARGET = Glennergy-Algoritm
+TARGET = Glennergy-Algorithm
 
-INSTALLDIR = $(PREFIX)
-
-# Default target
 all:
-	$(CC) $(CFLAGS) testreader.c average.c ../Libs/Sockets.c ../Libs/SHM.c ../Server/Log/Logger.c -o $(TARGET) -lcurl -ljansson
-
+	$(CC) $(CFLAGS) main.c testreader.c average.c solar.c optimizer.c ../Libs/Sockets.c ../Server/Log/Logger.c ../Server/SignalHandler.c -o $(TARGET) -ljansson -lpthread -lm
 
 install:
-	# Create directory
-	install -d $(DESTDIR)$(INSTALLDIR)
-
-	# Install binary
-	install -m 755 $(TARGET) $(DESTDIR)$(INSTALLDIR)
-
+	install -d $(DESTDIR)$(PREFIX)
+	install -m 755 $(TARGET) $(DESTDIR)$(PREFIX)
 
 uninstall:
-	rm -rf $(DESTDIR)$(INSTALLDIR)/$(TARGET)
+	rm -f $(DESTDIR)$(PREFIX)/$(TARGET)
 
-# Rensa körbar fil
 clean:
 	rm -f $(TARGET)
+
+.PHONY: all install uninstall clean

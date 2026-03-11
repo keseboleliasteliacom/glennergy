@@ -3,10 +3,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <signal.h>
 #include "Server.h"
 #include "SignalHandler.h"
 #include "../Libs/Utils/utils.h"
 #include "../Libs/Threads.h"
+#include "Utils/APIHandler.h"
 
 extern char **environ;
 
@@ -72,15 +74,18 @@ int Server_Run(Server *_Server)
 {
 
     SignalHandler_Initialize();
-    Crontab_Add();
-    int status_pid, status_cache, status_algoritm;
-    pid_t pid = fork();
 
-    if (pid < 0)
+    LOG_INFO("cleaning up stale shared memory segments...");
+    shm_Destroy();
+
+    int status_server, status_cache, status_algo;
+    pid_t pid_server = fork();
+
+    if (pid_server < 0)
     {
         exit(EXIT_FAILURE);
     }
-    else if (pid == 0)
+    else if (pid_server == 0)
     {
 
         Threads threads[POOL_SIZE];
@@ -88,9 +93,11 @@ int Server_Run(Server *_Server)
 
         smw_init();
 
-        ConnectionHandler *cHandler = NULL;
+        APIHandler_t *api_handler = NULL;
+        APIHandler_Init(&api_handler);
 
-        ConnectionHandler_Initialize(&cHandler, _Server->config.port, Threads_AddQueueItem);
+        ConnectionHandler *cHandler = NULL;
+        ConnectionHandler_Initialize(&cHandler, _Server->config.port, Threads_AddQueueItem, api_handler);
 
         uint64_t monTime = 0;
         while (SignalHandler_Stop() == 0)
@@ -102,7 +109,7 @@ int Server_Run(Server *_Server)
 
         ConnectionHandler_Dispose(&cHandler);
         smw_dispose();
-
+        APIHandler_Dispose(&api_handler);
         Threads_Dispose(threads);
 
         log_CloseWrite();
@@ -113,35 +120,54 @@ int Server_Run(Server *_Server)
 
     if (pid_cache < 0)
     {
+        kill(pid_server, SIGTERM);
         exit(EXIT_FAILURE);
     }
     else if (pid_cache == 0)
     {
         execlp("Glennergy-InputCache", "Glennergy-InputCache", NULL);
         LOG_ERROR("Failed to execute Glennergy-InputCache");
-        exit(EXIT_SUCCESS);
-    }
-
-    pid_t pid_algoritm = fork();
-
-    if (pid_algoritm < 0)
-    {
         exit(EXIT_FAILURE);
     }
-    else if (pid_algoritm == 0)
+
+    pid_t pid_algo = fork();
+    if (pid_algo < 0)
     {
-        execlp("Glennergy-Algoritm", "Glennergy-Algoritm", NULL);
-        LOG_ERROR("Failed to execute Glennergy-InputCache");
-        exit(EXIT_SUCCESS);
+        LOG_ERROR("Failed to fork for Glennergy-Algorithm");
+        kill(pid_server, SIGTERM);
+        kill(pid_cache, SIGTERM);       //handle restart instead of kill?
+        exit(EXIT_FAILURE);
     }
-    else
+    else if (pid_algo == 0)
     {
-        // test_reader();
-        wait(&status_pid);
-        wait(&status_cache);
-        wait(&status_algoritm);
+        execlp("Glennergy-Algorithm", "Glennergy-Algorithm", NULL);
+        LOG_ERROR("Failed to execute Glennergy-Algorithm");
+        exit(EXIT_FAILURE);
     }
-    Crontab_Remove();
+
+    LOG_INFO("All processes started: Server PID: %d, Cache PID: %d, Algorithm PID: %d", pid_server, pid_cache, pid_algo);
+
+    while (!SignalHandler_Stop())
+    {
+        // Check if any child exited
+        pid_t exited = waitpid(-1, NULL, WNOHANG);  // Non-blocking check
+        if (exited > 0) {
+            LOG_WARNING("Child process %d exited unexpectedly", exited);
+            break;  // Child died, clean up
+        }
+        usleep(100000);  // 100ms sleep
+    }
+    
+    // Signal received or child died - terminate all children
+    LOG_INFO("Shutting down, sending SIGTERM to children...");
+    kill(pid_server, SIGTERM);
+    kill(pid_cache, SIGTERM);
+    kill(pid_algo, SIGTERM);
+
+    waitpid(pid_server, &status_server, 0);
+    waitpid(pid_cache, &status_cache, 0);
+    waitpid(pid_algo, &status_algo, 0);
+
     return 0;
 }
 
