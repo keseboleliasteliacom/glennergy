@@ -12,7 +12,7 @@ int compare_double(const void *a, const void *b)
     return 0;                 // a == b
 }
 
-int average_SpotprisStats(SpotStats_t *spot, CacheData_t *cache)
+int average_SpotprisStats(SpotStats_t *spot, CacheData_t *cache, size_t offset)
 {
     if (!cache || !spot) {
         fprintf(stderr, "Invalid parameters\n");
@@ -21,18 +21,19 @@ int average_SpotprisStats(SpotStats_t *spot, CacheData_t *cache)
 
     for (int areaindx = 0; areaindx < AREA_COUNT; areaindx++)
     {
-        size_t count = cache->spotpris.count[areaindx];
+        size_t total_count = cache->spotpris.count[areaindx];
         
-        if (count == 0) {
+        if (total_count <= offset) {
             fprintf(stderr, "No data for area %s\n", area_names[areaindx]);
             continue;
         }
 
+        size_t count = total_count - offset;
         double sorted[96];
         double sum = 0.0;
         
         for (size_t samples = 0; samples < count; samples++) {
-            sorted[samples] = cache->spotpris.data[areaindx][samples].sek_per_kwh;
+            sorted[samples] = cache->spotpris.data[areaindx][offset + samples].sek_per_kwh;
             sum += sorted[samples];
         }
         

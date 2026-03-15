@@ -66,3 +66,269 @@ tror man kan köra "sudo systemctl restart glennergy-*" för att trigga fresh Me
 sudo make clean-all
 sudo make install-all
 sudo ./systemd_install.sh                   # This will start services with new binaries
+
+
+
+
+################# APACHEBENCH SERVER TEST #################
+
+
+This is ApacheBench, Version 2.3
+ab -n 10000 -c 500 http://localhost:8080/api/results/13
+
+
+###### only [2026-03-15 00:29:50] [PID:53378] [INFO] [ConnHandler]: New connection accepted ######
+
+:~/glennergy$ ab -n 10000 -c 500 http://localhost:8080/api/results/13
+This is ApacheBench, Version 2.3 <$Revision: 1903618 $>
+Copyright 1996 Adam Twiss, Zeus Technology Ltd, http://www.zeustech.net/
+Licensed to The Apache Software Foundation, http://www.apache.org/
+
+Benchmarking localhost (be patient)
+Completed 1000 requests
+Completed 2000 requests
+Completed 3000 requests
+Completed 4000 requests
+Completed 5000 requests
+Completed 6000 requests
+Completed 7000 requests
+Completed 8000 requests
+Completed 9000 requests
+Completed 10000 requests
+Finished 10000 requests
+
+
+Server Software:        
+Server Hostname:        localhost
+Server Port:            8080
+
+Document Path:          /api/results/13
+Document Length:        10191 bytes
+
+Concurrency Level:      500
+Time taken for tests:   2.140 seconds
+Complete requests:      10000
+Failed requests:        0
+Total transferred:      103910000 bytes
+HTML transferred:       101910000 bytes
+Requests per second:    4672.64 [#/sec] (mean)
+Time per request:       107.006 [ms] (mean)
+Time per request:       0.214 [ms] (mean, across all concurrent requests)
+Transfer rate:          47415.45 [Kbytes/sec] received
+
+Connection Times (ms)
+              min  mean[+/-sd] median   max
+Connect:        0    1   2.3      0      13
+Processing:     5  104  15.6    107     111
+Waiting:        0  103  15.7    107     111
+Total:         18  104  13.4    107     111
+
+Percentage of the requests served within a certain time (ms)
+  50%    107
+  66%    107
+  75%    107
+  80%    107
+  90%    108
+  95%    109
+  98%    110
+  99%    110
+ 100%    111 (longest request)
+
+
+
+###### [2026-03-15 00:29:50] [PID:53378] [INFO] [ConnHandler]: New connection accepted  ######
+###### [2026-03-15 00:29:50] [PID:53378] [INFO] [SHM]: Locking results for read...      ######
+###### [2026-03-15 00:29:50] [PID:53378] [INFO] [SHM]: Getting results for home_id 13   ######
+###### [2026-03-15 00:29:50] [PID:53378] [INFO] [SHM]: Found results for home_id 13     ######
+###### [2026-03-15 00:29:50] [PID:53378] [INFO] [SHM]: Unlocking results read lock...   ######
+###### [2026-03-15 00:29:50] [PID:53378] [INFO] [ConnHandler]: New connection accepted  ######
+
+
+:~/glennergy$ ab -n 10000 -c 500 http://localhost:8080/api/results/13
+This is ApacheBench, Version 2.3 <$Revision: 1903618 $>
+Copyright 1996 Adam Twiss, Zeus Technology Ltd, http://www.zeustech.net/
+Licensed to The Apache Software Foundation, http://www.apache.org/
+
+Benchmarking localhost (be patient)
+Completed 1000 requests
+Completed 2000 requests
+Completed 3000 requests
+Completed 4000 requests
+Completed 5000 requests
+Completed 6000 requests
+Completed 7000 requests
+Completed 8000 requests
+Completed 9000 requests
+Completed 10000 requests
+Finished 10000 requests
+
+
+Server Software:        
+Server Hostname:        localhost
+Server Port:            8080
+
+Document Path:          /api/results/13
+Document Length:        10191 bytes
+
+Concurrency Level:      500
+Time taken for tests:   2.747 seconds
+Complete requests:      10000
+Failed requests:        0
+Total transferred:      103910000 bytes
+HTML transferred:       101910000 bytes
+Requests per second:    3639.83 [#/sec] (mean)
+Time per request:       137.369 [ms] (mean)
+Time per request:       0.275 [ms] (mean, across all concurrent requests)
+Transfer rate:          36935.05 [Kbytes/sec] received
+
+Connection Times (ms)
+              min  mean[+/-sd] median   max
+Connect:        0   14 134.1      0    2048
+Processing:     2   38 162.4     22    1711
+Waiting:        0   38 162.4     22    1711
+Total:         12   53 279.4     22    2744
+
+Percentage of the requests served within a certain time (ms)
+  50%     22
+  66%     22
+  75%     22
+  80%     23
+  90%     23
+  95%     23
+  98%     23
+  99%   2258
+ 100%   2744 (longest request)
+
+
+######################################## now crash ########################################
+
+ This is ApacheBench, Version 2.3 <$Revision: 1903618 $>
+Copyright 1996 Adam Twiss, Zeus Technology Ltd, http://www.zeustech.net/
+Licensed to The Apache Software Foundation, http://www.apache.org/
+
+Benchmarking localhost (be patient)
+Completed 1000 requests
+Completed 2000 requests
+Completed 3000 requests
+Completed 4000 requests
+Completed 5000 requests
+Completed 6000 requests
+Completed 7000 requests
+Completed 8000 requests
+Completed 9000 requests
+apr_pollset_poll: The timeout specified has expired (70007)
+Total of 9761 requests completed
+
+
+######################################## FINAL 200 concurrent ########################################
+
+:~/glennergy$ ab -n 10000 -c 200 http://localhost:8080/api/results/13
+This is ApacheBench, Version 2.3 <$Revision: 1903618 $>
+Copyright 1996 Adam Twiss, Zeus Technology Ltd, http://www.zeustech.net/
+Licensed to The Apache Software Foundation, http://www.apache.org/
+
+Benchmarking localhost (be patient)
+Completed 1000 requests
+Completed 2000 requests
+Completed 3000 requests
+Completed 4000 requests
+Completed 5000 requests
+Completed 6000 requests
+Completed 7000 requests
+Completed 8000 requests
+Completed 9000 requests
+Completed 10000 requests
+Finished 10000 requests
+
+
+Server Software:        
+Server Hostname:        localhost
+Server Port:            8080
+
+Document Path:          /api/results/13
+Document Length:        10161 bytes
+
+Concurrency Level:      200
+Time taken for tests:   2.725 seconds
+Complete requests:      10000
+Failed requests:        0
+Total transferred:      103610000 bytes
+HTML transferred:       101610000 bytes
+Requests per second:    3670.29 [#/sec] (mean)
+Time per request:       54.492 [ms] (mean)
+Time per request:       0.272 [ms] (mean, across all concurrent requests)
+Transfer rate:          37136.59 [Kbytes/sec] received
+
+Connection Times (ms)
+              min  mean[+/-sd] median   max
+Connect:        0   10  99.9      0    1032
+Processing:     2   38 158.5     23    1710
+Waiting:        0   38 158.5     23    1710
+Total:          7   48 256.0     23    2720
+
+Percentage of the requests served within a certain time (ms)
+  50%     23
+  66%     23
+  75%     23
+  80%     23
+  90%     23
+  95%     24
+  98%     24
+  99%     24
+ 100%   2720 (longest request)
+
+#################### NO HOME_ID (60) bytes response ####################
+
+This is ApacheBench, Version 2.3 <$Revision: 1903618 $>
+Copyright 1996 Adam Twiss, Zeus Technology Ltd, http://www.zeustech.net/
+Licensed to The Apache Software Foundation, http://www.apache.org/
+
+Benchmarking localhost (be patient)
+Completed 200 requests
+Completed 400 requests
+Completed 600 requests
+Completed 800 requests
+Completed 1000 requests
+Completed 1200 requests
+Completed 1400 requests
+Completed 1600 requests
+Completed 1800 requests
+Completed 2000 requests
+Finished 2000 requests
+
+
+Server Software:        
+Server Hostname:        localhost
+Server Port:            8080
+
+Document Path:          /api/results/10
+Document Length:        60 bytes
+
+Concurrency Level:      100
+Time taken for tests:   0.425 seconds
+Complete requests:      2000
+Failed requests:        0
+Total transferred:      514000 bytes
+HTML transferred:       120000 bytes
+Requests per second:    4703.51 [#/sec] (mean)
+Time per request:       21.261 [ms] (mean)
+Time per request:       0.213 [ms] (mean, across all concurrent requests)
+Transfer rate:          1180.47 [Kbytes/sec] received
+
+Connection Times (ms)
+              min  mean[+/-sd] median   max
+Connect:        0    0   0.4      0       2
+Processing:     1   21   3.1     21      22
+Waiting:        0   21   3.1     21      22
+Total:          2   21   2.7     21      22
+
+Percentage of the requests served within a certain time (ms)
+  50%     21
+  66%     21
+  75%     21
+  80%     21
+  90%     22
+  95%     22
+  98%     22
+  99%     22
+ 100%     22 (longest request)

@@ -57,6 +57,7 @@ typedef enum {
     STRATEGY_USE_GRID_CHEAP = 1,
     STRATEGY_AVOID_GRID = 2,
     STRATEGY_EXCESS_SOLAR = 3,
+    STRATEGY_NO_DATA = 9
 } EnergyStrategy_t;
 
 typedef struct {

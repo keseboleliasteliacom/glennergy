@@ -50,6 +50,7 @@ static const char* strategy_to_string(EnergyStrategy_t strategy)
         case STRATEGY_USE_GRID_CHEAP: return "USE_GRID_CHEAP";
         case STRATEGY_AVOID_GRID: return "AVOID_GRID";
         case STRATEGY_EXCESS_SOLAR: return "EXCESS_SOLAR";
+        case STRATEGY_NO_DATA: return "NO_DATA";
         default: return "UNKNOWN";
     }
 }
@@ -96,7 +97,7 @@ static char* APIHandler_GetResult(APIHandler_t *ctx, int home_id)
     }
     json_object_set_new(result, "slots", slots);
 
-    char *response = json_dumps(result, JSON_INDENT(2) | JSON_REAL_PRECISION(4));
+    char *response = json_dumps(result, JSON_COMPACT | JSON_REAL_PRECISION(4));
     json_decref(result);
     return response;
 }
@@ -109,7 +110,7 @@ int APIHandler_HandleRequest(APIHandler_t *ctx, HTTPRequest_t *req, HTTPResponse
         resp->body = APIHandler_ErrorResponse("Service unavailable");
         return -1;
     }
-    LOG_INFO("API Request: %s %s", req->method == HTTP_METHOD_GET ? "GET" : req->method == HTTP_METHOD_POST ? "POST" : "OPTIONS", req->path);
+    //LOG_INFO("API Request: %s %s", req->method == HTTP_METHOD_GET ? "GET" : req->method == HTTP_METHOD_POST ? "POST" : "OPTIONS", req->path);
 
     int home_id;
     char trailing;
@@ -123,7 +124,7 @@ int APIHandler_HandleRequest(APIHandler_t *ctx, HTTPRequest_t *req, HTTPResponse
                 resp->body = APIHandler_ErrorResponse("Failed to retrieve results");
                 return 0;
             } else {
-                LOG_INFO("Successfully retrieved results for home_id %d", home_id);
+                //LOG_INFO("Successfully retrieved results for home_id %d", home_id);
                 return 0;    
             }
         }

@@ -13,6 +13,7 @@
 #include "optimizer.h"
 #include "../Server/SignalHandler.h"
 #include "../Libs/Sockets.h"
+#include "utils.h"
 
 #define FIFO_ALGORITHM_READ "/tmp/fifo_algoritm"
 
@@ -88,77 +89,6 @@ int algorithm_WaitForNotification(void)
     }
 }
 
-int cache_request(CacheCommand cmd, void *data_out, size_t expected_size)
-{
-    if (!data_out || expected_size == 0) {
-        LOG_ERROR("Invalid parameters for cache_request");
-        return -1;
-    }
-
-    int sock_fd = socket_Connect(CACHE_SOCKET_PATH);
-    if (sock_fd < 0) {
-        LOG_ERROR("Failed to connect to cache socket: %s", strerror(errno));
-        return -1;
-    }
-
-    CacheRequest req = { .command = cmd };
-    if (send(sock_fd, &req, sizeof(req), 0) != sizeof(req)) {
-        LOG_ERROR("Failed to send request");
-        close(sock_fd);
-        return -1;
-    }
-
-    CacheResponse resp;
-    ssize_t bytes_read = recv(sock_fd, &resp, sizeof(resp), 0);
-    if (bytes_read != sizeof(resp)) {
-        LOG_ERROR("Failed to receive response (got %zd bytes)", bytes_read);
-        close(sock_fd);
-        return -1;
-    }
-
-    if (resp.status != 0) {
-        LOG_ERROR("Cache returned error status: %u", resp.status);
-        close(sock_fd);
-        return -1;
-    }
-
-    bytes_read = recv(sock_fd, data_out, expected_size, 0);
-    close(sock_fd);
-
-    if (bytes_read != (ssize_t)expected_size) {
-        LOG_ERROR("Failed to read complete data (got %zd, expected %zu bytes)", 
-                  bytes_read, expected_size);
-        return -1;
-    }
-
-    return 0;
-}
-
-int cache_SendResults(const ResultRequest *results)
-{
-    int sock_fd = socket_Connect(CACHE_SOCKET_PATH);
-    if (sock_fd < 0) {
-        LOG_ERROR("Failed to connect to cache");
-        return -1;
-    }
-
-    CacheRequest req = { .command = CMD_SET_RESULT };
-    send(sock_fd, &req, sizeof(req), 0);
-    send(sock_fd, results, sizeof(ResultRequest), 0);
-
-    CacheResponse resp;
-    recv(sock_fd, &resp, sizeof(resp), 0);
-    close(sock_fd);
-    
-    if (resp.status != 0) {
-        LOG_ERROR("Cache rejected results");
-        return -1;
-    }
-
-    LOG_INFO("Sent %zu results to cache", results->count);
-    return 0;
-}
-
 int test_reader()
 {
 
@@ -170,44 +100,52 @@ int test_reader()
 
     while(!SignalHandler_Stop())
     {
-    //     int notify_result = algorithm_WaitForNotification();
-    //     if (notify_result == -2) {
-    //         LOG_INFO("Received shutdown notification, exiting...");
-    //         break;
-    //    } 
-    //    // else if (notify_result < 0) {
-    //     //     LOG_ERROR("Error waiting for notification");
-    //     //     sleep(10); // Wait before retrying
-    //     //     continue;
-    //     // }
         if (algorithm_WaitForNotification() < 0) {
             LOG_INFO("Received shutdown signal, exiting...");
             break;
         }
 
-        if (cache_request(CMD_GET_ALL, cache, sizeof(CacheData_t)) < 0) {
-            LOG_WARNING("cache_request failed");
+        if (cacheRequest(CMD_GET_ALL, cache, sizeof(CacheData_t)) < 0) {
+            LOG_WARNING("cacheRequest failed");
+            continue;
+        }
+        LOG_INFO("Received from cache Meteo: %zu HomeSystem: %zu Spotpris: SE1=%zu SE2=%zu SE3=%zu SE4=%zu", cache->meteo_count, cache->home_count, cache->spotpris.count[0], cache->spotpris.count[1], cache->spotpris.count[2], cache->spotpris.count[3]);
+        
+
+        int spotpris_offset = -1;
+
+        for (size_t j = 0; j < cache->meteo_count; j++)
+        {
+            spotpris_offset = calculateMeteoOffset(&cache->meteo[j], &cache->spotpris, 0);
+            if (spotpris_offset >= 0) {
+            LOG_INFO("Using meteo[%zu] start=%s, calculated spotpris offset=%d", j, cache->meteo[j].sample[0].time_start, spotpris_offset);
+            break;
+            }
+        }
+
+        if (spotpris_offset < 0) {
+            LOG_WARNING("No valid meteo data available - cannot calculate offset");
             continue;
         }
 
-        LOG_INFO("Received from cache Meteo: %zu HomeSystem: %zu Spotpris: SE1=%zu SE2=%zu SE3=%zu SE4=%zu", cache->meteo_count, cache->home_count, cache->spotpris.count[0], cache->spotpris.count[1], cache->spotpris.count[2], cache->spotpris.count[3]);
-
         SpotStats_t spotpris_stats;
-
-        int result = average_SpotprisStats(&spotpris_stats, cache);
-        if (result < 0) {
+        if (average_SpotprisStats(&spotpris_stats, cache, spotpris_offset) < 0) {
             LOG_WARNING("Failed to calculate spotpris stats");
+            continue;
         }
-        int window_result = average_WindowLow(cache, spotpris_stats.area[0].q25);
-        if (window_result < 0) {
-            LOG_WARNING("Failed to calculate window low");
-        }
-
+        
         ResultRequest algo_results = {0};
         algo_results.count = cache->home_count;
 
         for (size_t i = 0; i < cache->home_count; i++)
         {
+            int area_idx = getAreaIndex(cache->home[i].electricity_area);
+            if (area_idx < 0 || i >= cache->meteo_count) {
+                LOG_WARNING("Invalid area or missing meteo for home_id=%d", cache->home[i].id);
+                algo_results.results[i].valid = false;
+                continue;
+            }
+            
             double solar_predictions[96];
             if (solar_PredictHome(cache, i, solar_predictions) < 0) {
                 LOG_WARNING("Failed to predict solar for home_id=%d", cache->home[i].id);
@@ -229,7 +167,8 @@ int test_reader()
                     algo_results.results[i].most_expensive_slot);
 
         }
-        if (cache_SendResults(&algo_results) < 0) {
+        
+        if (cacheSendResults(&algo_results) < 0) {
             LOG_ERROR("Failed to send results to cache");
         } else {
             LOG_INFO("Results sent to cache successfully");
