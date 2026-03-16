@@ -63,13 +63,15 @@ int Spotpris_FetchAll(AllaSpotpriser *_AllaSpotpriser)
 
     CurlResponse resp;
     Curl_Initialize(&resp);
-    
+
     for (int i = 0; i < 4; i++)
     {
-        json_t *total_data = json_array();
 
+        json_t *total_data = json_array();
         for (int k = 0; k < NUM_DAYS; k++)
         {
+            resp.size = 0;
+
             snprintf(url, sizeof(url),
                      "https://www.elprisetjustnu.se/api/v1/prices/%s_%s.json",
                      date_str[k], areas[i]);
@@ -77,7 +79,6 @@ int Spotpris_FetchAll(AllaSpotpriser *_AllaSpotpriser)
             int rc = Curl_HTTPGet(&resp, url);
             if (rc != 0)
             {
-                Curl_Dispose(&resp);
                 break;
             }
 
@@ -88,7 +89,6 @@ int Spotpris_FetchAll(AllaSpotpriser *_AllaSpotpriser)
             if (!root)
             {
                 LOG_ERROR("JSON parse error: %s\n", error.text);
-                Curl_Dispose(&resp);
                 break;
             }
 
@@ -96,7 +96,6 @@ int Spotpris_FetchAll(AllaSpotpriser *_AllaSpotpriser)
             {
                 LOG_ERROR("JSON is not an array\n");
                 json_decref(root);
-                Curl_Dispose(&resp);
                 break;
             }
 
@@ -141,10 +140,10 @@ int Spotpris_FetchAll(AllaSpotpriser *_AllaSpotpriser)
             strncpy(_AllaSpotpriser->areas[i].kvartar[j].time_start, start, sizeof(_AllaSpotpriser->areas[i].kvartar[j].time_start));
             _AllaSpotpriser->areas[i].kvartar[j].time_start[sizeof(_AllaSpotpriser->areas[i].kvartar[j].time_start) - 1] = '\0';
         }
+        LOG_INFO("TEST");
         free(raw_data);
-        Curl_Dispose(&resp);
         json_decref(total_data);
     }
-
+    Curl_Dispose(&resp);
     return 0;
 }

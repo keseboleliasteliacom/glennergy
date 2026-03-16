@@ -99,17 +99,17 @@ int main()
         return -2;
     }
 
+    memset(cache, 0, sizeof(InputCache_t));
+
     while (1)
     {
-
-        memset(cache, 0, sizeof(InputCache_t));
-
         if (cache_request(CMD_GET_ALL, cache, sizeof(InputCache_t)) < 0)
         {
-            LOG_WARNING("cache_request failed");
+            LOG_ERROR("Failed to get data from cache, retrying in 5 seconds...");
+            sleep(5);
         }
 
-        //LOG_INFO("Received from cache Meteo: %zu HomeSystem: %zu price areas: %zu", cache->meteo_count, cache->home_count, sizeof(cache->spotpris.count) / sizeof(cache->spotpris.count[0]));
+        // LOG_INFO("Received from cache Meteo: %zu HomeSystem: %zu price areas: %zu", cache->meteo_count, cache->home_count, sizeof(cache->spotpris.count) / sizeof(cache->spotpris.count[0]));
 
         const char *area_names[AREA_COUNT] = {"SE1", "SE2", "SE3", "SE4"};
 
@@ -123,21 +123,20 @@ int main()
         {
 
             size_t show_count = cache->spotpris.count[area_idx];
-            //if (show_count > 96)
-               //show_count = 96; // Show only first 10
-
+            // if (show_count > 96)
+            // show_count = 96; // Show only first 10
 
             for (size_t entry = 0; entry < show_count; entry++)
             {
                 if (strncmp(cache->meteo[0].sample[0].time_start, cache->spotpris.data[area_idx][entry].time_start, 16) == 0)
                 {
-                    spot_index = entry; //Get the active index for spotpris
+                    spot_index = entry; // Get the active index for spotpris
                 }
             }
 
-            size_t spot_iterator = (spot_index + 96); //Add 96 quarters to get accurate matched price 24 hrs forward
+            size_t spot_iterator = (spot_index + 96); // Add 96 quarters to get accurate matched price 24 hrs forward
 
-            if(spot_iterator > cache->spotpris.count[area_idx])
+            if (spot_iterator > cache->spotpris.count[area_idx])
             {
                 spot_iterator = cache->spotpris.count[area_idx];
             }
