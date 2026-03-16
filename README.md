@@ -18,6 +18,13 @@ newgrp glennergy
 ./glennergy_install.sh
 ```
 
+
+4.(bonus) Använda browser eller postman för att hämta algoritmens resultat för en fastighet med ID.
+I nuläget finns 5 garanterade ID
+```
+http://localhost:8080/id=3
+```
+
 Installationen skapar följande struktur(TODO):
 
 ```
