@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <unistd.h>
+#include "../../Libs/Fetcher.h"
 /**
  * Fetch weather forecast from Open-Meteo API
  *

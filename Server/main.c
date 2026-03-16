@@ -4,7 +4,6 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include "Server.h"
-#include "../Libs/Algorithm/testreader.h"
 
 int main(int argc, char* argv[]) {
     log_Init(NULL);

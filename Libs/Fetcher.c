@@ -15,7 +15,6 @@ int Curl_Initialize(CurlResponse *_Response)
 
     _Response->data = NULL;
     _Response->size = 0;
-    curl_global_init(CURL_GLOBAL_DEFAULT);
     _Response->curl_handle = curl_easy_init();
     
 

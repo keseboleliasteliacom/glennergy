@@ -1,7 +1,6 @@
 #define MODULE_NAME "METEO"
 #include "../../Server/Log/Logger.h"
 #include "Meteo.h"
-#include "../../Libs/Fetcher.h"
 #include <sys/stat.h>
 #include <stdio.h>
 #include <stdlib.h>

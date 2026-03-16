@@ -13,6 +13,8 @@
 
 int main()
 {
+
+    curl_global_init(CURL_GLOBAL_DEFAULT);
     log_Init("meteo.log");
     LOG_INFO("Starting Meteo API...\n");
 
