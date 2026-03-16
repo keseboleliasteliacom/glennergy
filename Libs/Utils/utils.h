@@ -21,7 +21,7 @@
 
 // Time utils
 
-static uint64_t SystemMonotonicMS()
+static inline uint64_t SystemMonotonicMS()
 {
     long ms;
     time_t s;
@@ -38,26 +38,34 @@ static uint64_t SystemMonotonicMS()
     return result;
 }
 
-static void GetTodayDate(char *buffer, size_t size) {
+static inline void GetTodayDate(char *buffer, size_t size) {
     time_t t = time(NULL);
     struct tm tm = *localtime(&t);
     snprintf(buffer, size, "%04d/%02d-%02d",
              tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday);
 }
 
-static void GetTomorrowDate(char *buffer, size_t size) {
+static inline void GetTomorrowDate(char *buffer, size_t size) {
     time_t t = time(NULL);
     struct tm tm = *localtime(&t);
     snprintf(buffer, size, "%04d/%02d-%02d",
-             tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday - 1);
+             tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday + 1);
 }
 
-static void GetTodayDateFile(char *buffer, size_t size)
+static inline void GetTodayDateFile(char *buffer, size_t size)
 {
     time_t t = time(NULL);
     struct tm tm = *localtime(&t);
     snprintf(buffer, size, "%04d-%02d-%02d",
              tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday);
+}
+
+static inline void GetCurrentTime(char *buffer, size_t size)
+{
+    time_t t = time(NULL);
+    struct tm tm = *localtime(&t);
+    snprintf(buffer, size, "%02d:%02d:%02d",
+             tm.tm_hour, tm.tm_min, tm.tm_sec);
 }
 
 // Filesystem utils

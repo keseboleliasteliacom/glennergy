@@ -1,7 +1,6 @@
 #define MODULE_NAME "METEO"
 #include "../../Server/Log/Logger.h"
 #include "Meteo.h"
-#include "../../Libs/Fetcher.h"
 #include <sys/stat.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -49,7 +48,7 @@ int Meteo_LoadGlennergy(MeteoData *_MeteoData)
         json_decref(root);
         return -1;
     }
-    
+
     _MeteoData->pCount = json_array_size(property);
 
     if (_MeteoData->pCount > PROPERTIES_MAX)
@@ -62,21 +61,19 @@ int Meteo_LoadGlennergy(MeteoData *_MeteoData)
     {
         json_t *object = json_array_get(property, i);
 
-        //LOG_INFO("Loading property %zu/%zu\n", i + 1, _MeteoData->pCount);
+        // LOG_INFO("Loading property %zu/%zu\n", i + 1, _MeteoData->pCount);
 
         if (!json_is_object(object))
             continue;
 
-
-
         const char *city;
         const char *electricity_area;
         int result = json_unpack(object, "{s:i, s:s, s:f, s:f, s:s}",
-                                "id", &_MeteoData->pInfo[i].id,
-                                "city", &city,
-                                "lat", &_MeteoData->pInfo[i].lat,
-                                "lon", &_MeteoData->pInfo[i].lon,
-                                "electricity_area", &electricity_area);
+                                 "id", &_MeteoData->pInfo[i].id,
+                                 "city", &city,
+                                 "lat", &_MeteoData->pInfo[i].lat,
+                                 "lon", &_MeteoData->pInfo[i].lon,
+                                 "electricity_area", &electricity_area);
 
         if (result != 0)
             continue;
@@ -154,21 +151,20 @@ int Meteo_Parse(PropertyInfo *_PropertyInfo, const char *_JsonRaw)
 int meteo_Fetch(MeteoData *_MeteoData)
 {
 
-    for (int i = 0; i < _MeteoData->pCount; i++)
+    CurlResponse response;
+    int curl_result = Curl_Initialize(&response);
+
+    if (curl_result < 0)
     {
-
-        CurlResponse response;
-        int curl_result = Curl_Initialize(&response);
-
-        if (curl_result < 0)
-        {
-            LOG_WARNING("Curl initialization failed with code %d\n", curl_result);
-            return -1;
-        }
+        LOG_WARNING("Curl initialization failed with code %d\n", curl_result);
+        return -1;
+    }
+    for (size_t i = 0; i < _MeteoData->pCount; i++)
+    {
+        response.size = 0;
 
         char url[512];
         snprintf(url, sizeof(url), METEO_LINK, _MeteoData->pInfo[i].lat, _MeteoData->pInfo[i].lon);
-
 
         LOG_INFO("URL: %s\n", url);
 
@@ -190,8 +186,9 @@ int meteo_Fetch(MeteoData *_MeteoData)
             return -3;
         }
 
-        Curl_Dispose(&response);
+        
     }
+    Curl_Dispose(&response);
     return 0;
 }
 

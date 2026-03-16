@@ -1,6 +1,6 @@
-#define MODULE_NAME "TESTREADER"
+#define MODULE_NAME "ALGORITM"
 #include "../Server/Log/Logger.h"
-#include "testreader.h"
+#include "AlgoritmProtocol.h"
 #include "../Libs/SHM.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -85,33 +85,31 @@ int main()
         return -1;
     }
 
-    SharedMemory *shm;
-    int shm_fd;
+    AlgoritmShared *shm;
+    int shm_fd = -1;
     sem_t *mutex;
 
     if (SHM_InitializeWriter(&shm, ALGORITM_SHARED, shm_fd) != 0)
     {
-        printf("Error algo!\n");
         return -1;
     }
 
     if (SHM_CreateSemaphore(&mutex, ALGORITM_MUTEX) != 0)
     {
-        printf("Error algo 2!\n");
         return -2;
     }
 
+    memset(cache, 0, sizeof(InputCache_t));
+
     while (1)
     {
-
-        memset(cache, 0, sizeof(InputCache_t));
-
         if (cache_request(CMD_GET_ALL, cache, sizeof(InputCache_t)) < 0)
         {
-            LOG_WARNING("cache_request failed");
+            LOG_ERROR("Failed to get data from cache, retrying in 5 seconds...");
+            sleep(5);
         }
 
-        //LOG_INFO("Received from cache Meteo: %zu HomeSystem: %zu price areas: %zu", cache->meteo_count, cache->home_count, sizeof(cache->spotpris.count) / sizeof(cache->spotpris.count[0]));
+        // LOG_INFO("Received from cache Meteo: %zu HomeSystem: %zu price areas: %zu", cache->meteo_count, cache->home_count, sizeof(cache->spotpris.count) / sizeof(cache->spotpris.count[0]));
 
         const char *area_names[AREA_COUNT] = {"SE1", "SE2", "SE3", "SE4"};
 
@@ -125,29 +123,36 @@ int main()
         {
 
             size_t show_count = cache->spotpris.count[area_idx];
-            // if (show_count > 10)
-            //   show_count = 10; // Show only first 10
+            // if (show_count > 96)
+            // show_count = 96; // Show only first 10
 
             for (size_t entry = 0; entry < show_count; entry++)
             {
                 if (strncmp(cache->meteo[0].sample[0].time_start, cache->spotpris.data[area_idx][entry].time_start, 16) == 0)
                 {
-                    spot_index = entry;
+                    spot_index = entry; // Get the active index for spotpris
                 }
+            }
+
+            size_t spot_iterator = (spot_index + 96); // Add 96 quarters to get accurate matched price 24 hrs forward
+
+            if (spot_iterator > cache->spotpris.count[area_idx])
+            {
+                spot_iterator = cache->spotpris.count[area_idx];
             }
 
             for (size_t i = 0; i < cache->meteo_count; i++)
             {
-                printf("before shared: %d\n", cache->meteo[i].id);
-                //printf("Comparing meteo area '%s' with spotpris area '%s'\n", cache->meteo[i].electricity_area, area_names[area_idx]);
+                printf("before shared: %s\n", cache->meteo[i].electricity_area);
+                printf("Comparing meteo area '%s' with spotpris area '%s'\n", cache->meteo[i].electricity_area, area_names[area_idx]);
                 if (strncmp(cache->meteo[i].electricity_area, area_names[area_idx], 3) == 0)
                 {
-                    for (size_t entry = spot_index; entry < show_count; entry++)
+                    for (size_t entry = spot_index; entry < spot_iterator; entry++)
                     {
-                        /*printf("Area: %s, time: %s, price: %.2f SEK/kWh,\n",
+                        printf("Area: %s, time: %s, price: %.2f SEK/kWh,\n",
                                area_names[area_idx],
                                cache->spotpris.data[area_idx][entry].time_start,
-                               cache->spotpris.data[area_idx][entry].sek_per_kwh);*/
+                               cache->spotpris.data[area_idx][entry].sek_per_kwh);
 
                         for (size_t j = 0; j < 96; j++)
                         {
@@ -162,12 +167,12 @@ int main()
                                     snprintf(shm->result[i].time[j].time, sizeof(shm->result[i].time[j].time), "%s", cache->spotpris.data[area_idx][entry].time_start);
                                 }
 
-                                /*printf("  Matched time: %s, temp: %.2f °C, GHI: %.2f W/m², City: %s id: %d\n",
+                                printf("  Matched time: %s, temp: %.2f °C, GHI: %.2f W/m², City: %s id: %d\n",
                                        cache->meteo[i].sample[j].time_start,
                                        cache->meteo[i].sample[j].temp,
                                        cache->meteo[i].sample[j].ghi,
                                        cache->meteo[i].city,
-                                       cache->meteo[i].id);*/
+                                       cache->meteo[i].id);
                             }
                         }
                     }

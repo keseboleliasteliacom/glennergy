@@ -25,8 +25,8 @@ int inputcache_Init(InputCache_t *cache, const char *file_path)
     }
 
     LOG_INFO("Loading homesystem file: %s", file_path);
-    cache->home_count = homesystem_LoadAllCount(cache->home, file_path, MAX);
-    if (cache->home_count < 0)
+    cache->home_count = homesystem_LoadAllCount(cache->home, file_path, MAX_HOMES);
+    if (cache->home_count == 0)
     {
         LOG_ERROR("Failed to load homesystem file: %s", file_path);
         return -1;
@@ -113,7 +113,7 @@ void inputcache_HandleRequest(InputCache_t *cache, int client_fd)
     CacheResponse resp;
 
     if (cache == NULL)
-        return -1;
+        return;
 
     ssize_t bytesread = recv(client_fd, &req, sizeof(req), 0);
     if (bytesread != sizeof(req))
@@ -194,7 +194,7 @@ static int inputcache_SaveMeteo(const MeteoData *_Data)
     char date_str[16];
     GetTodayDateFile(date_str, sizeof(date_str));
 
-    for (int i = 0; i < _Data->pCount; i++)
+    for (size_t i = 0; i < _Data->pCount; i++)
     {
         snprintf(filename, sizeof(filename), "%s/meteo_%d_%s.json", meteo_folder, _Data->pInfo[i].id, date_str);
         json_error_t error;
@@ -274,7 +274,7 @@ int inputcache_SaveSpotpris(const AllaSpotpriser *spotpris)
 
         json_t *root = json_array();
 
-        for (size_t j = 0; j < 96; j++)
+        for (size_t j = 0; j < 192; j++)
         {
             json_t *obj = json_object();
             json_object_set_new(obj, "time_start", json_string(spotpris->areas[i].kvartar[j].time_start));

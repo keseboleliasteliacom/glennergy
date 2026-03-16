@@ -2,10 +2,12 @@
 #define FETCHER_H
 
 #include <stddef.h>
+#include <curl/curl.h>
 
 typedef struct{
     char *data;
     size_t size;
+    CURL* curl_handle; // Lägg till en CURL-handle för att kunna återanvända den om det behövs
 }CurlResponse;
 
 int Curl_Initialize(CurlResponse *_Response);

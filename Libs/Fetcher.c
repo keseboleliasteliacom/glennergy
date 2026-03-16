@@ -1,5 +1,4 @@
 #include "Fetcher.h"
-#include <curl/curl.h>
 #include <string.h>
 #include <stdlib.h>
 
@@ -16,6 +15,8 @@ int Curl_Initialize(CurlResponse *_Response)
 
     _Response->data = NULL;
     _Response->size = 0;
+    _Response->curl_handle = curl_easy_init();
+    
 
     return 0;
 }
@@ -41,38 +42,31 @@ size_t Curl_WriteCallback(void *contents, size_t size, size_t nmemb, void *userp
 
 int Curl_HTTPGet(CurlResponse *_Response, char *url)
 {
-    CURL *curl = curl_easy_init();
-    
-    if (!curl)
-    {
-        free(_Response->data);
+    if (!_Response || !_Response->curl_handle)
         return -1;
-    }
-    
-    curl_easy_setopt(curl, CURLOPT_URL, url);
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, Curl_WriteCallback);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, _Response);
-    //curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)_Response);
 
-    CURLcode res = curl_easy_perform(curl);
+    curl_easy_reset(_Response->curl_handle);
+
+    curl_easy_setopt(_Response->curl_handle, CURLOPT_URL, url);
+    curl_easy_setopt(_Response->curl_handle, CURLOPT_WRITEFUNCTION, Curl_WriteCallback);
+    curl_easy_setopt(_Response->curl_handle, CURLOPT_WRITEDATA, _Response);
+
+    CURLcode res = curl_easy_perform(_Response->curl_handle);
     if (res != CURLE_OK)
     {
-        fprintf(stderr, "Curl_HTTPGet: curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
-        curl_easy_cleanup(curl);
+        fprintf(stderr, "Curl_HTTPGet failed: %s\n", curl_easy_strerror(res));
         return -2;
     }
 
     long http_code = 0;
-    // Hämta HTTP-responskoden
-    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
+    curl_easy_getinfo(_Response->curl_handle, CURLINFO_RESPONSE_CODE, &http_code);
+
     if (http_code != 200)
     {
-        fprintf(stderr, "Curl_HTTPGet: HTTP request failed with code %ld\n", http_code);
-        curl_easy_cleanup(curl);
+        fprintf(stderr, "HTTP request failed with code %ld\n", http_code);
         return -3;
     }
 
-    curl_easy_cleanup(curl);
     return 0;
 }
 
@@ -84,7 +78,9 @@ void Curl_Dispose(CurlResponse *_Response)
     if (_Response->data != NULL)
         free(_Response->data);
 
-    //free(_Response->data);
+    if (_Response->curl_handle != NULL)
+        curl_easy_cleanup(_Response->curl_handle);
+    // free(_Response->data);
     _Response->data = NULL;
     _Response->size = 0;
 }

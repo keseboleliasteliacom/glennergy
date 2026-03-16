@@ -8,10 +8,9 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <string.h>
-#include <stdbool.h>
 #include <errno.h>
 #include <sys/stat.h>
-//#include <sys/types.h>
+
 
 
 // Enkelkommando för att kompilera just denna filen Todo - Can be removed?

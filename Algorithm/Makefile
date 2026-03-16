@@ -1,6 +1,6 @@
 # Compiler
 CC = gcc
-CFLAGS = -Wall -Wextra -std=c11 -g -D_POSIX_C_SOURCE=200112L
+CFLAGS = -pg -g -Wall -Wextra -std=c11 -g -D_POSIX_C_SOURCE=200112L
 
 # Körbar fil
 PREFIX ?= /usr/local/bin
@@ -10,7 +10,7 @@ INSTALLDIR = $(PREFIX)
 
 # Default target
 all:
-	$(CC) $(CFLAGS) testreader.c average.c ../Libs/Sockets.c ../Libs/SHM.c ../Server/Log/Logger.c -o $(TARGET) -lcurl -ljansson
+	$(CC) $(CFLAGS) main.c average.c ../Libs/Sockets.c ../Libs/SHM.c ../Server/Log/Logger.c -o $(TARGET) -lcurl -ljansson
 
 
 install:

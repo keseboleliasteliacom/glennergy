@@ -1,5 +1,6 @@
 [Unit]
 Description=Glennergy Spotpris Timer
+PartOf=glennergy-main.service
 
 [Timer]
 OnBootSec=1min
@@ -7,4 +8,4 @@ OnUnitActiveSec=1min
 Unit=glennergy-spotpris.service
 
 [Install]
-WantedBy=timers.target
+WantedBy=glennergy-main.service
