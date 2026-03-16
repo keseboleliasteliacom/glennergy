@@ -1,4 +1,5 @@
 #define MODULE_NAME "SERVER"
+#define _XOPEN_SOURCE 500
 #include "Log/Logger.h"
 #include <stdio.h>
 #include <stdlib.h>
