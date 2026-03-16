@@ -108,8 +108,8 @@ int Connection_Handle(Connection *_Connection)
     }
     // Now, if we have a get request we actually want to handle, i.e "/id=3", we continue handling it
 
-    //int client_id = strtol(request.url, request.url + 1, 10);
-    int client_id = strtol(request.url + 1, NULL, 10);
+    int client_id = strtol(request.url, request.url + 1, 10);
+    //int client_id = strtol(request.url + 1, NULL, 10);
     printf("id: %d\n", client_id);
 
     int shm_fd;
