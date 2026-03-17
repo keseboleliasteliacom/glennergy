@@ -13,6 +13,7 @@
 #define MAX_RESULTS 5
 //#define NAME_MAX 128
 #define KVARTAR_TOTALT 128
+#define MAX_SLOTS 96
 
 // ============================================
 //  PROTOCOL COMMANDS & MESSAGES
@@ -71,7 +72,7 @@ typedef struct {
     int home_id;
     time_t last_calculated;
     
-    TimeSlot_t slots[96];
+    TimeSlot_t slots[MAX_SLOTS];
 
     double total_solar_kwh;
     double avg_grid_price;
@@ -144,7 +145,7 @@ typedef struct {
 } SpotEntry_t;
 
 typedef struct {
-    SpotEntry_t data[AREA_COUNT][96];
+    SpotEntry_t data[AREA_COUNT][MAX_SLOTS];
     size_t count[AREA_COUNT];
 } Spot_t;
 

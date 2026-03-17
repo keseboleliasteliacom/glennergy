@@ -1,6 +1,6 @@
 
 CC      := gcc
-CFLAGS  := -Wall -Wextra -std=c11 -D_POSIX_C_SOURCE=200809L 
+CFLAGS  := -Wall -Wextra -std=c11 -g -D_POSIX_C_SOURCE=200809L 
 LDFLAGS := -lcurl -ljansson -lpthread
 BUILD   := build
 
@@ -142,6 +142,14 @@ profile: $(PROFILE_TARGET)
 	@$(MAKE) -C Cache clean && $(MAKE) -C Cache CFLAGS="$(PROFILE_FLAGS)"
 	@$(MAKE) -C Algorithm clean && $(MAKE) -C Algorithm CFLAGS="$(PROFILE_FLAGS)"
 	@echo "All profile builds complete!"
+	@echo "Installing profile binaries to $(INSTALLDIR)..."
+	@install -d $(DESTDIR)$(INSTALLDIR)
+	@install -m 755 $(PROFILE_TARGET) $(DESTDIR)$(INSTALLDIR)/Glennergy-Main
+	@$(MAKE) -C API/Meteo install CFLAGS="$(PROFILE_FLAGS)"
+	@$(MAKE) -C API/Spotpris install CFLAGS="$(PROFILE_FLAGS)"
+	@$(MAKE) -C Cache install CFLAGS="$(PROFILE_FLAGS)"
+	@$(MAKE) -C Algorithm install CFLAGS="$(PROFILE_FLAGS)"
+	@echo "Profile installation complete!"
 
 $(PROFILE_TARGET): $(OBJ)
 	@echo "Linking $@ (profile)..."
@@ -157,44 +165,44 @@ run-profile-server: profile
 	@sudo chown -R $(USER):$(USER) /var/log/glennergy /var/cache/glennergy /var/run/glennergy 2>/dev/null || true
 	@sudo rm -f /dev/shm/glennergy_shm /tmp/fifo_* 2>/dev/null || true
 	@echo "Press Ctrl+C when done"
-	valgrind --tool=cachegrind \
+	sudo valgrind --tool=cachegrind \
 			 --cache-sim=yes \
 			 --trace-children=yes \
 			 --cachegrind-out-file=cachegrind.server.%p \
-			 ./$(PROFILE_TARGET)
+			 /usr/local/bin/Glennergy-Main
 
 # Profile Meteo module
 run-profile-meteo: profile
 	@echo "Profiling Meteo..."
-	valgrind --tool=cachegrind \
+	sudo valgrind --tool=cachegrind \
 			 --cache-sim=yes \
 			 --cachegrind-out-file=cachegrind.meteo.%p \
-			 ./API/Meteo/Glennergy-Meteo
+			 /usr/local/bin/Glennergy-Meteo
 
 # Profile Spotpris module
 run-profile-spotpris: profile
 	@echo "Profiling Spotpris..."
-	valgrind --tool=cachegrind \
+	sudo valgrind --tool=cachegrind \
 			 --cache-sim=yes \
 			 --cachegrind-out-file=cachegrind.spotpris.%p \
-			 ./API/Spotpris/Glennergy-Spotpris
+			 /usr/local/bin/Glennergy-Spotpris
 
 run-callgrind-server: profile
 	@echo "Profiling function calls..."
 	@sudo chown -R $(USER):$(USER) /var/log/glennergy /var/cache/glennergy /var/run/glennergy 2>/dev/null || true
-	@sudo rm -f /dev/shm/glennergy_shm /tmp/fifo_* 2>/dev/null || true
+	@sudo rm -f /dev/shm/glennergy_shm /tmp/fifo_* /tmp/glennergy_cache.sock 2>/dev/null || true
 	@echo "Press Ctrl+C when done"
-	valgrind --tool=callgrind \
+	sudo valgrind --tool=callgrind \
 			 --trace-children=yes \
 			 --callgrind-out-file=callgrind.server.%p \
-			 ./$(PROFILE_TARGET)
+			 /usr/local/bin/Glennergy-Main
 
 # Analyze function calls
 analyze-callgrind:
 	@echo "================================================"
 	@echo "  FUNCTION CALL ANALYSIS - ALL PROCESSES"
 	@echo "================================================"
-	@for f in callgrind.server.*; do \
+	@for f in callgrind.*; do \
 		CMD=$$(head -10 "$$f" | grep "cmd:" | cut -d: -f2); \
 		echo ""; \
 		echo "--- $$f ($$CMD) ---"; \

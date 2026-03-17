@@ -33,9 +33,9 @@ int algorithm_WaitForNotification(void)
         }
 
         if (notify_fd < 0) {
-            notify_fd = open(NOTIFY_FIFO_PATH, O_RDONLY);
+            notify_fd = open(NOTIFY_FIFO_PATH, O_RDONLY | O_NONBLOCK);
             if (notify_fd < 0) {
-                if (errno == ENXIO) {
+                if (errno == ENXIO || errno == ENOENT) {
                     LOG_WARNING("No writers on notification pipe, retrying...");
                     sleep(1);
                     continue;

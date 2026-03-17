@@ -60,13 +60,13 @@ int optimize_HomeEnergy(CacheData_t *cache, int home_idx, double *solar_predicti
     double min_price = 999.0;
     double max_price = 0.0;
     
-    for (int slot = 0; slot < 96; slot++)
+    for (int slot = 0; slot < MAX_SLOTS; slot++)
     {
         int spotpris_slot = slot + spotpris_offset;
         if (spotpris_slot >= (int)cache->spotpris.count[area_idx]) {
             LOG_DEBUG("Reached end of spotpris data at meteo slot %d", slot);
 
-            for (int remaining = slot; remaining < 96; remaining++) {
+            for (int remaining = slot; remaining < MAX_SLOTS; remaining++) {
                 result->slots[remaining].strategy = STRATEGY_NO_DATA;
             }
             break;  // No more spotpris data available

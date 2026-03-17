@@ -1,9 +1,9 @@
 [Unit]
-Description=Fetch Meteo data hourly
+Description=Fetch Meteo data 15 min
 Requires=glennergy-meteo.service
 
 [Timer]
-OnCalendar=hourly
+OnCalendar=*:0/15
 OnBootSec=5min
 Persistent=true
 AccuracySec=1s

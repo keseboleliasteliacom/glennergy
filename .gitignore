@@ -79,3 +79,6 @@ notsureglennergy-manage.sh
 notsureinstall_complete.sh
 .gitignore
 valgrindsanalys.txt
+glenn_profile_valgrind
+callgrind.*
+cachegrind.*

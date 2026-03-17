@@ -417,7 +417,7 @@ int inputcache_SaveSpotpris(const AllaSpotpriser *spotpris)
     char date_str[16];
     GetTodayDateFile(date_str, sizeof(date_str));
 
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < AREA_COUNT; i++)
     {
         snprintf(filename, sizeof(filename), "%s/spotpris_%s_%s.json", cache_folder, spotpris->areas[i].areaname, date_str);
 

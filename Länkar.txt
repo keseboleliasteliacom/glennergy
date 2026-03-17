@@ -69,15 +69,43 @@ sudo ./systemd_install.sh                   # This will start services with new 
 
 
 
+##############################################################################
+################################# PROFILING ##################################
+##############################################################################
+1.
+sudo make uninstall-all
+sudo make clean-all
 
-################# APACHEBENCH SERVER TEST #################
+2.
+sudo make run-profile-server                                term 1          project root makefile (struggling on WSL atm)
+/var/log/glennergy tail -f *.log                            term 2          runtime log
+sudo ./Glennergy-Meteo                                      term 3          /usr/local/bin                   
+sudo ./Glennergy-Spotpris                                   term 3          /usr/local/bin
+ab -n 10000 -c 500 http://localhost:8080/api/results/13     term 3          curl -s http://localhost:8080/api/results/13
 
+for id in 1 7 13 2 3; do
+  ab -n 2000 -c 100 http://localhost:8080/api/results/$id & term 3          better for cachegrind 5 different ids
+done
+wait
+
+3.
+sudo make analyze-profile
+sudo make analyze-callgrind 
+or
+callgrind_annotate callgrind.server.(PID)   cmd for certain file
+cg_annotate cachegrind.server.(PID)         cmd for certain file
+
+
+
+##############################################################################
+######################## APACHEBENCH SERVER TEST #############################
+##############################################################################
 
 This is ApacheBench, Version 2.3
 ab -n 10000 -c 500 http://localhost:8080/api/results/13
 
 
-###### only [2026-03-15 00:29:50] [PID:53378] [INFO] [ConnHandler]: New connection accepted ######
+###### [2026-03-15 00:29:50] [PID:53378] [INFO] [ConnHandler]: New connection accepted ######
 
 :~/glennergy$ ab -n 10000 -c 500 http://localhost:8080/api/results/13
 This is ApacheBench, Version 2.3 <$Revision: 1903618 $>
@@ -332,3 +360,134 @@ Percentage of the requests served within a certain time (ms)
   98%     22
   99%     22
  100%     22 (longest request)
+
+
+#######################################################################################
+###################################### CALLGRIND ######################################
+#######################################################################################
+
+--- callgrind.algorithm.74837 (  /usr/local/bin/Glennergy-Algorithm) ---
+Profile data file 'callgrind.algorithm.74837' (creator: callgrind-3.22.0)
+I1 cache: 
+D1 cache: 
+LL cache: 
+Profiled target:  /usr/local/bin/Glennergy-Algorithm (PID 74837, part 1)
+55,991 ( 8.25%)  Algorithm/optimizer.c:optimize_HomeEnergy [/usr/local/bin/Glennergy-Algorithm]
+35,205 ( 5.19%)  Algorithm/solar.c:solar_PredictSlot [/usr/local/bin/Glennergy-Algorithm]
+30,820 ( 4.54%)  Algorithm/solar.c:solar_PredictHome [/usr/local/bin/Glennergy-Algorithm]
+27,328 ( 4.02%)  Algorithm/average.c:compare_double [/usr/local/bin/Glennergy-Algorithm]
+19,999 ( 2.95%)  Algorithm/testreader.c:algorithm_WaitForNotification [/usr/local/bin/Glennergy-Algorithm]
+19,485 ( 2.87%)  Algorithm/solar.c:solar_CalculateSunEfficiency [/usr/local/bin/Glennergy-Algorithm]
+ 9,968 ( 1.47%)  Algorithm/average.c:average_SpotprisStats [/usr/local/bin/Glennergy-Algorithm]
+ 3,096 ( 0.46%)  ./elf/../sysdeps/x86/dl-cacheinfo.h:intel_check_word.constprop.0 [/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2]
+ 2,704 ( 0.40%)  Algorithm/../Server/Log/Logger.c:log_Message [/usr/local/bin/Glennergy-Algorithm]
+ 1,798 ( 0.26%)  Algorithm/../Server/Log/Logger.c:log_MessageFmt [/usr/local/bin/Glennergy-Algorithm]
+
+#######################################################################################
+
+--- callgrind.inputcache.74836 (  /usr/local/bin/Glennergy-InputCache) ---
+
+Profile data file 'callgrind.inputcache.74836' (creator: callgrind-3.22.0)
+I1 cache: 
+D1 cache: 
+LL cache: 
+Profiled target:  /usr/local/bin/Glennergy-InputCache (PID 74836, part 1)
+   33,331 ( 0.10%)  Cache/./InputCache.c:inputcache_HandleSpotprisData [/usr/local/bin/Glennergy-InputCache]
+   26,547 ( 0.08%)  Cache/./main.c:main [/usr/local/bin/Glennergy-InputCache]
+   25,663 ( 0.08%)  ./elf/./elf/dl-cache.c:_dl_cache_libcmp [/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2]
+   22,489 ( 0.07%)  Cache/./InputCache.c:inputcache_SaveSpotpris [/usr/local/bin/Glennergy-InputCache]
+    9,869 ( 0.03%)  ./elf/./elf/dl-cache.c:_dl_load_cache_lookup [/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2]
+-- Auto-annotated source: Cache/./main.c
+     .           #include "../Server/SignalHandler.h"
+     3 ( 0.00%)      log_Init("cache.log");
+ 4,101 ( 0.01%)  => /home/nak2477/glennergy/Cache/../Server/Log/Logger.c:log_Init (1x)
+   472 ( 0.00%)  => /home/nak2477/glennergy/Cache/../Server/SignalHandler.c:SignalHandler_Initialize (1x)
+
+#######################################################################################
+
+
+--- callgrind.server.74835 (  /usr/local/bin/Glennergy-Main) ---
+
+Profiled target:  /usr/local/bin/Glennergy-Main (PID 74835, part 1)
+   76,617,661 ( 0.53%)  Server/Utils/APIHandler.c:APIHandler_GetResult [/usr/local/bin/Glennergy-Main]
+   31,045,511 ( 0.21%)  Libs/Utils/smw.c:smw_work [/usr/local/bin/Glennergy-Main]
+   14,221,422 ( 0.10%)  Server/Utils/APIHandler.c:strategy_to_string [/usr/local/bin/Glennergy-Main]
+    7,992,397 ( 0.06%)  Server/Log/Logger.c:log_Message [/usr/local/bin/Glennergy-Main]
+    7,817,215 ( 0.05%)  Server/../Libs/Utils/utils.h:SystemMonotonicMS [/usr/local/bin/Glennergy-Main]
+-- Auto-annotated source: Server/Log/Logger.c
+        2 ( 0.00%)      const char* base_dir = "/var/log/glennergy";
+        2 ( 0.00%)      const char* default_filename = "glennergy.log";
+        2 ( 0.00%)          write_fd = pipe_fds[1]; //only writes, server child processes will inherit
+1,400,404 ( 0.01%)  => Server/Log/Logger.c:log_GetLevelString (70,021x)
+
+#######################################################################################
+
+--- callgrind.serverstart.74833 (  /usr/local/bin/Glennergy-Main) ---
+
+Profiled target:  /usr/local/bin/Glennergy-Main (PID 74833, part 1)
+   25,663 ( 0.40%)  ./elf/./elf/dl-cache.c:_dl_cache_libcmp [/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2]
+   23,439 ( 0.37%)  Server/Server.c:Server_Run [/usr/local/bin/Glennergy-Main]
+    9,869 ( 0.16%)  ./elf/./elf/dl-cache.c:_dl_load_cache_lookup [/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2]
+    8,244 ( 0.13%)  Server/SignalHandler.c:SignalHandler_Stop [/usr/local/bin/Glennergy-Main]
+    3,096 ( 0.05%)  ./elf/../sysdeps/x86/dl-cacheinfo.h:intel_check_word.constprop.0 [/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2]
+-- Auto-annotated source: Server/Server.c
+    .           #include "Server.h"
+    .           int Server_Initialize(Server **_Server, char **_Argv, int _Argc)
+    3 ( 0.00%)      Server *srv = (Server *)malloc(sizeof(Server));
+    7 ( 0.00%)      ServerConfig_Init(&srv->config, _Argv, _Argc);
+
+
+
+###########################################################################################
+###################################Cachegrind#############################################
+###########################################################################################
+
+Invocation:       /usr/bin/cg_annotate cachegrind.server.90437
+I1 cache:         32768 B, 64 B, 8-way associative
+D1 cache:         32768 B, 64 B, 8-way associative
+LL cache:         16777216 B, 64 B, 16-way associative
+Command:          /usr/local/bin/Glennergy-Main
+Events recorded:  Ir I1mr ILmr Dr D1mr DLmr Dw D1mw DLmw
+Events shown:     Ir I1mr ILmr Dr D1mr DLmr Dw D1mw DLmw
+Event sort order: Ir I1mr ILmr Dr D1mr DLmr Dw D1mw DLmw
+Threshold:        0.1%
+Annotation:       on
+
+--------------------------------------------------------------------------------
+-- Summary
+--------------------------------------------------------------------------------
+Ir_____________________ I1mr_______________ ILmr__________ Dr____________________ D1mr_______________ DLmr____________ Dw____________________ D1mw_______________ DLmw_______________ 
+
+13,966,753,900 (100.0%) 10,763,138 (100.0%) 3,940 (100.0%) 3,349,448,710 (100.0%) 44,151,907 (100.0%) 901,551 (100.0%) 2,115,219,502 (100.0%) 21,052,538 (100.0%) 12,292,801 (100.0%)  PROGRAM TOTALS
+
+--------------------------------------------------------------------------------
+-- File:function summary
+--------------------------------------------------------------------------------
+  Ir__________________________ I1mr____________________ ILmr______________ Dr__________________________ D1mr_____________________ DLmr__________________ Dw________________________ D1mw____________________ DLmw____________________  file:function
+
+< 6,001,290,642 (43.0%, 43.0%) 3,006,042 (27.9%, 27.9%) 960 (24.4%, 24.4%) 1,242,926,915 (37.1%, 37.1%) 15,024,831 (34.0%, 34.0%)      74  (0.0%,  0.0%) 776,845,705 (36.7%, 36.7%) 1,323,304  (6.3%,  6.3%) 1,148,900  (9.3%,  9.3%)  ???:
+  5,354,665,513 (38.3%)        2,097,366 (19.5%)        838 (21.3%)        1,085,637,972 (32.4%)         9,247,570 (20.9%)             37  (0.0%)        675,424,848 (31.9%)        1,225,564  (5.8%)        1,060,080  (8.6%)           ???
+     94,909,490  (0.7%)           39,989  (0.4%)          4  (0.1%)           34,413,441  (1.0%)           370,111  (0.8%)              1  (0.0%)         14,541,454  (0.7%)                0                        0                   json_delete
+     86,248,624  (0.6%)           19,982  (0.2%)          2  (0.1%)           15,401,540  (0.5%)                 0                      0                 18,481,848  (0.9%)                0                        0                   json_object_setn_new
+     73,927,392  (0.5%)           19,941  (0.2%)          2  (0.1%)           12,321,232  (0.4%)                 0                      0                 15,401,540  (0.7%)                0                        0                   json_object_set_new
+     73,927,392  (0.5%)           10,001  (0.1%)          1  (0.0%)           12,321,232  (0.4%)             9,507  (0.0%)              0                  9,240,924  (0.4%)                0                        0                   json_object_setn_new_nocheck
+     43,124,312  (0.3%)            9,996  (0.1%)          1  (0.0%)            9,240,924  (0.3%)         3,006,986  (6.8%)              0                          0                        0                        0                   json_object_iter_next
+     36,003,600  (0.3%)           19,981  (0.2%)          2  (0.1%)            7,500,750  (0.2%)                 0                      0                 13,501,350  (0.6%)            6,095  (0.0%)            5,647  (0.0%)           json_stringn_nocheck
+     31,923,192  (0.2%)           29,745  (0.3%)          3  (0.1%)            9,120,912  (0.3%)            20,002  (0.0%)              2  (0.0%)          9,120,912  (0.4%)            2,490  (0.0%)            2,238  (0.0%)           json_real
+     28,592,859  (0.2%)           39,989  (0.4%)          4  (0.1%)            9,160,916  (0.3%)                 0                      0                  5,450,545  (0.3%)           77,585  (0.4%)           70,489  (0.6%)           json_array_append_new
+     27,002,700  (0.2%)           10,002  (0.1%)          1  (0.0%)            4,500,450  (0.1%)                 0                      0                  6,000,600  (0.3%)                0                        0                   json_stringn
+     21,002,100  (0.2%)           10,001  (0.1%)          1  (0.0%)            3,000,300  (0.1%)                 0                      0                  4,500,450  (0.2%)                0                        0                   json_string
+     18,481,848  (0.1%)            9,964  (0.1%)          1  (0.0%)            3,080,308  (0.1%)                 0                      0                          0                        0                        0                   json_object_iter_key
+     18,481,848  (0.1%)                0                  0                    6,160,616  (0.2%)         1,499,520  (3.4%)              0                          0                        0                        0                   json_object_iter_key_len
+     18,241,827  (0.1%)           20,004  (0.2%)          3  (0.1%)            3,800,380  (0.1%)            10,001  (0.0%)              0                  4,560,457  (0.2%)              380  (0.0%)              380  (0.0%)           json_object
+     15,401,540  (0.1%)                0                  0                    6,160,616  (0.2%)                 0                      0                          0                        0                        0                   json_object_iter_value
+
+< 3,692,047,276 (26.4%, 69.4%)   636,325  (5.9%, 33.8%) 162  (4.1%, 28.5%)   930,981,926 (27.8%, 64.9%) 21,077,184 (47.7%, 81.8%) 867,760 (96.3%, 96.3%) 472,401,941 (22.3%, 59.1%) 8,474,809 (40.3%, 46.5%) 7,589,176 (61.7%, 71.1%)  ./malloc/./malloc/malloc.c:
+  1,238,941,988  (8.9%)          371,391  (3.5%)         80  (2.0%)          233,297,086  (7.0%)           750,405  (1.7%)        313,421 (34.8%)        163,421,693  (7.7%)        8,378,621 (39.8%)        7,588,348 (61.7%)           _int_malloc
+    803,095,833  (5.8%)           78,278  (0.7%)         11  (0.3%)          204,867,218  (6.1%)         1,902,357  (4.3%)          1,411  (0.2%)         62,468,703  (3.0%)           19,246  (0.1%)                0                   _int_free
+    583,041,783  (4.2%)            6,804  (0.1%)          8  (0.2%)          166,861,357  (5.0%)           451,964  (1.0%)        302,954 (33.6%)         53,138,591  (2.5%)           10,659  (0.1%)               21  (0.0%)           malloc
+    482,411,668  (3.5%)           61,617  (0.6%)          7  (0.2%)          101,754,695  (3.0%)        12,945,489 (29.3%)         21,716  (2.4%)         90,934,849  (4.3%)           27,121  (0.1%)               64  (0.0%)           malloc_consolidate
+    284,550,172  (2.0%)           20,342  (0.2%)          4  (0.1%)          101,624,661  (3.0%)         1,135,440  (2.6%)         15,599  (1.7%)         60,974,216  (2.9%)           10,003  (0.0%)                0                   free
+    199,120,368  (1.4%)            1,215  (0.0%)          3  (0.1%)           84,678,630  (2.5%)         3,833,021  (8.7%)        211,290 (23.4%)         27,516,494  (1.3%)                0                        0                   unlink_chunk.isra.0
+
+

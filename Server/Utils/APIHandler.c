@@ -85,11 +85,16 @@ static char* APIHandler_GetResult(APIHandler_t *ctx, int home_id)
     json_object_set_new(result, "total_solar_kwh", json_real(result_copy.total_solar_kwh));
     json_object_set_new(result, "avg_grid_price", json_real(result_copy.avg_grid_price));
     json_object_set_new(result, "peak_solar_slot", json_integer(result_copy.peak_solar_slot));
-    json_object_set_new(result, "cheapest_grid_slot", json_integer(result_copy.cheapest_grid_slot));
+    json_object_set_new(result, "cheapest_grid_slot", json_integer(result_copy.cheapest_grid_slot));        //change to timestamp?
     json_object_set_new(result, "most_expensive_slot", json_integer(result_copy.most_expensive_slot));
 
     json_t *slots = json_array();
-    for (int i = 0; i < 96; i++) {
+    for (int i = 0; i < MAX_SLOTS; i++) {
+
+        if (result_copy.slots[i].strategy == STRATEGY_NO_DATA) {
+            continue;
+        }
+
         json_t *slot = json_object();
         json_object_set_new(slot, "timestamp", json_string(result_copy.slots[i].timestamp));
         json_object_set_new(slot, "solar_kwh", json_real(result_copy.slots[i].solar_kwh));
@@ -99,7 +104,7 @@ static char* APIHandler_GetResult(APIHandler_t *ctx, int home_id)
     }
     json_object_set_new(result, "slots", slots);
 
-    char *response = json_dumps(result, JSON_COMPACT | JSON_REAL_PRECISION(4));
+    char *response = json_dumps(result, JSON_INDENT(2) | JSON_REAL_PRECISION(4));           //go COMPACT later
     json_decref(result);
     return response;
 }
