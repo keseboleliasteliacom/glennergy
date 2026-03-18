@@ -40,6 +40,15 @@ Visa loggar(TODO):
 tail -f /var/log/glennergy/*.log
 ```
 
+
+Dokumentation(TODO)
+Documentation standard:
+- Doxygen
+- Modules via @defgroup
+- Memory ownership must be documented
+- Side effects must be documented
+
+
 ---
 
 # Usage

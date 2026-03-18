@@ -7,7 +7,11 @@ if [ -f Makefile ]; then
     sudo make uninstall
 fi
 
-find . -type f -name Makefile | while read mf; do
+# Added excludes for doxygen folders
+find . -type f -name Makefile \
+  -not -path "*/latex/*" \
+  -not -path "*/html/*" \
+  | while read mf; do
     dir=$(dirname "$mf")
     echo "Processing $dir"
     sudo make -C "$dir" uninstall
