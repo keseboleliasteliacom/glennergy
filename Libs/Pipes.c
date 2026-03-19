@@ -55,7 +55,6 @@ ssize_t Pipes_ReadBinary(int _Fd, void *_Buf, size_t _Size)
                 return total;
             }
             perror("read");
-            return -1;
         }
     }
 
@@ -93,7 +92,6 @@ ssize_t Pipes_WriteBinary(int _Fd, void *_Buf, size_t _Size)
                 return total;
             }
             perror("write");
-            return -1;
         }
         else {
             printf("Wrote %zd bytes to the pipe\n", bytesWritten);

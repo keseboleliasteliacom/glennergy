@@ -28,7 +28,7 @@ int Pipes_CreateFifo(const char* _Path);
  * @param _Fd File descriptor to read from.
  * @param _Buf Pointer to the buffer to store data.
  * @param _Size Number of bytes to read.
- * @return Total number of bytes read, or -1 on error.
+ * @return Total number of bytes read. If interrupted or non-blocking EAGAIN occurs, may return less than _Size.
  */
 ssize_t Pipes_ReadBinary(int _Fd, void* _Buf, size_t _Size);
 
@@ -38,7 +38,7 @@ ssize_t Pipes_ReadBinary(int _Fd, void* _Buf, size_t _Size);
  * @param _Fd File descriptor to write to.
  * @param _Buf Pointer to the buffer containing data.
  * @param _Size Number of bytes to write.
- * @return Total number of bytes written, or -1 on error.
+ * @return Total number of bytes written. If non-blocking EAGAIN occurs, may return less than _Size.
  */
 ssize_t Pipes_WriteBinary(int _Fd, void* _Buf, size_t _Size);
 
