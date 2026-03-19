@@ -11,7 +11,10 @@
 #include <jansson.h>
 
 #define METEO_LINK "https://api.open-meteo.com/v1/forecast?latitude=%2.f&longitude=%2f&minutely_15=temperature_2m,shortwave_radiation,direct_normal_irradiance,diffuse_radiation,cloud_cover,is_day&forecast_days=3&forecast_minutely_15=128&timezone=Europe/Stockholm"
-
+/**
+ * @file meteo.c
+ * @brief Implementation of Meteo module.
+ */
 int Meteo_Initialize(MeteoData *_MeteoData)
 {
     if (_MeteoData == NULL)
@@ -87,6 +90,19 @@ int Meteo_LoadGlennergy(MeteoData *_MeteoData)
 
     return 0;
 }
+/**
+ * @brief Parse raw JSON weather data into PropertyInfo structure.
+ *
+ * @param[out] _PropertyInfo Target property structure
+ * @param[in] _JsonRaw Raw JSON string from API
+ *
+ * @return
+ * - 0 on success
+ * - -1 JSON parse failure
+ * - -2 Missing required fields
+ *
+ * @note Internal function, not part of public API
+ */
 
 int Meteo_Parse(PropertyInfo *_PropertyInfo, const char *_JsonRaw)
 {
