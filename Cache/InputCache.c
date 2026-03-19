@@ -15,7 +15,10 @@
 #include <errno.h>
 
 const char *area_names[AREA_COUNT] = {"SE1", "SE2", "SE3", "SE4"};
-
+/**
+ * @file InputCache.c
+ * @brief Implementation of cache module.
+ */
 int inputcache_Init(InputCache_t *cache, const char *file_path)
 {
     if (!cache || !file_path)
@@ -174,7 +177,15 @@ void inputcache_HandleRequest(InputCache_t *cache, int client_fd)
 
     close(client_fd);
 }
-
+/**
+ * @brief Save Meteo data to disk.
+ *
+ * @param[in] _Data Meteo data
+ *
+ * @return 0 on success, negative on error
+ *
+ * @note Internal helper function
+ */
 static int inputcache_SaveMeteo(const MeteoData *_Data)
 {
     if (!_Data)
@@ -247,7 +258,16 @@ void inputcache_HandleMeteoData(InputCache_t *cache, int meteo_fd)
         LOG_ERROR("failed to read meteo data, got %zd bytes", bytesReadMeteo); // fixed size so should never trigger can still be wrong
     }
 }
-
+/**
+ * @brief Save Spotpris data to disk.
+ *
+ * @param[in] spotpris Spot price data
+ *
+ * @return 0 on success, negative on error
+ *
+ * @note Internal helper function
+ */
+// TODO - Kolla static på interna funktioner i denna och andra moduler
 int inputcache_SaveSpotpris(const AllaSpotpriser *spotpris)
 {
     if (!spotpris)
