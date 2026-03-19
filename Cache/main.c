@@ -1,3 +1,15 @@
+/**
+ * @file main.c
+ * @brief Entry point for InputCache service.
+ *
+ * @details
+ * Event-driven service that:
+ * - Listens to Meteo and Spotpris FIFOs
+ * - Accepts client connections via UNIX socket
+ * - Dispatches requests and updates cache state
+ *
+ * Uses select() for multiplexing IPC channels.
+ */
 #define MODULE_NAME "MAIN"
 #include "../Server/Log/Logger.h"
 #include "InputCache.h"
@@ -11,18 +23,6 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include "../Server/SignalHandler.h"
-/**
- * @file main.c
- * @brief Entry point for InputCache service.
- *
- * @details
- * Event-driven service that:
- * - Listens to Meteo and Spotpris FIFOs
- * - Accepts client connections via UNIX socket
- * - Dispatches requests and updates cache state
- *
- * Uses select() for multiplexing IPC channels.
- */
 int main()
 {
     log_Init("cache.log");

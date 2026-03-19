@@ -1,8 +1,3 @@
-#ifndef SPOTPRIS_H
-#define SPOTPRIS_H
-
-#include <stddef.h>
-
 /**
  * @file Spotpris.h
  * @brief Public API for the Spotpris module.
@@ -10,6 +5,11 @@
  * Provides data structures and functions for fetching and handling
  * electricity spot prices from an external API.
  */
+#ifndef SPOTPRIS_H
+#define SPOTPRIS_H
+
+#include <stddef.h>
+
 
 /**
  * @defgroup SPOTPRIS Spotpris

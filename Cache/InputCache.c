@@ -1,3 +1,7 @@
+/**
+ * @file InputCache.c
+ * @brief Implementation of cache module.
+ */
 #define MODULE_NAME "INPUTCACHE"
 #include "../Server/Log/Logger.h"
 #include "InputCache.h"
@@ -15,10 +19,6 @@
 #include <errno.h>
 
 const char *area_names[AREA_COUNT] = {"SE1", "SE2", "SE3", "SE4"};
-/**
- * @file InputCache.c
- * @brief Implementation of cache module.
- */
 int inputcache_Init(InputCache_t *cache, const char *file_path)
 {
     if (!cache || !file_path)

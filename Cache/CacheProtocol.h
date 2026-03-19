@@ -1,9 +1,3 @@
-#ifndef CACHE_PROTOCOL_H
-#define CACHE_PROTOCOL_H
-
-#include <stdint.h>
-
-#define CACHE_SOCKET_PATH "/tmp/glennergy_cache.sock"
 /**
  * @file CacheProtocol.h
  * @brief IPC protocol definitions for cache communication.
@@ -12,6 +6,12 @@
  * Defines request/response structures used over UNIX socket
  * between clients and the cache service.
  */
+#ifndef CACHE_PROTOCOL_H
+#define CACHE_PROTOCOL_H
+
+#include <stdint.h>
+
+#define CACHE_SOCKET_PATH "/tmp/glennergy_cache.sock"
 typedef enum {
     CMD_GET_ALL = 1,
     CMD_GET_METEO = 2,

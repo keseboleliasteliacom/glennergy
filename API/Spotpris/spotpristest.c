@@ -1,17 +1,3 @@
-#define MODULE_NAME "MAIN"
-
-#include "../../Server/Log/Logger.h"
-#include "Spotpris.h"
-#include <stdio.h>
-#include "../../Libs/Pipes.h"
-#include <curl/curl.h>
-#include <stdlib.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <string.h>
-#include <errno.h>
-#include <sys/stat.h>
-
 /**
  * @file spotpristest.c
  * @brief Entry point for the Spotpris module test harness.
@@ -57,6 +43,20 @@
  *
  * @warning Blocking behavior occurs if no FIFO reader is connected.
  */
+#define MODULE_NAME "MAIN"
+
+#include "../../Server/Log/Logger.h"
+#include "Spotpris.h"
+#include <stdio.h>
+#include "../../Libs/Pipes.h"
+#include <curl/curl.h>
+#include <stdlib.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <string.h>
+#include <errno.h>
+#include <sys/stat.h>
+
 
 // Named pipe used for IPC between Spotpris module and InputCache
 #define FIFO_SPOTPRIS_WRITE "/tmp/fifo_spotpris"

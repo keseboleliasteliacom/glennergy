@@ -1,3 +1,7 @@
+/**
+ * @file meteo.c
+ * @brief Implementation of Meteo module.
+ */
 #define MODULE_NAME "METEO"
 #include "../../Server/Log/Logger.h"
 #include "Meteo.h"
@@ -11,10 +15,6 @@
 #include <jansson.h>
 
 #define METEO_LINK "https://api.open-meteo.com/v1/forecast?latitude=%2.f&longitude=%2f&minutely_15=temperature_2m,shortwave_radiation,direct_normal_irradiance,diffuse_radiation,cloud_cover,is_day&forecast_days=3&forecast_minutely_15=128&timezone=Europe/Stockholm"
-/**
- * @file meteo.c
- * @brief Implementation of Meteo module.
- */
 int Meteo_Initialize(MeteoData *_MeteoData)
 {
     if (_MeteoData == NULL)
