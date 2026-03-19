@@ -73,7 +73,6 @@ int Threads_AddQueueItem(Connection *_Connection)
  *
  * @note Internal function
  */
-static void *Threads_Work(void *arg);
 void *Threads_Work(void *arg)
 {
     Threads *threads = (Threads *)arg;
