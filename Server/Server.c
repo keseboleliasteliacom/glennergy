@@ -1,3 +1,9 @@
+/**
+ * @file Server.c
+ * @brief Implementation of the Server module.
+ * @ingroup Server
+ */
+
 #define MODULE_NAME "SERVER"
 #define _XOPEN_SOURCE 500
 #include "Log/Logger.h"
@@ -11,6 +17,15 @@
 
 extern char **environ;
 
+/**
+ * @brief Allocates and initializes a Server instance from command-line arguments.
+ * @param[out] _Server Pointer to a Server* to be allocated
+ * @param[in] _Argv Command-line arguments
+ * @param[in] _Argc Number of command-line arguments
+ * @return 0 on success, -1 if allocation fails
+ * @pre _Server must be a valid pointer
+ * @post *_Server points to an initialized Server
+ */
 int Server_Initialize(Server **_Server, char **_Argv, int _Argc)
 {
     Server *srv = (Server *)malloc(sizeof(Server));
@@ -25,6 +40,10 @@ int Server_Initialize(Server **_Server, char **_Argv, int _Argc)
     return 0;
 }
 
+/**
+ * @brief Adds the server to the crontab.
+ * @note Creates a child process using fork() to execute crontab_inst.sh.
+ */
 void Crontab_Add()
 {
     pid_t pid = fork();
@@ -48,6 +67,10 @@ void Crontab_Add()
     }
 }
 
+/**
+ * @brief Removes the server from the crontab.
+ * @note Creates a child process using fork() to execute crontab_inst.sh.
+ */
 void Crontab_Remove()
 {
     pid_t pid = fork();
@@ -69,9 +92,16 @@ void Crontab_Remove()
     }
 }
 
+/**
+ * @brief Runs the server main loop, initializing signal handlers, threads, and child processes.
+ * @param[in] _Server Pointer to initialized Server
+ * @return 0 on normal termination
+ * @pre _Server must be initialized
+ * @post Server child processes are cleaned up, Crontab removed
+ * @note This function blocks until termination signal is received
+ */
 int Server_Run(Server *_Server)
 {
-
     SignalHandler_Initialize();
     Crontab_Add();
     int status_pid, status_cache, status_algoritm;
@@ -83,7 +113,6 @@ int Server_Run(Server *_Server)
     }
     else if (pid == 0)
     {
-
         Threads threads[POOL_SIZE];
         Threads_Initialize(threads);
 
@@ -146,6 +175,11 @@ int Server_Run(Server *_Server)
     return 0;
 }
 
+/**
+ * @brief Frees a Server instance and sets pointer to NULL.
+ * @param[in,out] _Server Pointer to Server* to be freed
+ * @post *_Server is NULL after disposal
+ */
 void Server_Dispose(Server **_Server)
 {
     if (_Server == NULL || *_Server == NULL)
@@ -156,3 +190,6 @@ void Server_Dispose(Server **_Server)
     free(srv);
     srv = NULL;
 }
+
+// Suggestion: Could validate return values from execlp to handle failures more gracefully
+// Suggestion: Could handle SIGCHLD to avoid zombie processes
