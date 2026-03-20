@@ -1,53 +1,65 @@
+#define MODULE_NAME "SERVER"
+#define _XOPEN_SOURCE 500
 /**
  * @file Server.c
  * @brief Implementation of the Server module.
  * @ingroup Server
+ *
+ * Handles initialization, running, and disposal of server, including:
+ * - Starting TCP connections via ConnectionHandler
+ * - Forking subprocesses for cache and algorithm modules
+ * - Managing Crontab entries for scheduled tasks
+ * - Signal handling
+ *
+ * @note Uses ServerConfig for configuration and ConnectionHandler for TCP connections.
  */
 
-#define MODULE_NAME "SERVER"
-#define _XOPEN_SOURCE 500
-#include "Log/Logger.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
 #include "Server.h"
 #include "SignalHandler.h"
 #include "../Libs/Utils/utils.h"
 #include "../Libs/Threads.h"
+#include "Log/Logger.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 
 extern char **environ;
 
 /**
- * @brief Allocates and initializes a Server instance from command-line arguments.
- * @param[out] _Server Pointer to a Server* to be allocated
- * @param[in] _Argv Command-line arguments
- * @param[in] _Argc Number of command-line arguments
- * @return 0 on success, -1 if allocation fails
- * @pre _Server must be a valid pointer
- * @post *_Server points to an initialized Server
+ * @brief Initialize the Server structure with command-line arguments.
+ *
+ * @param _Server Pointer to pointer of Server to initialize
+ * @param _Argv Command-line arguments array
+ * @param _Argc Number of command-line arguments
+ * @return 0 on success, negative value on error
+ * @pre _Server must not be NULL
+ * @post Server is allocated and configured based on argv or defaults
  */
 int Server_Initialize(Server **_Server, char **_Argv, int _Argc)
 {
     Server *srv = (Server *)malloc(sizeof(Server));
-
     if (srv == NULL)
         return -1;
 
     ServerConfig_Init(&srv->config, _Argv, _Argc);
-    printf("Port_ %d\n", srv->config.port);
+
+    printf("Port: %d\n", srv->config.port);
     printf("Log level %d\n", srv->config.log_level);
+
     *_Server = srv;
     return 0;
 }
 
 /**
- * @brief Adds the server to the crontab.
- * @note Creates a child process using fork() to execute crontab_inst.sh.
+ * @brief Add Crontab entry using a shell script.
+ * @note Forks a child process to execute "./crontab_inst.sh add"
+ * @post Waits for child to complete.
  */
 void Crontab_Add()
 {
     pid_t pid = fork();
-
     if (pid < 0)
     {
         exit(EXIT_FAILURE);
@@ -68,13 +80,13 @@ void Crontab_Add()
 }
 
 /**
- * @brief Removes the server from the crontab.
- * @note Creates a child process using fork() to execute crontab_inst.sh.
+ * @brief Remove Crontab entry using a shell script.
+ * @note Forks a child process to execute "./crontab_inst.sh remove"
+ * @post Waits for child to complete.
  */
 void Crontab_Remove()
 {
     pid_t pid = fork();
-
     if (pid < 0)
     {
         exit(EXIT_FAILURE);
@@ -93,33 +105,35 @@ void Crontab_Remove()
 }
 
 /**
- * @brief Runs the server main loop, initializing signal handlers, threads, and child processes.
- * @param[in] _Server Pointer to initialized Server
- * @return 0 on normal termination
+ * @brief Run the server, starting ConnectionHandler and subprocesses.
+ *
+ * @param _Server Pointer to initialized Server
+ * @return 0 on success, negative on error
  * @pre _Server must be initialized
- * @post Server child processes are cleaned up, Crontab removed
- * @note This function blocks until termination signal is received
+ * @post Starts all child processes, TCP listening, and blocks until termination
+ * @note Starts Threads, smw subsystem, ConnectionHandler, input cache, and algorithm subprocesses.
  */
 int Server_Run(Server *_Server)
 {
     SignalHandler_Initialize();
     Crontab_Add();
-    int status_pid, status_cache, status_algoritm;
-    pid_t pid = fork();
 
+    int status_pid, status_cache, status_algoritm;
+
+    pid_t pid = fork();
     if (pid < 0)
     {
         exit(EXIT_FAILURE);
     }
     else if (pid == 0)
     {
+        // Child process: main server work
         Threads threads[POOL_SIZE];
         Threads_Initialize(threads);
 
         smw_init();
 
         ConnectionHandler *cHandler = NULL;
-
         ConnectionHandler_Initialize(&cHandler, _Server->config.port, Threads_AddQueueItem);
 
         uint64_t monTime = 0;
@@ -132,19 +146,16 @@ int Server_Run(Server *_Server)
 
         ConnectionHandler_Dispose(&cHandler);
         smw_dispose();
-
         Threads_Dispose(threads);
 
         log_CloseWrite();
         exit(EXIT_SUCCESS);
     }
 
+    // Fork child for input cache process
     pid_t pid_cache = fork();
-
     if (pid_cache < 0)
-    {
         exit(EXIT_FAILURE);
-    }
     else if (pid_cache == 0)
     {
         execlp("Glennergy-InputCache", "Glennergy-InputCache", NULL);
@@ -152,33 +163,32 @@ int Server_Run(Server *_Server)
         exit(EXIT_SUCCESS);
     }
 
+    // Fork child for algorithm process
     pid_t pid_algoritm = fork();
-
     if (pid_algoritm < 0)
-    {
         exit(EXIT_FAILURE);
-    }
     else if (pid_algoritm == 0)
     {
         execlp("Glennergy-Algoritm", "Glennergy-Algoritm", NULL);
-        LOG_ERROR("Failed to execute Glennergy-InputCache");
+        LOG_ERROR("Failed to execute Glennergy-Algoritm");
         exit(EXIT_SUCCESS);
     }
-    else
-    {
-        // test_reader();
-        wait(&status_pid);
-        wait(&status_cache);
-        wait(&status_algoritm);
-    }
+
+    // Parent waits for all children to finish
+    wait(&status_pid);
+    wait(&status_cache);
+    wait(&status_algoritm);
+
     Crontab_Remove();
+
     return 0;
 }
 
 /**
- * @brief Frees a Server instance and sets pointer to NULL.
- * @param[in,out] _Server Pointer to Server* to be freed
- * @post *_Server is NULL after disposal
+ * @brief Dispose a Server instance and free resources.
+ *
+ * @param _Server Pointer to pointer of Server to dispose
+ * @post Closes memory and marks pointer as NULL
  */
 void Server_Dispose(Server **_Server)
 {
@@ -190,6 +200,3 @@ void Server_Dispose(Server **_Server)
     free(srv);
     srv = NULL;
 }
-
-// Suggestion: Could validate return values from execlp to handle failures more gracefully
-// Suggestion: Could handle SIGCHLD to avoid zombie processes

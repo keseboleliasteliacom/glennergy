@@ -1,11 +1,10 @@
 /**
  * @file ConnectionHandler.h
  * @brief API for handling multiple TCP connections via ConnectionHandler.
+ * @defgroup ConnectionHandler ConnectionHandler
+ * @ingroup Server
  *
- * Provides initialization, disposal, and callback mechanisms for managing connections.
- *
- * @author YourName
- * @date 2026-03-19
+ * Manages TCPServer and client callbacks.
  */
 
 #ifndef CONNECTIONHANDLER_H
@@ -18,12 +17,13 @@
 /**
  * @brief Callback type for new client connections.
  * @param _Connection Pointer to the new Connection.
- * @return int Status code: 0 on success, negative on error.
+ * @return 0 on success, negative on error.
  */
 typedef int (*Callback)(Connection* _Connection);
 
 /**
  * @brief ConnectionHandler struct managing TCP server and callbacks.
+ * @note Server owns ConnectionHandler instance.
  */
 typedef struct{
     TCPServer* tcp_server;   /**< Pointer to underlying TCPServer instance */
@@ -32,7 +32,6 @@ typedef struct{
 
 /**
  * @brief Initialize a ConnectionHandler and start listening on the given port.
- *
  * @param _ConnectionHandler Pointer to pointer of ConnectionHandler to initialize.
  * @param _Port TCP port to listen on.
  * @param _Callback Callback function for handling new connections.
@@ -44,7 +43,6 @@ int ConnectionHandler_Initialize(ConnectionHandler **_ConnectionHandler, int _Po
 
 /**
  * @brief Dispose a ConnectionHandler instance.
- *
  * @param _ConnectionHandler Pointer to pointer of ConnectionHandler to dispose.
  * @post Frees all resources associated with the handler.
  */

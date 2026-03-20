@@ -1,12 +1,10 @@
 /**
  * @file Connection.c
  * @brief Implementation of TCP client connection management.
+ * @ingroup Connection
  *
  * Handles initialization, reading HTTP requests, sending JSON responses,
  * and resource cleanup for Connection structures.
- *
- * @author YourName
- * @date 2026-03-19
  */
 
 #define MODULE_NAME "Connection"
@@ -43,7 +41,6 @@ void Connection_Dispose(Connection **_Connection);
 int Connection_Initialize(Connection **_Connection, int _Socket)
 {
     Connection *connection = (Connection *)malloc(sizeof(Connection));
-
     if (connection == NULL)
         return -1;
 
@@ -55,23 +52,6 @@ int Connection_Initialize(Connection **_Connection, int _Socket)
     return 0;
 }
 
-/**
- * @brief Handle an incoming HTTP request on the connection and send response.
- *
- * @param _Connection Pointer to initialized Connection
- * @return 0 on success, negative value on error
- *
- * @details
- * - Reads HTTP headers using HTTPRequest_ReadHeaders.
- * - Handles timeout logic (default 3s) using monotonic timer.
- * - Ignores favicon.ico and empty "/" requests.
- * - Parses client ID from URL and builds JSON response from shared memory.
- * - Uses semaphore to safely read shared memory.
- * - Sends JSON response using RESPONSE_HEADER.
- *
- * @note Internal logging is done via LOG_INFO and LOG_DEBUG macros.
- * @note Shared memory and semaphore cleanup is performed before returning.
- */
 int Connection_Handle(Connection *_Connection)
 {
     LOG_INFO("Handling incoming connection");
@@ -91,11 +71,11 @@ int Connection_Handle(Connection *_Connection)
         if (_Connection->timeout > 0)
         {
             if (monTime >= _Connection->timeout)
-            {
-                LOG_INFO("Client timed out");
-                HTTPRequest_Dispose(&request);
-                return -1;
-            }
+        {
+            LOG_INFO("Client timed out");
+            HTTPRequest_Dispose(&request);
+            return -1;
+        }
         }
         else
         {
@@ -156,7 +136,6 @@ int Connection_Handle(Connection *_Connection)
     sem_wait(mutex);
 
     json_t *arr = json_array();
-
     for (int i = 0; i < MAX_ID; i++)
     {
         if (client_id != memory->result[i].id)
@@ -182,7 +161,6 @@ int Connection_Handle(Connection *_Connection)
             json_object_set_new(obj, "id", json_integer(memory->result[i].id));
             json_object_set_new(obj, "type", json_string(type));
             json_object_set_new(obj, "timestamp", json_string(memory->result[i].time[j].time));
-
             json_array_append_new(arr, obj);
         }
     }
@@ -216,16 +194,10 @@ int Connection_Handle(Connection *_Connection)
     SHM_DisposeReader(&memory, ALGORITM_SHARED, shm_fd);
     HTTPRequest_Dispose(&request);
 
+    LOG_DEBUG("Response sent");
     return 0;
 }
 
-/**
- * @brief Dispose a Connection and free resources.
- *
- * Closes the socket and frees memory.
- *
- * @param _Connection Pointer to a Connection* to dispose
- */
 void Connection_Dispose(Connection **_Connection)
 {
     if (_Connection == NULL || *_Connection == NULL)
@@ -234,7 +206,6 @@ void Connection_Dispose(Connection **_Connection)
     Connection *connection = *_Connection;
 
     close(connection->socket);
-
     free(connection);
     connection = NULL; // Todo 
 }
