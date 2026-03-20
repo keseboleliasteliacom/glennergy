@@ -1,3 +1,9 @@
+/**
+ * @file Logger.c
+ * @brief Implementation of asynchronous logging using pipe and child process.
+ * @ingroup Logger
+ */
+
 #include "Logger.h"
 #include <stdio.h>
 #include <unistd.h>
@@ -17,30 +23,60 @@
 
 /**
  * @struct LogMessage
- * @brief Struktur för ett loggmeddelande som skickas via pipe.
+ * @brief Structure representing a log message sent through the pipe.
+ *
+ * @note All fields are copied into the struct before sending.
+ * @note Fixed-size buffers are used; messages may be truncated.
  */
 typedef struct {
-    time_t timestamp;          /**< Tidpunkt för loggning */
-    pid_t pid;                 /**< Process-ID */
-    char level[16];            /**< Loggnivå som sträng */
-    char module[32];           /**< Modulnamn */
-    char message[LOG_MSG_MAX]; /**< Själva meddelandet */
+    time_t timestamp;          /**< Timestamp of log entry */
+    pid_t pid;                 /**< Process ID */
+    char level[16];            /**< Log level string */
+    char module[32];           /**< Module name */
+    char message[LOG_MSG_MAX]; /**< Log message content */
 } LogMessage;
 
-static int write_fd = -1;           /**< Pipe skriv-FD */
-static pid_t logger_pid = -1;       /**< PID för logger-child */
-static LogLevel log_level = LOG_LEVEL_INFO; /**< Aktuell loggnivå */
+static int write_fd = -1;           /**< Pipe write file descriptor */
+static pid_t logger_pid = -1;       /**< Logger child process PID */
+static LogLevel log_level = LOG_LEVEL_INFO; /**< Current log level */
 
-static FILE* log_file = NULL;       /**< File pointer för loggfil */
-static char log_path[128] = "";     /**< Full filväg */
+static FILE* log_file = NULL;       /**< File pointer for log file */
+static char log_path[128] = "";     /**< Full file path */
 
 static pthread_mutex_t log_mutex = PTHREAD_MUTEX_INITIALIZER;
 
-/* Lokala funktioner */
+/* Internal functions */
+
+/**
+ * @brief Main loop for logger process.
+ *
+ * Reads log messages from pipe and writes them to file.
+ *
+ * @param read_fd Pipe read file descriptor.
+ *
+ * @pre Called only in child process.
+ * @post Log file is flushed and closed on exit.
+ *
+ * @warning Blocking loop until pipe is closed.
+ */
 static void log_ProcessLoop(int read_fd);
+
+/**
+ * @brief Writes a log message to file.
+ *
+ * @param log_msg Pointer to log message.
+ *
+ * @pre log_file must be open.
+ *
+ * @note Formats timestamp and writes a single log line.
+ */
 static void log_ToFile(const LogMessage* log_msg);
+
 const char* log_GetLevelString(LogLevel level);
 
+/**
+ * @brief Initializes logger system.
+ */
 int log_Init(const char* filename)
 {
     const char* base_dir = "/var/log/glennergy";
@@ -68,6 +104,7 @@ int log_Init(const char* filename)
         perror("pipe");
         return -1;
     }
+
     logger_pid = fork();
 
     if (logger_pid < 0)
@@ -97,11 +134,18 @@ int log_Init(const char* filename)
         if (flags != -1) {
             fcntl(write_fd, F_SETFL, flags | O_NONBLOCK);
         }
+
         printf("Logger initialized (PID: %d)\n", logger_pid);    
     }
+
     return 0;
+
+    // Suggestion: Validate snprintf result to avoid path truncation
 }
 
+/**
+ * @brief Logs a message.
+ */
 void log_Message(LogLevel level, const char* module, const char* msg)
 {
     if(write_fd < 0)
@@ -135,6 +179,7 @@ void log_Message(LogLevel level, const char* module, const char* msg)
     {
         static unsigned long dropped = 0;
         dropped++;
+
         if (dropped % 1000 == 0)
             fprintf(stderr, "WARNING: Log buffer full, %lu messages dropped\n", dropped);
         
@@ -152,8 +197,13 @@ void log_Message(LogLevel level, const char* module, const char* msg)
     }
     
     pthread_mutex_unlock(&log_mutex);
+
+    // Suggestion: Consider handling SIGPIPE to avoid process termination
 }
 
+/**
+ * @brief Logs a formatted message.
+ */
 void log_MessageFmt(LogLevel level, const char* module, const char* fmt, ...)
 {
     char buffer[LOG_MSG_MAX];  // Larger buffer for formatting
@@ -165,6 +215,8 @@ void log_MessageFmt(LogLevel level, const char* module, const char* fmt, ...)
     
     // Call existing log_Message with formatted string
     log_Message(level, module, buffer);
+
+    // Suggestion: Check vsnprintf return value for truncation detection
 }
 
 static void log_ProcessLoop(int read_fd)
@@ -216,6 +268,8 @@ static void log_ProcessLoop(int read_fd)
         fclose(log_file);
         log_file = NULL;
     }
+
+    // Suggestion: Handle graceful shutdown signal instead of relying solely on pipe close
 }
 
 static void log_ToFile(const LogMessage* log_msg)
@@ -227,12 +281,15 @@ static void log_ToFile(const LogMessage* log_msg)
     struct tm* tm_info = localtime(&log_msg->timestamp);
     strftime(time_buf, sizeof(time_buf), "%Y-%m-%d %H:%M:%S", tm_info);
 
-    fprintf(log_file, "[%s] [PID:%d] [%s] [%s]: %s\n", time_buf, log_msg->pid, log_msg->level, log_msg->module, log_msg->message);
+    fprintf(log_file, "[%s] [PID:%d] [%s] [%s]: %s\n",
+            time_buf, log_msg->pid, log_msg->level, log_msg->module, log_msg->message);
 
-    #ifdef DEBUG
+#ifdef DEBUG
     fprintf(stderr, "[%s] [%s] [%s]: %s\n", 
             time_buf, log_msg->level, log_msg->module, log_msg->message);
-    #endif
+#endif
+
+    // Suggestion: Check fprintf return value for disk write errors
 }
 
 const char* log_GetLevelString(LogLevel level)
@@ -251,6 +308,7 @@ void log_SetLevel(LogLevel level)
 {
     if (level < LOG_LEVEL_DEBUG || level > LOG_LEVEL_ERROR)
         return;
+
     log_level = level;
 }
 
@@ -270,6 +328,7 @@ void log_Cleanup(void)
         close(write_fd);
         write_fd = -1;
     }
+
     if (logger_pid > 0)
     {
         printf("Waiting for logger to exit...\n");
@@ -279,4 +338,6 @@ void log_Cleanup(void)
     }
     
     pthread_mutex_destroy(&log_mutex);
+
+    // Suggestion: Ensure no threads are logging before destroying mutex
 }
