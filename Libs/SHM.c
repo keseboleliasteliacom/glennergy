@@ -1,5 +1,5 @@
 /**
- * @file SMW.c
+ * @file SHM.c
  * @brief Implementation of shared memory and semaphore utilities.
  * @ingroup SMW
  */
@@ -14,6 +14,15 @@
 
 /**
  * @brief Initializes shared memory for writing.
+ *
+ * @param shared Double pointer to shared memory structure.
+ * @param name Name of shared memory object.
+ * @param shm_fd File descriptor (input/output).
+ * @return 0 on success, negative on failure.
+ *
+ * @pre shared and name must be valid.
+ * @post Shared memory is created and mapped.
+ * @warning Overwrites existing shared memory if exists.
  */
 int SHM_InitializeWriter(AlgoritmShared **shared, const char *name, int shm_fd)
 {
@@ -47,6 +56,14 @@ int SHM_InitializeWriter(AlgoritmShared **shared, const char *name, int shm_fd)
 
 /**
  * @brief Initializes shared memory for reading.
+ *
+ * @param shared Double pointer to shared memory structure.
+ * @param name Name of shared memory object.
+ * @param shm_fd File descriptor (input/output).
+ * @return 0 on success, negative on failure.
+ *
+ * @pre Shared memory must exist.
+ * @post *shared points to mapped read-only memory.
  */
 int SHM_InitializeReader(AlgoritmShared **shared, const char *name, int shm_fd)
 {
@@ -110,6 +127,10 @@ int SHM_OpenSemaphore(sem_t **sem, const char *name)
 
 /**
  * @brief Closes a semaphore.
+ *
+ * @param sem Double pointer to semaphore.
+ *
+ * @post Semaphore closed.
  */
 void SHM_CloseSemaphore(sem_t **sem)
 {
@@ -121,6 +142,11 @@ void SHM_CloseSemaphore(sem_t **sem)
 
 /**
  * @brief Closes and unlinks a semaphore.
+ *
+ * @param sem Double pointer to semaphore.
+ * @param name Name of semaphore.
+ *
+ * @post Semaphore closed and unlinked.
  */
 void SHM_DestroySemaphore(sem_t **sem, const char *name)
 {
@@ -159,10 +185,9 @@ void SHM_DisposeWriter(AlgoritmShared **shared, const char *name, int shm_fd)
 /**
  * @brief Removes shared memory object from the system.
  *
- * @param name Name of shared memory.
+ * @param name Name of shared memory object.
  *
- * @post Shared memory is unlinked.
- *
+ * @post Shared memory unlinked.
  * @warning Should only be called by owner process.
  */
 void SHM_Destroy(const char *name)
