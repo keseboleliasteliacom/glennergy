@@ -10,6 +10,14 @@
  * - Serves data to clients via UNIX domain socket
  *
  * Acts as a central aggregation and distribution layer.
+ *
+ * @defgroup INPUTCACHE Input Cache
+ * @ingroup CACHE
+ * @{
+ *
+ * @note All data structures are stored in memory and ABI-sensitive
+ * @note FIFO paths and UNIX socket paths are fixed and must match producer/consumer
+ * @warning Access to shared data must be synchronized if accessed concurrently
  */
 
 #ifndef INPUTCACHE_H
@@ -39,6 +47,8 @@
 
 /**
  * @brief Electricity price areas.
+ *
+ * @note Used for indexing spot price data arrays.
  */
 typedef enum {
     AREA_SE1 = 0,
@@ -50,6 +60,9 @@ typedef enum {
 
 /**
  * @brief Simplified Meteo data used by cache.
+ *
+ * @note Contains static array of weather samples.
+ * @note All string fields are null-terminated.
  */
 typedef struct {
     int id;                             /**< Property ID */
@@ -62,6 +75,8 @@ typedef struct {
 
 /**
  * @brief Single spot price entry.
+ *
+ * @note All string fields are null-terminated.
  */
 typedef struct {
     char time_start[32];        /**< Timestamp */
@@ -70,6 +85,8 @@ typedef struct {
 
 /**
  * @brief Spot price container for all areas.
+ *
+ * @note 192 entries per area (48h * 4 quarters per hour)
  */
 typedef struct {
     SpotEntry_t data[AREA_COUNT][192]; /**< 192 = 48h * 4 */
@@ -78,9 +95,11 @@ typedef struct {
 
 /**
  * @brief Main cache container.
+ *
+ * @note Holds Meteo, Spotpris, and Homesystem data.
+ * @note `is_old` indicates stale data.
  */
 typedef struct {
-
     Homesystem_t home[MAX_HOMES]; /**< Home configurations */
     size_t home_count;            /**< Number of homes */
 
@@ -102,6 +121,7 @@ typedef struct {
  *
  * @pre cache != NULL
  * @pre file_path != NULL
+ * @post Cache initialized and home data loaded
  */
 int inputcache_Init(InputCache_t *cache, const char* file_path);
 
@@ -110,7 +130,7 @@ int inputcache_Init(InputCache_t *cache, const char* file_path);
  *
  * @return Socket file descriptor, or -1 on failure
  *
- * @post Socket is bound and listening
+ * @post Socket bound and listening
  */
 int inputcache_CreateSocket(void);
 
@@ -124,6 +144,7 @@ int inputcache_CreateSocket(void);
  *
  * @pre meteo_fd != NULL
  * @pre spotpris_fd != NULL
+ * @post FIFOs opened for reading
  */
 int inputcache_OpenFIFOs(int *meteo_fd, int *spotpris_fd);
 
@@ -133,7 +154,7 @@ int inputcache_OpenFIFOs(int *meteo_fd, int *spotpris_fd);
  * @param[in,out] cache Cache instance
  * @param[in] client_fd Connected client socket
  *
- * @post Client connection is closed
+ * @post Client connection closed after handling
  */
 void inputcache_HandleRequest(InputCache_t *cache, int client_fd);
 
@@ -143,7 +164,7 @@ void inputcache_HandleRequest(InputCache_t *cache, int client_fd);
  * @param[in,out] cache Cache instance
  * @param[in] meteo_fd FIFO descriptor
  *
- * @post Cache meteo data updated
+ * @post Cache Meteo data updated
  */
 void inputcache_HandleMeteoData(InputCache_t *cache, int meteo_fd);
 
@@ -153,7 +174,7 @@ void inputcache_HandleMeteoData(InputCache_t *cache, int meteo_fd);
  * @param[in,out] cache Cache instance
  * @param[in] spotpris_fd FIFO descriptor
  *
- * @post Cache spotpris data updated
+ * @post Cache Spotpris data updated
  */
 void inputcache_HandleSpotprisData(InputCache_t *cache, int spotpris_fd);
 
@@ -162,8 +183,10 @@ void inputcache_HandleSpotprisData(InputCache_t *cache, int spotpris_fd);
  *
  * @param[in,out] cache Cache instance
  *
- * @note Frees allocated memory
+ * @post All allocated memory freed
  */
 void inputcache_Cleanup(InputCache_t *cache);
+
+/** @} */
 
 #endif

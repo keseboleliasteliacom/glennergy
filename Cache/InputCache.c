@@ -1,6 +1,15 @@
 /**
  * @file InputCache.c
- * @brief Implementation of cache module.
+ * @brief Implementation of InputCache module.
+ *
+ * @details
+ * Implements cache for Meteo and Spotpris data.
+ * Handles:
+ * - FIFO input from upstream producers
+ * - UNIX socket client requests
+ * - Persisting cache data to disk
+ *
+ * @ingroup INPUTCACHE
  */
 #define MODULE_NAME "INPUTCACHE"
 #include "../Server/Log/Logger.h"
@@ -19,6 +28,19 @@
 #include <errno.h>
 
 const char *area_names[AREA_COUNT] = {"SE1", "SE2", "SE3", "SE4"};
+
+/**
+ * @brief Initialize cache and load home configuration.
+ *
+ * @param[out] cache Cache instance
+ * @param[in] file_path Path to homesystem JSON file
+ *
+ * @return 0 on success, -1 on error
+ *
+ * @pre cache != NULL
+ * @pre file_path != NULL
+ * @post Cache initialized, home entries loaded
+ */
 int inputcache_Init(InputCache_t *cache, const char *file_path)
 {
     if (!cache || !file_path)
@@ -38,6 +60,13 @@ int inputcache_Init(InputCache_t *cache, const char *file_path)
     return 0;
 }
 
+/**
+ * @brief Create and bind UNIX domain socket for cache service.
+ *
+ * @return Socket file descriptor, or -1 on failure
+ *
+ * @post Socket bound, listening, and ready to accept clients
+ */
 int inputcache_CreateSocket(void)
 {
     int sock_fd = socket_CreateSocket();
@@ -69,6 +98,16 @@ int inputcache_CreateSocket(void)
     return sock_fd;
 }
 
+/**
+ * @brief Open FIFO channels for Meteo and Spotpris input.
+ *
+ * @param[out] meteo_fd File descriptor for Meteo FIFO
+ * @param[out] spotpris_fd File descriptor for Spotpris FIFO
+ *
+ * @return 0 on success, -1 on error
+ *
+ * @post FIFOs ready for reading
+ */
 int inputcache_OpenFIFOs(int *meteo_fd, int *spotpris_fd)
 {
     if (!meteo_fd || !spotpris_fd)
@@ -110,6 +149,14 @@ int inputcache_OpenFIFOs(int *meteo_fd, int *spotpris_fd)
     return 0;
 }
 
+/**
+ * @brief Handle incoming client request over socket.
+ *
+ * @param[in,out] cache Cache instance
+ * @param[in] client_fd Connected client socket
+ *
+ * @post Client connection closed after response
+ */
 void inputcache_HandleRequest(InputCache_t *cache, int client_fd)
 {
     CacheRequest req;
@@ -177,14 +224,15 @@ void inputcache_HandleRequest(InputCache_t *cache, int client_fd)
 
     close(client_fd);
 }
+
 /**
- * @brief Save Meteo data to disk.
+ * @brief Internal helper: Save Meteo data to disk.
  *
  * @param[in] _Data Meteo data
  *
  * @return 0 on success, negative on error
  *
- * @note Internal helper function
+ * @note Writes JSON files to /var/cache/glennergy/meteo
  */
 static int inputcache_SaveMeteo(const MeteoData *_Data)
 {
@@ -229,6 +277,14 @@ static int inputcache_SaveMeteo(const MeteoData *_Data)
     return 0;
 }
 
+/**
+ * @brief Handle incoming Meteo data from FIFO.
+ *
+ * @param[in,out] cache Cache instance
+ * @param[in] meteo_fd FIFO descriptor
+ *
+ * @post Cache Meteo data updated and persisted
+ */
 void inputcache_HandleMeteoData(InputCache_t *cache, int meteo_fd)
 {
     MeteoData meteo_test;
@@ -258,14 +314,15 @@ void inputcache_HandleMeteoData(InputCache_t *cache, int meteo_fd)
         LOG_ERROR("failed to read meteo data, got %zd bytes", bytesReadMeteo); // fixed size so should never trigger can still be wrong
     }
 }
+
 /**
- * @brief Save Spotpris data to disk.
+ * @brief Internal helper: Save Spotpris data to disk.
  *
  * @param[in] spotpris Spot price data
  *
  * @return 0 on success, negative on error
  *
- * @note Internal helper function
+ * @note Writes JSON files to /var/cache/glennergy/spotpris
  */
 // TODO - Kolla static på interna funktioner i denna och andra moduler
 int inputcache_SaveSpotpris(const AllaSpotpriser *spotpris)
@@ -319,6 +376,14 @@ int inputcache_SaveSpotpris(const AllaSpotpriser *spotpris)
     return 0;
 }
 
+/**
+ * @brief Handle incoming Spotpris data from FIFO.
+ *
+ * @param[in,out] cache Cache instance
+ * @param[in] spotpris_fd FIFO descriptor
+ *
+ * @post Cache Spotpris data updated and persisted
+ */
 void inputcache_HandleSpotprisData(InputCache_t *cache, int spotpris_fd)
 {
     AllaSpotpriser spotpris_test;
@@ -353,6 +418,13 @@ void inputcache_HandleSpotprisData(InputCache_t *cache, int spotpris_fd)
     }
 }
 
+/**
+ * @brief Cleanup cache resources.
+ *
+ * @param[in,out] cache Cache instance
+ *
+ * @post Memory freed
+ */
 void inputcache_Cleanup(InputCache_t *cache)
 {
     LOG_INFO("Cleanup InputCache...");
