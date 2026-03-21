@@ -102,7 +102,6 @@ int Spotpris_FetchAll(AllaSpotpriser *_AllaSpotpriser)
 
     for (int i = 0; i < 4; i++)
     {
-
         json_t *total_data = json_array();
         for (int k = 0; k < NUM_DAYS; k++)
         {

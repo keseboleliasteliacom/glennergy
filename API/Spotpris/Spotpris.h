@@ -5,11 +5,11 @@
  * Provides data structures and functions for fetching and handling
  * electricity spot prices from an external API.
  */
+
 #ifndef SPOTPRIS_H
 #define SPOTPRIS_H
 
 #include <stddef.h>
-
 
 /**
  * @defgroup SPOTPRIS Spotpris
@@ -33,12 +33,11 @@
  */
 typedef struct {
     char time_start[32]; /**< Start time in ISO format. */
-    //char time_end[32];
+    //char time_end[32];  /**< End time in ISO format. */
     double sek_per_kwh;  /**< Price in SEK per kWh. */
-    //double eur_per_kwh;
-    //double exchange_rate;
+    //double eur_per_kwh; /**< Price in EUR per kWh. */
+    //double exchange_rate; /**< Exchange rate used. */
 } SpotPriceEntry;
-
 
 /**
  * @brief Represents spot prices for a single electricity area.
@@ -85,7 +84,7 @@ typedef struct
  */
 typedef struct 
 {
-    DagligSpotpris areas[4]; // "SE1", "SE2", "SE3", "SE4"
+    DagligSpotpris areas[4]; /**< "SE1", "SE2", "SE3", "SE4" */
 } AllaSpotpriser;
 
 
@@ -93,19 +92,37 @@ typedef struct
 
 /**
  * @brief Prints a SpotPriceEntry (debug).
- * @param e Pointer to entry.
+ *
+ * @param e Pointer to entry to print.
+ *
+ * @pre e must not be NULL.
+ * @post Entry is printed to standard output.
+ * @warning Debug only; may produce verbose output.
+ * @note Memory ownership not affected.
  */
 void SpotPriceEntry_Print(const SpotPriceEntry *e);
 
 /**
  * @brief Prints a DagligSpotpris (debug).
- * @param d Pointer to daily data.
+ *
+ * @param d Pointer to daily spot price data.
+ *
+ * @pre d must not be NULL.
+ * @post Daily spot prices are printed to standard output.
+ * @warning Debug only; may produce verbose output.
+ * @note Memory ownership not affected.
  */
 void DagligSpotpris_Print(const DagligSpotpris *d);
 
 /**
  * @brief Prints all spot prices (debug).
- * @param a Pointer to all data.
+ *
+ * @param a Pointer to all spot price data.
+ *
+ * @pre a must not be NULL.
+ * @post All spot prices are printed to standard output.
+ * @warning Debug only; may produce verbose output.
+ * @note Memory ownership not affected.
  */
 void AllaSpotpriser_Print(const AllaSpotpriser *a);
 

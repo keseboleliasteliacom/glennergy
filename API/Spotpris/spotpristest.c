@@ -7,42 +7,34 @@
  * 2. Fetches spot price data using Spotpris module
  * 3. Sends the data via FIFO to another process (InputCache)
  *
- * ---
+ * @ingroup SPOTPRIS
  *
- * @section behavior Runtime Behavior
+ * --- Runtime Behavior
  * - Fetches spot prices for all SE areas (SE1–SE4)
  * - Combines today + tomorrow data
  * - Serializes and sends full struct via binary pipe
  *
- * ---
- *
- * @section side_effects Side Effects
+ * --- Side Effects
  * - Creates FIFO at `/tmp/fifo_spotpris`
  * - Performs blocking I/O (FIFO write)
  * - Performs network requests (via Spotpris module)
  * - Writes logs to `spotpris.log`
  *
- * ---
- *
- * @section dependencies Dependencies
+ * --- Dependencies
  * - libcurl (requires curl_global_init / cleanup)
  * - FIFO consumer must exist (reader process)
  * - Spotpris module must be functional
  *
- * ---
- *
- * @section error_handling Error Handling
+ * --- Error Handling
  * - Returns -4 if fetch fails
  * - Returns -3 if FIFO open fails
  * - Returns -1 if FIFO creation fails
  *
- * ---
- *
  * @note This file is intended for testing and integration.
  * @note Not part of core business logic.
- *
  * @warning Blocking behavior occurs if no FIFO reader is connected.
  */
+
 #define MODULE_NAME "MAIN"
 
 #include "../../Server/Log/Logger.h"
@@ -57,8 +49,9 @@
 #include <errno.h>
 #include <sys/stat.h>
 
-
-// Named pipe used for IPC between Spotpris module and InputCache
+/**
+ * @brief Named pipe used for IPC between Spotpris module and InputCache.
+ */
 #define FIFO_SPOTPRIS_WRITE "/tmp/fifo_spotpris"
 
 /**
@@ -78,7 +71,11 @@
  * - 0 on success
  * - Negative error code on failure
  *
- * @note This function performs blocking I/O when writing to FIFO.
+ * @pre Logging system must be functional.
+ * @pre Spotpris module must be functional.
+ * @post Spot price data is sent via FIFO to consumer.
+ * @warning This function performs blocking I/O when writing to FIFO.
+ * @note Intended for testing; does not affect core business logic.
  */
 int main(void)
 {
@@ -105,6 +102,7 @@ int main(void)
      * Create FIFO if it does not exist.
      *
      * @note mkfifo will fail with EEXIST if already created (expected case).
+     * @warning Fails if permissions prevent creation.
      */
     if (mkfifo(FIFO_SPOTPRIS_WRITE, 0666) < 0 && errno != EEXIST)
     {
@@ -131,6 +129,10 @@ int main(void)
 
     /**
      * Write binary struct to pipe.
+     *
+     * @param spotpris_fd_write File descriptor of FIFO.
+     * @param &spotpriser Pointer to data structure.
+     * @param sizeof(spotpriser) Size of data structure.
      *
      * @note Writes entire AllaSpotpriser struct in one operation.
      * @warning Receiver must use identical struct layout (ABI-sensitive).
