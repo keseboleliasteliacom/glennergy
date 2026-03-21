@@ -1,6 +1,8 @@
 /**
  * @file meteo.c
  * @brief Implementation of Meteo module.
+ *
+ * @ingroup MeteoModule
  */
 #define MODULE_NAME "METEO"
 #include "../../Server/Log/Logger.h"
@@ -15,6 +17,10 @@
 #include <jansson.h>
 
 #define METEO_LINK "https://api.open-meteo.com/v1/forecast?latitude=%2.f&longitude=%2f&minutely_15=temperature_2m,shortwave_radiation,direct_normal_irradiance,diffuse_radiation,cloud_cover,is_day&forecast_days=3&forecast_minutely_15=128&timezone=Europe/Stockholm"
+
+/**
+ * @brief Initialize MeteoData structure.
+ */
 int Meteo_Initialize(MeteoData *_MeteoData)
 {
     if (_MeteoData == NULL)
@@ -31,9 +37,14 @@ int Meteo_Initialize(MeteoData *_MeteoData)
         _MeteoData->pInfo[i].raw_json_data[0] = '\0';
     }
 
+    // Suggestion: Consider memset for full struct initialization for consistency
+
     return 0;
 }
 
+/**
+ * @brief Load property metadata from JSON file.
+ */
 int Meteo_LoadGlennergy(MeteoData *_MeteoData)
 {
     json_error_t err;
@@ -90,6 +101,7 @@ int Meteo_LoadGlennergy(MeteoData *_MeteoData)
 
     return 0;
 }
+
 /**
  * @brief Parse raw JSON weather data into PropertyInfo structure.
  *
@@ -101,9 +113,13 @@ int Meteo_LoadGlennergy(MeteoData *_MeteoData)
  * - -1 JSON parse failure
  * - -2 Missing required fields
  *
+ * @pre _PropertyInfo != NULL
+ * @pre _JsonRaw != NULL
+ * @post sample[] is populated
+ *
+ * @warning Assumes JSON arrays are aligned in size
  * @note Internal function, not part of public API
  */
-
 int Meteo_Parse(PropertyInfo *_PropertyInfo, const char *_JsonRaw)
 {
 
@@ -131,6 +147,8 @@ int Meteo_Parse(PropertyInfo *_PropertyInfo, const char *_JsonRaw)
     json_t *is_day = json_object_get(hourly, "is_day");
 
     size_t array_size = json_array_size(temps);
+
+    // Suggestion: Validate that all arrays have equal length before iteration
 
     for (size_t j = 0; j < array_size; j++)
     {
@@ -164,6 +182,9 @@ int Meteo_Parse(PropertyInfo *_PropertyInfo, const char *_JsonRaw)
     return 0;
 }
 
+/**
+ * @brief Fetch weather data for all properties.
+ */
 int meteo_Fetch(MeteoData *_MeteoData)
 {
 
@@ -208,6 +229,9 @@ int meteo_Fetch(MeteoData *_MeteoData)
     return 0;
 }
 
+/**
+ * @brief Reset MeteoData structure.
+ */
 void Meteo_Dispose(MeteoData *_MeteoData)
 {
     if (_MeteoData == NULL)

@@ -2,6 +2,8 @@
  * @file Meteo.h
  * @brief Meteo module for fetching and storing weather forecast data.
  *
+ * @defgroup MeteoModule Meteo Module
+ *
  * @details
  * This module is responsible for:
  * - Loading property metadata (locations)
@@ -34,6 +36,10 @@
 
 /**
  * @brief Weather sample for a single 15-minute interval.
+ *
+ * @note Memory ownership: Fully owned by parent PropertyInfo structure.
+ * @note Arrays:
+ * - time_start: Null-terminated string, max 31 characters + '\0'
  */
 typedef struct
 {
@@ -49,6 +55,16 @@ typedef struct
 
 /**
  * @brief Weather and metadata for a single property/location.
+ *
+ * @note Memory ownership:
+ * - All buffers are statically allocated and owned by this struct.
+ * - No dynamic allocation is used.
+ *
+ * @note Arrays:
+ * - property_name: max length NAME_MAX
+ * - sample: fixed size KVARTAR_TOTALT
+ * - raw_json_data: max size RAW_DATA_MAX
+ * - electricity_area: max 4 chars + null terminator
  */
 typedef struct
 {
@@ -63,6 +79,14 @@ typedef struct
 
 /**
  * @brief Container for all properties and their weather data.
+ *
+ * @note Memory ownership:
+ * - Fully self-contained structure
+ * - No external allocations
+ *
+ * @note Arrays:
+ * - pInfo: fixed size PROPERTIES_MAX
+ * - Only first pCount elements are valid
  */
 typedef struct
 {
@@ -78,7 +102,10 @@ typedef struct
  * @return 0 on success, -1 if input is NULL
  *
  * @pre _MeteoData != NULL
- * @post Structure is zero-initialized and safe to use
+ * @post Structure is initialized with default values
+ *
+ * @warning Does not clear entire memory via memset, only selected fields
+ * @note Safe for repeated calls
  */
 int Meteo_Initialize(MeteoData *_MeteoData);
 
@@ -92,6 +119,7 @@ int Meteo_Initialize(MeteoData *_MeteoData);
  * @pre _MeteoData != NULL
  * @post pCount is updated and property data populated
  *
+ * @warning Truncates properties if exceeding PROPERTIES_MAX
  * @note Reads from: /etc/Glennergy-Fastigheter.json
  */
 int Meteo_LoadGlennergy(MeteoData *_MeteoData);
@@ -111,6 +139,9 @@ int Meteo_LoadGlennergy(MeteoData *_MeteoData);
  * @pre pCount > 0
  *
  * @post sample[] arrays are populated for each property
+ *
+ * @warning Network-dependent operation (blocking)
+ * @note Uses Fetcher module (Curl wrapper)
  */
 int meteo_Fetch(MeteoData *_MeteoData);
 
@@ -121,6 +152,9 @@ int meteo_Fetch(MeteoData *_MeteoData);
  *
  * @pre _MeteoData may be NULL
  * @post Structure is zeroed
+ *
+ * @warning Invalidates all previously stored data
+ * @note Uses memset for full reset
  */
 void Meteo_Dispose(MeteoData *_MeteoData);
 
