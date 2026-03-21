@@ -1,6 +1,7 @@
 /**
  * @file main.c
  * @brief Entry point for the Algorithm module. Reads cached data and computes recommendations.
+ * @defgroup Algorithm Algorithm Module
  *
  * This file runs the main loop for the Algorithm module:
  * - Connects to the cache
@@ -8,10 +9,10 @@
  * - Computes recommendations and writes to shared memory
  *
  * @note Original comments and logging preserved.
- * @ingroup Algorithm
  */
 
 #define MODULE_NAME "ALGORITM"
+
 #include "../Server/Log/Logger.h"
 #include "AlgoritmProtocol.h"
 #include "../Libs/SHM.h"
@@ -100,7 +101,7 @@ int cache_request(CacheCommand cmd, void *data_out, size_t expected_size)
 }
 
 /**
- * @brief Main loop for Algorithm module
+ * @brief Main loop for the Algorithm module.
  *
  * Initializes logging, shared memory, semaphores, and InputCache,
  * then enters a loop to:
@@ -159,6 +160,7 @@ int main()
         average_SpotprisStats(&stats, cache);
 
         sem_wait(mutex);
+
         for (size_t area_idx = 0; area_idx < 4; area_idx++)
         {
             size_t show_count = cache->spotpris.count[area_idx];
@@ -218,6 +220,7 @@ int main()
                 }
             }
         }
+
         sem_post(mutex);
         sleep(10);
     }

@@ -2,6 +2,10 @@
  * @file average.h
  * @brief Statistical calculations for Algorithm module.
  * @defgroup Algorithm Algorithm Module
+ *
+ * Provides data structures and functions for computing statistics
+ * on spot prices and meteo data, detecting low-price windows,
+ * and generating recommendations.
  */
 
 #ifndef AVERAGE_H
@@ -13,7 +17,7 @@
 
 /**
  * @brief Generic statistics for numerical data
- * @note Memory owned by parent struct; arrays not used here.
+ * @note Memory owned by parent struct; arrays not used here
  */
 typedef struct {
     double min;     /**< Minimum value */
@@ -29,7 +33,7 @@ typedef struct {
  */
 typedef struct {
     Stats_t temperature; /**< Temperature statistics */
-    Stats_t ghi;         /**< GHI statistics */
+    Stats_t ghi;         /**< Global Horizontal Irradiance statistics */
 } MeteoStats_t;
 
 /**
@@ -71,4 +75,15 @@ int average_WindowLow(InputCache_t *cache, double q25_threshold);
  */
 int average_WindowLow_test(SpotEntry_t *entry, double q25_threshold, double q75_threshold);
 
-#endif
+/**
+ * @brief Test function computing spot statistics from Spot_t
+ * @param spot Pointer to SpotStats_t to store results
+ * @param entry Pointer to Spot_t input
+ * @return 0 on success, -1 on invalid parameters
+ * @pre `spot` and `entry` must be valid
+ * @post `spot` contains computed statistics
+ * @note Primarily used for unit testing
+ */
+int average_SpotprisStats_test(SpotStats_t *spot, Spot_t *entry);
+
+#endif // AVERAGE_H

@@ -2,17 +2,24 @@
  * @file AlgoritmProtocol.h
  * @brief Shared memory structures and protocol definitions for Algorithm module.
  * @defgroup Algorithm Algorithm Module
+ * @ingroup Algorithm
+ *
+ * This file defines the shared memory layout and communication protocol for
+ * the Algorithm module.
+ * 
+ * @note Original comments preserved.
  */
 
 #ifndef TESTREADER_H
 #define TESTREADER_H
 
-#define MAX_ID 5                  /**< Maximum number of results in shared memory */
-#define ALGORITM_SHARED "/algoritm_shm"  /**< Shared memory name */
+#define MAX_ID 5                        /**< Maximum number of results in shared memory */
+#define ALGORITM_SHARED "/algoritm_shm" /**< Shared memory name */
 #define ALGORITM_MUTEX "/algoritm_mutex" /**< Semaphore name for shared memory */
 
 /**
  * @brief Placeholder function for testing reader
+ *
  * @return 0 on success, -1 on error
  */
 int test_reader();
