@@ -1,8 +1,13 @@
+/**
+ * @file ServerConfig.c
+ * @brief Implementation of server configuration initialization.
+ * @ingroup ServerConfig
+ */
+
 #include "ServerConfig.h"
 #include <stddef.h>
 #include <stdlib.h>
 
-// Unused for now, main currently using argc and argv solution
 void ServerConfig_Init(ServerConfig* config, char** _Argv, int _Argc)
 {
     if(_Argc > 1)
@@ -22,4 +27,6 @@ void ServerConfig_Init(ServerConfig* config, char** _Argv, int _Argc)
         config->log_level = LOG_LEVEL_INFO;
         config->port = 8080;
     }
+
+    // Suggestion: Could validate that port is within valid range (1-65535)
 }

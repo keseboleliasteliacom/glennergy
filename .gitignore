@@ -27,6 +27,13 @@
 *.la
 *.lo
 
+# Doxygen generated files
+/html/
+/latex/
+/man/
+/rtf/
+/xml/
+
 # Shared objects (inc. Windows DLLs)
 *.dll
 *.so

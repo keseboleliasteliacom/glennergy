@@ -1,3 +1,15 @@
+/**
+ * @file main.c
+ * @brief Entry point for Meteo service.
+ *
+ * @ingroup MeteoModule
+ *
+ * @details
+ * This service:
+ * - Loads property configuration
+ * - Fetches weather data
+ * - Sends results via FIFO to downstream systems
+ */
 #define MODULE_NAME "MAIN"
 #include "../../Server/Log/Logger.h"
 #include "Meteo.h"
@@ -11,6 +23,17 @@
 
 #define FIFO_METEO_WRITE "/tmp/fifo_meteo"
 
+/**
+ * @brief Main entry point for Meteo service.
+ *
+ * @return 0 on success, negative value on failure
+ *
+ * @pre System has access to FIFO path and configuration file
+ * @post Weather data is written to FIFO
+ *
+ * @warning Blocking operations (FIFO + network)
+ * @note Uses global curl initialization
+ */
 int main()
 {
 
@@ -38,6 +61,8 @@ int main()
     static time_t last_modified = -1;
 
     MeteoData data;
+
+    // Suggestion: Call Meteo_Initialize(&data) before usage for explicit initialization
     Meteo_LoadGlennergy(&data);
 
     if (file_lastModified("/etc/Glennergy-Fastigheter.json", &last_modified) == 1)
