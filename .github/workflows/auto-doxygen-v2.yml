@@ -1,0 +1,128 @@
+name: Auto Doxygen Documentation v2
+
+on:
+  push:
+    branches-ignore:
+      - main
+      - 'auto-doc/**'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  generate-and-validate-docs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout current branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install openai
+
+      - name: Detect changed C/H files
+        id: changes
+        shell: bash
+        run: |
+          BEFORE_SHA="${{ github.event.before }}"
+          AFTER_SHA="${{ github.sha }}"
+
+          if [ "$BEFORE_SHA" = "0000000000000000000000000000000000000000" ]; then
+            git diff-tree --no-commit-id --name-only -r "$AFTER_SHA" > changed_all.txt
+          else
+            git diff --name-only "$BEFORE_SHA" "$AFTER_SHA" > changed_all.txt
+          fi
+
+          grep -E '\.(c|h)$' changed_all.txt > changed_files.txt || true
+
+          echo "Changed files:"
+          cat changed_files.txt || true
+
+          if [ ! -s changed_files.txt ]; then
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_changes=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Generate or update Doxygen docs with AI
+        if: steps.changes.outputs.has_changes == 'true'
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          python scripts/ai_generate_doxygen.py changed_files.txt
+
+      - name: Validate generated results
+        if: steps.changes.outputs.has_changes == 'true'
+        run: |
+          python scripts/validate_doxygen_rules.py changed_files.txt
+
+      - name: Check whether files changed
+        if: steps.changes.outputs.has_changes == 'true'
+        id: gitdiff
+        shell: bash
+        run: |
+          if git diff --quiet; then
+            echo "docs_changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "docs_changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create auto-doc branch and push
+        if: steps.gitdiff.outputs.docs_changed == 'true'
+        env:
+          SOURCE_BRANCH: ${{ github.ref_name }}
+        run: |
+          AUTO_BRANCH="auto-doc/${SOURCE_BRANCH//\//-}"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git checkout -B "$AUTO_BRANCH"
+          git add .
+          git commit -m "docs: automated doxygen update [skip ci]"
+          git push --force --set-upstream origin "$AUTO_BRANCH"
+
+          echo "AUTO_BRANCH=$AUTO_BRANCH" >> "$GITHUB_ENV"
+
+      - name: Create pull request
+        if: steps.gitdiff.outputs.docs_changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BASE_BRANCH: ${{ github.ref_name }}
+        run: |
+          PR_COUNT=$(gh pr list \
+            --head "$AUTO_BRANCH" \
+            --base "$BASE_BRANCH" \
+            --state open \
+            --json number \
+            --jq 'length')
+
+          if [ "$PR_COUNT" = "0" ]; then
+            gh pr create \
+              --base "$BASE_BRANCH" \
+              --head "$AUTO_BRANCH" \
+              --title "docs: automated doxygen update for ${BASE_BRANCH}" \
+              --body "Automated documentation PR.
+
+This PR updates Doxygen comments for changed .c/.h files according to the customized project standard.
+
+Review checklist:
+- No logic changes
+- Original comments preserved
+- No removed printf/debug output
+- No removed commented-out includes
+- Suggestions only as // Suggestion: ...
+"
+          else
+            echo "An open PR already exists."
+          fi
