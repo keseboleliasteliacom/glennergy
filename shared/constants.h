@@ -1,0 +1,10 @@
+#ifndef GLENNERGY_CONSTANTS_H
+#define GLENNERGY_CONSTANTS_H
+
+//From Meteo
+#define KVARTAR_TOTALT 128
+#define NAME_MAX 128
+#define RAW_DATA_MAX 16000
+#define PROPERTIES_MAX 5
+
+#endif

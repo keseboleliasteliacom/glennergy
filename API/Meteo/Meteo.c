@@ -186,7 +186,7 @@ int meteo_Fetch(MeteoData *_MeteoData)
             return -3;
         }
 
-        
+
     }
     Curl_Dispose(&response);
     return 0;

@@ -109,12 +109,13 @@ int Connection_Handle(Connection *_Connection)
     // Now, if we have a get request we actually want to handle, i.e "/id=3", we continue handling it
 
     // OBS/TODO - I produktion måste den här vara aktiv för att HTTP requesten ska fungera direkt och få data
-    int client_id = strtol(request.url, request.url + 1, 10);
+    char *reqplusone = request.url + 1;
+    int client_id = strtol(request.url, &reqplusone, 10);
     // Men den här behövs för att Håkan ska kunna kompilera. Raden ovanför verkar funka med ubuntu
     //int client_id = strtol(request.url + 1, NULL, 10);
     printf("id: %d\n", client_id);
 
-    int shm_fd;
+    int shm_fd = -1;
     sem_t *mutex;
 
     AlgoritmShared *memory;
@@ -175,7 +176,7 @@ int Connection_Handle(Connection *_Connection)
 
     char response[12000];
     //snprintf(response, sizeof(response), RESPONSE_HEADER, strlen(json_data), json_data);
-    int actualLength = snprintf(response, sizeof(response), RESPONSE_HEADER, strlen(json_data), json_data);
+    size_t actualLength = snprintf(response, sizeof(response), RESPONSE_HEADER, strlen(json_data), json_data);
     if (actualLength >= sizeof(response))
     {
         LOG_ERROR("Response truncated: actual length %d exceeds buffer size %zu", actualLength, sizeof(response));

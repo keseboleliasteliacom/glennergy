@@ -1,9 +1,7 @@
 #ifndef INPUTCACHE_H
 #define INPUTCACHE_H
 
-
-#include "../API/Meteo/Meteo.h"
-#include "../API/Spotpris/Spotpris.h"
+#include "../shared/types.h"
 #include "../Libs/Homesystem.h"
 
 #define FIFO_METEO_READ "/tmp/fifo_meteo"
