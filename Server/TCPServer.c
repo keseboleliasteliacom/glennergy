@@ -1,4 +1,11 @@
+/**
+ * @file TCPServer.c
+ * @brief Implementation of TCP server functionality.
+ * @ingroup TCPServer
+ */
+
 #define MODULE_NAME "TCPServer"
+
 #include "TCPServer.h"
 #include "Log/Logger.h"
 #include <errno.h>
@@ -12,6 +19,16 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+/**
+ * @brief Internal worker function for polling and accepting incoming connections.
+ *
+ * @param _Context Pointer to TCPServer instance.
+ * @param monTime Monotonic time (unused).
+ *
+ * @pre _Context must not be NULL.
+ * @post Accepts connections if available.
+ * @warning Runs repeatedly in a non-blocking task; does not block.
+ */
 void TCPServer_Work(void *_Context, uint64_t monTime);
 
 int TCPServer_Initialize(TCPServer **_TCPServer, int port, int backlog, TCPServer_OnConnection callback, void *context)
@@ -29,6 +46,7 @@ int TCPServer_Initialize(TCPServer **_TCPServer, int port, int backlog, TCPServe
 
     *_TCPServer = tcp_server;
 
+    // Suggestion: Validate input parameters (port range, backlog > 0)
     return 0;
 }
 
@@ -56,12 +74,11 @@ int TCPServer_Listen(TCPServer *_TCPServer)
     for (struct addrinfo *temp = res; temp; temp = temp->ai_next)
     {
         sock = socket(temp->ai_family, temp->ai_socktype, temp->ai_protocol);
+        // Suggestion: Could check if sock < 0 and handle failure
 
-        if ((setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval))) <
-            0)
-        {
-            continue;
-        }
+        if ((setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval))) < 0)
+            // Suggestion: Could handle setsockopt error
+            ;
 
         if ((bind(sock, temp->ai_addr, temp->ai_addrlen)) < 0)
         {
@@ -91,6 +108,8 @@ int TCPServer_Listen(TCPServer *_TCPServer)
 
     _TCPServer->task = smw_create_task(_TCPServer, TCPServer_Work);
     LOG_INFO("TCP Server listening");
+
+    // Suggestion: Add logging for socket(), setsockopt(), bind() failures
     return 0;
 }
 
@@ -116,6 +135,7 @@ int TCPServer_Accept(TCPServer *_TCPServer)
         return -1;
     }
 
+    // Suggestion: Consider handling EINTR explicitly
     return 0;
 }
 
@@ -127,13 +147,15 @@ void TCPServer_Work(void *_Context, uint64_t monTime)
         return;
 
     TCPServer_Accept(tcp_server);
+
+    // Suggestion: Use monTime for periodic logic or timeout handling if needed
 }
 
 void TCPServer_Disconnect(int socket)
 {
-
     close(socket);
     socket = -1;
+    // Suggestion: Setting socket = -1 does not affect caller
 }
 
 void TCPServer_Dispose(TCPServer** _TCPServer)

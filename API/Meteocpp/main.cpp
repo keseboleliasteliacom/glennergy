@@ -1,3 +1,10 @@
+/**
+ * @file main.cpp
+ * @brief Entry point for Meteo C++ service.
+ *
+ * @ingroup MeteoCppModule
+ */
+
 #include "Meteo.hpp"
 #include <iostream>
 #include <string>
@@ -12,6 +19,16 @@ constexpr const char* FIFO_METEO_WRITE = "/tmp/fifo_meteo";
     Kör make i den här mappen, kopiera binären till Meteo-matten, kör sedan installations-skriptet och "Glennergy-Main" som vanligt.
 */
 
+/**
+ * @brief Main entry point.
+ *
+ * @return 0 on success, negative on failure
+ *
+ * @pre FIFO must exist or be created externally
+ * @post Meteo data written to FIFO
+ *
+ * @warning Blocking I/O operations
+ */
 int main()
 {
     std::cout << "Starting Meteo API...\n";

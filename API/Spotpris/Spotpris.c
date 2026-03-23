@@ -1,3 +1,10 @@
+/**
+ * @file Spotpris.c
+ * @brief Implementation of the Spotpris module.
+ *
+ * @ingroup SPOTPRIS
+ */
+
 #define MODULE_NAME "SPOTPRIS"
 #include "../../Server/Log/Logger.h"
 #include "Spotpris.h"
@@ -7,6 +14,11 @@
 #include <string.h>
 #include "../../Libs/Utils/utils.h"
 
+/**
+ * @brief Number of days to fetch.
+ *
+ * @note Fetches both current and next day.
+ */
 #define NUM_DAYS 2 // Vi hämtar både dagens och morgondagens data
 
 // Support funktions för internt användning
@@ -41,7 +53,31 @@
 //         DagligSpotpris_Print(&a->areas[i]);
 // }
 
-// Levererar en populera AllaSpotpriser struct
+/**
+ * @brief Fetches spot price data and populates AllaSpotpriser.
+ *
+ * For each electricity area:
+ * - Builds API URL
+ * - Performs HTTP GET request
+ * - Parses JSON response
+ * - Stores both structured data and raw JSON
+ *
+ * @param[out] _AllaSpotpriser Output structure to populate.
+ *
+ * @return
+ * - 0 on success (partial data possible)
+ * - -1 on critical failure (NULL input)
+ *
+ * @note Performs blocking HTTP requests.
+ * @note Up to 8 HTTP calls (4 areas × 2 days).
+ * @note Uses Jansson for JSON parsing.
+ * @note Logs errors via Logger module.
+ *
+ * @warning Raw JSON buffer may truncate large responses.
+ *
+ * @pre _AllaSpotpriser must not be NULL.
+ * @post Structure contains fetched and parsed data.
+ */
 int Spotpris_FetchAll(AllaSpotpriser *_AllaSpotpriser)
 {
     if (!_AllaSpotpriser)
@@ -66,7 +102,6 @@ int Spotpris_FetchAll(AllaSpotpriser *_AllaSpotpriser)
 
     for (int i = 0; i < 4; i++)
     {
-
         json_t *total_data = json_array();
         for (int k = 0; k < NUM_DAYS; k++)
         {

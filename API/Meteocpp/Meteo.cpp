@@ -1,3 +1,10 @@
+/**
+ * @file Meteo.cpp
+ * @brief Implementation of Meteo C++ module.
+ *
+ * @ingroup MeteoCppModule
+ */
+
 // #define MODULE_NAME "METEO"
 
 // #include "Logger.hpp"
@@ -14,11 +21,27 @@ namespace meteocpp {
 
 using json = nlohmann::json;
 
+/**
+ * @brief Build Open-Meteo API URL.
+ *
+ * @param[in] lats Comma-separated latitudes
+ * @param[in] lons Comma-separated longitudes
+ * @return Formatted URL string
+ */
 static auto buildUrl(const std::string& lats, const std::string& lons) -> std::string
 {
     return std::vformat(METEO_LINK, std::make_format_args(lats, lons));
 }
 
+/**
+ * @brief Fetch JSON data from API.
+ *
+ * @param[in] lats Latitude string
+ * @param[in] lons Longitude string
+ * @return Optional JSON string
+ *
+ * @note Internal helper
+ */
 std::optional<std::string> fetchJson(const std::string& lats, const std::string& lons)
 {
     auto url = buildUrl(lats, lons);
@@ -35,6 +58,9 @@ std::optional<std::string> fetchJson(const std::string& lats, const std::string&
     return result;
 }
 
+/**
+ * @brief Load configuration from file.
+ */
 static bool loadGlennergy(MeteoData& data, std::string_view path)
 {
     std::ifstream file{std::string{path}};
@@ -88,6 +114,9 @@ static bool loadGlennergy(MeteoData& data, std::string_view path)
     return true;
 }
 
+/**
+ * @brief Parse weather samples from JSON.
+ */
 static bool parseSamplesDirect(PropertyInfo& prop, const json& root)
 {
     if (!root.contains("minutely_15") || !root["minutely_15"].is_object())
@@ -105,6 +134,8 @@ static bool parseSamplesDirect(PropertyInfo& prop, const json& root)
     const auto &day     = h["is_day"];
 
     size_t count = std::min(temps.size(), static_cast<size_t>(KVARTAR_TOTALT));
+
+    // Suggestion: Validate all arrays have equal size before accessing
 
     for (size_t j = 0; j < count; j++)
     {
@@ -127,16 +158,25 @@ static bool parseSamplesDirect(PropertyInfo& prop, const json& root)
     return true;
 }
 
+/**
+ * @brief Constructor.
+ */
 meteo::meteo()
 {
     std::memset(&m_data, 0, sizeof(MeteoData));
 }
 
+/**
+ * @brief Load configuration.
+ */
 bool meteo::load(std::string_view configPath)
 {
     return loadGlennergy(m_data, configPath);
 }
 
+/**
+ * @brief Fetch all weather data.
+ */
 bool meteo::fetchAll()
 {
     if (m_data.pCount == 0) return true;
