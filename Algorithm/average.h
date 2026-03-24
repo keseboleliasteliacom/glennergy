@@ -52,7 +52,7 @@ typedef struct {
  * @pre `spot` and `cache` must be valid pointers
  * @post `spot` contains min, max, average, median, q25, q75 per area
  * @warning Logs errors to stderr if data missing
- */
+ */double average_WindowLow_percent(SpotEntry_t *entry, double min, double max);
 int average_SpotprisStats(SpotStats_t *spot, InputCache_t *cache);
 
 /**

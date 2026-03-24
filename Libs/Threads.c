@@ -11,6 +11,7 @@ Queue global_queue;
 
 void *Threads_Work(void *arg);
 
+
 int Threads_Initialize(Threads *_ThreadPool)
 {
     // Initializing queue struct, maybe move to its own function/file?
@@ -140,3 +141,9 @@ void Threads_Dispose(Threads *_ThreadPool)
         pthread_join(_ThreadPool[i].thread, NULL);
     }
 }
+
+
+
+
+
+
