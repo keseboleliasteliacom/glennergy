@@ -157,10 +157,10 @@ int Connection_Handle(Connection *_Connection)
             json_object_set_new(obj, "timestamp", json_string(memory->result[i].time[j].time));
             json_array_append_new(arr, obj);
 
-            if (strstr(memory->result[i].time[j].time, "23:45") != NULL)
-            {
-                break;
-            }
+            //if (strstr(memory->result[i].time[j].time, "23:45") != NULL)
+            //{
+            //    break;
+            //}
         }
     }
 

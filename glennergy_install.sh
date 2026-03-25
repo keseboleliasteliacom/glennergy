@@ -8,7 +8,7 @@ if [ -f Makefile ]; then
     sudo make install
 fi
 
-find . -type f -name Makefile | while read mf; do
+find . -path "./Client-CPP" -prune -o -type f -name Makefile -print | while read mf; do
     dir=$(dirname "$mf")
     echo "Processing $dir"
     make -C "$dir"
