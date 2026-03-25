@@ -1,12 +1,3 @@
-/**
- * @file average.c
- * @brief Statistical calculations for Algorithm module.
- * @ingroup Algorithm
- *
- * Contains functions for computing statistics on spot prices,
- * detecting low-price windows, and generating BUY/HOLD/SELL recommendations.
- * Original logging and printing preserved.
- */
 // #define MODULE_NAME "ALGOINFLUENCER"
 // #include "algoinfluencer.h"
 // #include "../../server/log/logger.h"
@@ -17,38 +8,18 @@
 #include "average.h"
 #include "../Cache/InputCache.h"
 
-/**
- * @brief Area names used for indexing statistics
- * @note Used for printing and logging; array size defined by AREA_COUNT
- */
 const char *area_names[AREA_COUNT] = {"SE1", "SE2", "SE3", "SE4"}; // usch
 
-/**
- * @brief Compare two doubles for qsort
- * @param a Pointer to first double
- * @param b Pointer to second double
- * @return -1 if *a < *b, 1 if *a > *b, 0 if equal
- * @note Used internally by average_SpotprisStats
- */
 int compare_double(const void *a, const void *b)
 {
     double diff = (*(double *)a - *(double *)b);
     if (diff < 0)
         return -1; // a < b
     if (diff > 0)
-        return 1;  // a > b
-    return 0;      // a == b
+        return 1; // a > b
+    return 0;     // a == b
 }
 
-/**
- * @brief Compute statistics for spot prices from InputCache
- * @param spot Pointer to SpotStats_t to store results
- * @param cache Pointer to InputCache_t containing input data
- * @return 0 on success, -1 on invalid parameters
- * @pre `spot` and `cache` must be valid pointers
- * @post `spot` contains min, max, average, median, q25, q75 for each area
- * @warning Logs errors to stderr if data missing
- */
 int average_SpotprisStats(SpotStats_t *spot, InputCache_t *cache)
 {
     if (!cache || !spot)
@@ -68,7 +39,7 @@ int average_SpotprisStats(SpotStats_t *spot, InputCache_t *cache)
             continue;
         }
 
-        double sorted[192]; // Suggestion: Could dynamically allocate based on count to avoid fixed size
+        double sorted[192];
         double sum = 0.0;
 
         for (size_t samples = 0; samples < count; samples++)
@@ -104,7 +75,6 @@ int average_SpotprisStats(SpotStats_t *spot, InputCache_t *cache)
     return 0;
 }
 
-<<<<<<< HEAD
 
 
 double average_WindowLow_percent(SpotEntry_t *entry, double min, double max)
@@ -134,16 +104,6 @@ double average_WindowLow_percent(SpotEntry_t *entry, double min, double max)
     return percentage;
 }
 
-=======
-/**
- * @brief Detect low-price windows in cache
- * @param cache Pointer to InputCache_t
- * @param q25_threshold Threshold for 25th percentile
- * @return 0 on success, -1 if cache invalid
- * @warning Prints detected low-price windows to stdout
- * @note Only uses the first area (SE1) for detection
- */
->>>>>>> 134fa1332d9b65fe00fc1e597cc285c0c1c4f593
 int average_WindowLow(InputCache_t *cache, double q25_threshold)
 {
     if (!cache)
@@ -154,7 +114,6 @@ int average_WindowLow(InputCache_t *cache, double q25_threshold)
 
     printf(" q25_threshold: %.3f\n", q25_threshold);
     int start = -1;
-
     for (size_t i = 0; i < cache->spotpris.count[0]; i++)
     {
         double price = cache->spotpris.data[0][i].sek_per_kwh;
@@ -179,7 +138,6 @@ int average_WindowLow(InputCache_t *cache, double q25_threshold)
             }
         }
     }
-
     if (start != -1)
     {
         printf(" Low price window: %s (%.3f SEK/kWh)\n\t\tto %s (%.3f SEK/kWh)\n",
@@ -192,15 +150,6 @@ int average_WindowLow(InputCache_t *cache, double q25_threshold)
     return 0;
 }
 
-/**
- * @brief Determine BUY/HOLD/SELL recommendation based on thresholds
- * @param entry Pointer to SpotEntry_t to evaluate
- * @param q25_threshold Lower threshold
- * @param q75_threshold Upper threshold
- * @return 1 = BUY, 2 = HOLD, 3 = SELL, 0 = invalid, -1 = error
- * @pre `entry` must not be NULL
- * @warning Prints evaluation details to stdout
- */
 int average_WindowLow_test(SpotEntry_t *entry, double q25_threshold, double q75_threshold)
 {
     if (!entry)
@@ -234,14 +183,6 @@ int average_WindowLow_test(SpotEntry_t *entry, double q25_threshold, double q75_
     return 0;
 }
 
-/**
- * @brief Test function computing spot statistics from Spot_t structure
- * @param spot Pointer to SpotStats_t to store results
- * @param entry Pointer to Spot_t input
- * @return 0 on success, -1 on invalid parameters
- * @pre `spot` and `entry` must not be NULL
- * @post `spot` contains computed statistics
- */
 int average_SpotprisStats_test(SpotStats_t *spot, Spot_t *entry)
 {
     if (!entry || !spot)
@@ -260,7 +201,7 @@ int average_SpotprisStats_test(SpotStats_t *spot, Spot_t *entry)
             continue;
         }
 
-        double sorted[96]; // Suggestion: Could dynamically allocate based on count
+        double sorted[96];
         double sum = 0.0;
 
         for (size_t samples = 0; samples < count; samples++)
