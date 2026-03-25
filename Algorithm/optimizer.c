@@ -84,8 +84,33 @@ int optimize_HomeEnergy(CacheData_t *cache, int home_idx, double *solar_predicti
     double min_price = 999.0;
     double max_price = 0.0;
 
-    double peak_solar_per_slot = home->panel_capacitykw * HOURS_PER_SLOT;
+    for (int i = 0; i < MAX_SLOTS; i++)
+    {
+        int spotpris_slot = i + spotpris_offset;
+        if (spotpris_slot >= (int)cache->spotpris.count[area_idx]) {
+            break;
+        }
 
+        double solar_kwh = solar_predictions[i];
+        double grid_price = cache->spotpris.data[area_idx][spotpris_slot].sek_per_kwh;
+        
+        if (solar_kwh > max_solar) {
+            max_solar = solar_kwh;
+        }
+        
+        if (grid_price > 0 && grid_price < min_price) {
+            min_price = grid_price;
+        }
+        
+        if (grid_price > max_price) {
+            max_price = grid_price;
+        }
+    }
+
+    // Use actual peak solar for normalization (with fallback to theoretical max)
+    double peak_solar_for_normalization = max_solar > 0.001 ? max_solar : (home->panel_capacitykw * HOURS_PER_SLOT);
+
+    // Second pass: calculate scores and strategies with proper normalization
     for (int i = 0; i < MAX_SLOTS; i++)
     {
         int spotpris_slot = i + spotpris_offset;
@@ -95,7 +120,7 @@ int optimize_HomeEnergy(CacheData_t *cache, int home_idx, double *solar_predicti
             for (int remaining = i; remaining < MAX_SLOTS; remaining++) {
                 result->slots[remaining].strategy = STRATEGY_NO_DATA;
             }
-            break;  // No more spotpris data available
+            break;
         }
 
         double solar_kwh = solar_predictions[i];
@@ -104,37 +129,32 @@ int optimize_HomeEnergy(CacheData_t *cache, int home_idx, double *solar_predicti
         strncpy(result->slots[i].timestamp, cache->spotpris.data[area_idx][spotpris_slot].time_start, sizeof(result->slots[i].timestamp) - 1);
         result->slots[i].timestamp[sizeof(result->slots[i].timestamp) - 1] = '\0';
 
-        
         result->slots[i].solar_kwh = solar_kwh;
         result->slots[i].grid_price = grid_price;
         
-        if (solar_kwh > SOLAR_KWH_THRESHOLD) {
-            result->slots[i].strategy = STRATEGY_USE_SOLAR;
-        } else if (grid_price < cheap_threshold) {
+        // Calculate score with proper normalization
+        result->slots[i].score = calculate_data_score(&result->slots[i], &spot_stats->area[area_idx], peak_solar_for_normalization);
+        
+        // Strategy based on score and thresholds
+        if (result->slots[i].score >= 0.5) {
             result->slots[i].strategy = STRATEGY_USE_GRID_CHEAP;
         } else {
             result->slots[i].strategy = STRATEGY_AVOID_GRID;
         }
         
-        result->slots[i].score = calculate_data_score(&result->slots[i], &spot_stats->area[area_idx], peak_solar_per_slot);
-        
         result->total_solar_kwh += solar_kwh;
-        if (solar_kwh > max_solar) {
-            max_solar = solar_kwh;
+        if (solar_kwh >= max_solar) {
             result->peak_solar_slot = i;
         }
         
-        if (grid_price > 0 && grid_price < min_price) {
-            min_price = grid_price;
+        if (grid_price <= min_price) {
             result->cheapest_grid_slot = i;
         }
         
-        if (grid_price > max_price) {
-            max_price = grid_price;
+        if (grid_price >= max_price) {
             result->most_expensive_slot = i;
         }
     }
-    
     LOG_INFO("Home %d: %.2f kWh solar/day, peak slot %d, cheapest grid slot %d, avoid slot %d",
              home->id,
              result->total_solar_kwh,
